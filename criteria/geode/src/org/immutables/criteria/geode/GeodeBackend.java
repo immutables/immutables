@@ -30,6 +30,8 @@ import org.apache.geode.cache.query.Struct;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.BackendException;
 import org.immutables.criteria.backend.DefaultResult;
+import org.immutables.criteria.backend.IdExtractor;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
@@ -38,8 +40,6 @@ import org.immutables.criteria.expression.AggregationCall;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.backend.IdExtractor;
-import org.immutables.criteria.backend.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;
@@ -176,8 +176,16 @@ public class GeodeBackend implements Backend {
 
       // use replace for update (after extracting ids)
       return Flowable.fromCallable(() -> {
-        toInsert.forEach(region::replace);
-        return WriteResult.unknown();
+        long inserted = 0;
+        long updated = 0;
+        for (Map.Entry<Object, Object> entry: toInsert.entrySet()) {
+          if (region.replace(entry.getKey(), entry.getValue()) == null) {
+            inserted++;
+          } else {
+            updated++;
+          }
+        }
+        return GeodeWriteResult.of().withInsertedCount(inserted).withUpdatedCount(updated);
       });
     }
 
@@ -194,7 +202,7 @@ public class GeodeBackend implements Backend {
           return Flowable.error(new BackendException(String.format("Duplicate id %s for %s", entry.getKey(), entityType())));
         }
       }
-      return Flowable.just(WriteResult.unknown());
+      return Flowable.just(GeodeWriteResult.of().withInsertedCount(toInsert.size()));
     }
 
     private <T> Flowable<WriteResult> delete(StandardOperations.Delete op) {
