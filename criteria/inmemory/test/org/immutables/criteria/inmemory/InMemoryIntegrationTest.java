@@ -28,6 +28,7 @@ import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
+import org.immutables.criteria.typemodel.WriteTemplate;
 import org.junit.jupiter.api.Nested;
 
 class InMemoryIntegrationTest {
@@ -107,6 +108,13 @@ class InMemoryIntegrationTest {
   @Nested
   class DateTest extends DateTemplate {
     private DateTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class WriteTest extends WriteTemplate {
+    private WriteTest() {
       super(backend);
     }
   }

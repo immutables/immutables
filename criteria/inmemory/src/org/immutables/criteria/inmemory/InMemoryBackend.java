@@ -18,13 +18,14 @@ package org.immutables.criteria.inmemory;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.BackendException;
 import org.immutables.criteria.backend.DefaultResult;
+import org.immutables.criteria.backend.IdExtractor;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.backend.IdExtractor;
-import org.immutables.criteria.backend.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.Comparator;
@@ -93,6 +94,8 @@ public class InMemoryBackend implements Backend {
         return query((StandardOperations.Select) operation);
       } else if (operation instanceof StandardOperations.Insert) {
         return insert((StandardOperations.Insert) operation);
+      } else if (operation instanceof StandardOperations.Update) {
+        return update((StandardOperations.Update) operation);
       }
 
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
@@ -148,16 +151,40 @@ public class InMemoryBackend implements Backend {
       return Flowable.fromIterable(stream.collect(Collectors.toList()));
     }
 
-    private <T> Publisher<WriteResult> insert(StandardOperations.Insert op) {
+    private Publisher<WriteResult> update(StandardOperations.Update op) {
+      if (op.values().isEmpty()) {
+        return Flowable.just(WriteResult.empty());
+      }
+
+      Map<Object, Object> toUpdate = op.values().stream().collect(Collectors.toMap(idExtractor::extract, v -> v));
+
+      if (op.upsert()) {
+        return Flowable.fromCallable(() -> {
+          store.putAll(toUpdate);
+          return WriteResult.unknown();
+        });
+      }
+
+      return Flowable.fromCallable(() -> {
+        toUpdate.forEach(store::replace);
+        return WriteResult.unknown();
+      });
+    }
+
+    private Publisher<WriteResult> insert(StandardOperations.Insert op) {
       if (op.values().isEmpty()) {
         return Flowable.just(WriteResult.empty());
       }
 
       final Map<Object, Object> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor::extract, x -> x));
-      return Flowable.fromCallable(() -> {
-        this.store.putAll(toInsert);
-        return WriteResult.unknown();
+      toInsert.forEach((k, v) -> {
+        Object result = store.putIfAbsent(k, v);
+        if (result != null) {
+          throw new BackendException(String.format("Duplicate key %s for %s", k, entityType()));
+        }
       });
+
+      return Flowable.just(WriteResult.unknown());
     }
   }
 }
