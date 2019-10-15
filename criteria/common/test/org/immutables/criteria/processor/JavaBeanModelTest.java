@@ -115,6 +115,13 @@ public class JavaBeanModelTest {
     check(names).hasContentInAnyOrder("a", "ab", "abc");
   }
 
+  @Test
+  public void invalidIsGetter() {
+    ValueType valueType = rule.value(InvalidIsGetter.class);
+    List<String> names = valueType.attributes.stream().map(ValueAttribute::name).collect(Collectors.toList());
+    check(names).isEmpty();
+  }
+
   @ProcessorRule.TestImmutable
   @Criteria
   @Criteria.Repository
@@ -375,6 +382,34 @@ public class JavaBeanModelTest {
 
     public void setAbc(String abc) {
       Abc = abc;
+    }
+  }
+
+  @ProcessorRule.TestImmutable
+  @Criteria
+  static class InvalidIsGetter {
+
+    private int a;
+    private String is2;
+
+    public boolean is() {
+      return false;
+    }
+
+    public int isA() {
+      return a;
+    }
+
+    public String is2() {
+      return is2;
+    }
+
+    public void setA(int a) {
+      this.a = a;
+    }
+
+    public void setIs2(String is2) {
+      this.is2 = is2;
     }
   }
 

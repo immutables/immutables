@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import org.immutables.generator.Naming;
 
 import javax.annotation.Nullable;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -194,8 +195,11 @@ final class JavaBeanAttributesCollector {
    */
   private class Getters {
     private final Map<String, ExecutableElement> getters;
+    private final TypeMirror boxedBooleanType;
 
     private Getters(Iterable<? extends ExecutableElement> methods) {
+      ProcessingEnvironment processing = protoclass.environment().processing();
+      this.boxedBooleanType = processing.getElementUtils().getTypeElement(Boolean.class.getCanonicalName()).asType();
       Map<String, ExecutableElement> map = new LinkedHashMap<>();
       for (ExecutableElement executable: methods) {
         if (isGetter(executable)) {
@@ -262,11 +266,20 @@ final class JavaBeanAttributesCollector {
         return false;
       }
 
+      // methods starting with "is" have to have boolean return type to be considered a valid JavaBean getter
+      if (name.startsWith("is") && name.length() > "is".length() && !isBoolean(executable.getReturnType())) {
+        return false;
+      }
+
       return executable.getParameters().isEmpty()
               && executable.getReturnType().getKind() != TypeKind.VOID
               && executable.getModifiers().contains(Modifier.PUBLIC)
               && !executable.getModifiers().contains(Modifier.STATIC)
               && !executable.getModifiers().contains(Modifier.ABSTRACT);
+    }
+
+    private boolean isBoolean(TypeMirror type) {
+      return type.getKind() == TypeKind.BOOLEAN || boxedBooleanType.equals(type);
     }
 
   }
