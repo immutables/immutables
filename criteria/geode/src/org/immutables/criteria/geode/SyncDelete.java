@@ -47,21 +47,41 @@ class SyncDelete implements Callable<WriteResult> {
     }
 
     Expression filter = operation.query().filter().orElseThrow(() -> new IllegalStateException("For " + operation));
-    Optional<List<?>> ids = Geodes.canDeleteByKey(filter, session.idResolver);
 
-    // list of ids is present in the expression
+    Optional<List<?>> ids = Geodes.canDeleteByKey(filter, session.idResolver);
+    // special case when expression contains only ID / key attribute
     if (ids.isPresent()) {
-      // delete by key: map.remove(key)
-      region.removeAll(ids.get());
-      return WriteResult.unknown();
+      return deleteByKeys(ids.get());
     }
 
     GeodeQueryVisitor visitor = new GeodeQueryVisitor(true, path -> String.format("e.value.%s", path.toStringPath()));
     OqlWithVariables oql = filter.accept(visitor);
 
+    // delete by query. Perform separate query to get list of IDs
     String query = String.format("select distinct e.key from %s.entries e where %s", region.getFullPath(), oql.oql());
     Collection<?> keys = (Collection<?>) session.queryService.newQuery(query).execute(oql.variables().toArray(new Object[0]));
     region.removeAll(keys);
     return GeodeWriteResult.of().withDeletedCount(keys.size());
+  }
+
+  /**
+   * Used for special-case delete by key operation
+   * @param keys list of keys to delete
+   */
+  private WriteResult deleteByKeys(List<?> keys) {
+    if (keys.isEmpty()) {
+      return WriteResult.empty();
+    }
+
+    // special case for single key delete
+    // Not using removeAll() because one can know if element was deleted based on return of remove()
+    // this return is used for WriteResult statistics
+    if (keys.size() == 1) {
+      boolean removed = region.remove(keys.get(0)) != null;
+      return GeodeWriteResult.of().withDeletedCount(removed ? 1 :0);
+    }
+
+    region.removeAll(keys);
+    return WriteResult.unknown(); // can't really return keys.size()
   }
 }

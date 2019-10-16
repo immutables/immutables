@@ -24,6 +24,6 @@ import org.immutables.value.Value;
 abstract class GeodeWriteResult implements WriteResult  {
 
   static ImmutableGeodeWriteResult of() {
-    return ImmutableGeodeWriteResult.builder().build();
+    return ImmutableGeodeWriteResult.builder().deletedCount(0).insertedCount(0).updatedCount(0).build();
   }
 }

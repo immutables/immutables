@@ -31,6 +31,7 @@ import org.immutables.criteria.expression.Visitors;
 import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -91,7 +92,7 @@ final class Geodes {
    * Geode (currently) doesn't support delete by query syntax ({@code DELETE ... WHERE ...}) and elements have to be
    * removed explicitly by key (using {@link Map#remove(Object)} or {@link Region#removeAll} API)
    *
-   * <p>Tries to detect if current criteria is based only on keys and extract them from expression (if it is only
+   * <p>Tries to detect if current criteria is based only on keys (entity ID) and extracts them from expression (if it is only
    * expression based on keys).
    *
    * <p>Example:
@@ -105,6 +106,7 @@ final class Geodes {
    * </pre>
    *
    * @param expr filter applied on entries for deletion
+   * @see Region#removeAll(Collection)
    */
   static Optional<List<?>> canDeleteByKey(Expression expr, IdResolver idResolver) {
     if (!(expr instanceof Call)) {
