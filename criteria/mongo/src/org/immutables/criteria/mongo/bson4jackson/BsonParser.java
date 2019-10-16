@@ -45,7 +45,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   private final AbstractBsonReader reader;
 
-  private final ParseContext context;
+  private ParseContext context;
   /**
    * The ObjectCodec used to parse the Bson object(s)
    */
@@ -69,10 +69,17 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       return Objects.toString(value);
     }
 
-    private Object setValue(Object value) {
+    private void setValue(Object value) {
       this.value = value;
       skipValue = false;
-      return value;
+    }
+
+    /**
+     * Means value was read from {@link BsonReader} this flag is used
+     * on next read token iteration to checker wherever to call {@link BsonReader#skipValue()}.
+     */
+    private boolean hasValue() {
+      return !skipValue;
     }
 
     /**
@@ -89,6 +96,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
     if (isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE)) {
       reader.close();
     }
+    context = null;
     _closed = true;
   }
 
@@ -134,7 +142,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       throw new JsonParseException(this, String.format("Can't convert %s (bson:%s) to %s", currentToken(), type(), Number.class.getName()));
     }
 
-    if (context.skipValue) {
+    if (!context.hasValue()) {
       // lazily read the value
       readValue();
     }
@@ -298,8 +306,8 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   private JsonToken next() throws JsonParseException {
 
-    if (context.skipValue && state() == AbstractBsonReader.State.VALUE) {
-      // means the value was not read before and can be skipped
+    if (!context.hasValue() && state() == AbstractBsonReader.State.VALUE) {
+      // means the value was not parsed before and can be skipped
       reader.skipValue();
     }
 
@@ -388,22 +396,21 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       return token.asString();
     }
 
-    if (!context.skipValue) {
-      return Objects.toString(context.value);
+    if (context.hasValue()) {
+      return context.valueAsString();
     }
 
     readValue();
-
     return context.valueAsString();
   }
 
   @Override
   public byte[] getBinaryValue(Base64Variant variant) throws IOException {
     if (type() != BsonType.BINARY) {
-      throw new JsonParseException(this, String.format("Expected %s got %s", BsonType.BINARY, type()));
+      throw new JsonParseException(this, String.format("Can't read binary data. Expected type %s got %s", BsonType.BINARY, type()));
     }
 
-    if (context.value == null) {
+    if (!context.hasValue()) {
       readValue();
     }
 
