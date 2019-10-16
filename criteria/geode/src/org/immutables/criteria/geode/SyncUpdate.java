@@ -47,14 +47,15 @@ class SyncUpdate implements Callable<WriteResult> {
 
     // use putAll for upsert
     if (operation.upsert()) {
-      region.putAll(toInsert);
-      return WriteResult.unknown();
+      return upsert(toInsert);
     }
 
     long inserted = 0;
     long updated = 0;
     for (Map.Entry<Object, Object> entry: toInsert.entrySet()) {
-      if (region.replace(entry.getKey(), entry.getValue()) == null) {
+      // need to iterate because update semantics which translates into map.replace()
+      boolean wasInserted = region.replace(entry.getKey(), entry.getValue()) == null;
+      if (wasInserted) {
         inserted++;
       } else {
         updated++;
@@ -62,5 +63,19 @@ class SyncUpdate implements Callable<WriteResult> {
     }
 
     return GeodeWriteResult.of().withInsertedCount(inserted).withUpdatedCount(updated);
+  }
+
+  private WriteResult upsert(Map<Object, Object> toUpsert) {
+    if (toUpsert.size() == 1) {
+      // for single value upsert one can return more meaningful WriteResult
+      Map.Entry<Object, Object> entry = toUpsert.entrySet().iterator().next();
+      Object result = region.put(entry.getKey(), entry.getValue());
+      return result == null ? GeodeWriteResult.of().withInsertedCount(1) : GeodeWriteResult.of().withUpdatedCount(1);
+    }
+
+    // generic case upsert in bulk
+    // we don't really know how many records were inserted / updated
+    region.putAll(toUpsert);
+    return WriteResult.unknown();
   }
 }
