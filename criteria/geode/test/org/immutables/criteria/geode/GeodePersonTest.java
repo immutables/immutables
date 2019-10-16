@@ -19,6 +19,7 @@ package org.immutables.criteria.geode;
 import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
+import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
@@ -77,6 +78,29 @@ public class GeodePersonTest extends AbstractPersonTest  {
     check(repository().findAll()).toList(Person::id).hasContentInAnyOrder("id3");
 
     repository().delete(person.id.in("id2", "id2", "id1", "id3"));
+    check(repository().findAll()).toList(Person::id).isEmpty();
+  }
+
+  @Test
+  void deleteByQuery() {
+    PersonGenerator generator = new PersonGenerator();
+    repository().insert(generator.next().withId("id1").withFullName("A").withAge(10));
+    repository().insert(generator.next().withId("id2").withFullName("B").withAge(20));
+    repository().insert(generator.next().withId("id3").withFullName("C").withAge(30));
+
+    repository().delete(person.age.atMost(9).fullName.is("A"));
+    check(repository().findAll()).toList(Person::id).hasContentInAnyOrder("id1", "id2", "id3");
+
+    // delete id1
+    repository().delete(person.age.atMost(10).fullName.is("A"));
+    check(repository().findAll()).toList(Person::id).hasContentInAnyOrder("id2", "id3");
+
+    // delete id2
+    repository().delete(person.age.between(19, 21));
+    check(repository().findAll()).toList(Person::id).hasContentInAnyOrder("id3");
+
+    // delete id3
+    repository().delete(person.fullName.is("C"));
     check(repository().findAll()).toList(Person::id).isEmpty();
   }
 }

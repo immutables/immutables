@@ -31,14 +31,13 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 class SyncSelect implements Callable<Iterable<Object>> {
 
   /**
    * Convert Geode specific {@link QueryService#UNDEFINED} value to null
    */
-  private final static Function<Object, Object> UNDEFINED_TO_NULL = value -> QueryService.UNDEFINED.equals(value) ? null : value;
+  private static final Function<Object, Object> UNDEFINED_TO_NULL = value -> QueryService.UNDEFINED.equals(value) ? null : value;
 
   private final GeodeBackend.Session session;
   private final StandardOperations.Select operation;
@@ -72,7 +71,9 @@ class SyncSelect implements Callable<Iterable<Object>> {
 
     // for projections use tuple function
     Function<Object, Object> tupleFn = operation.query().hasProjections() ? obj -> Geodes.castNumbers(toTuple(operation.query(), obj)) : x -> x;
+    @SuppressWarnings("unchecked")
     Iterable<Object> result = (Iterable<Object>) session.queryService.newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
+    // lazy transform
     return Iterables.transform(result, tupleFn::apply);
   }
 }

@@ -18,7 +18,6 @@ package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
 import org.apache.geode.cache.Region;
-import org.immutables.criteria.Criteria;
 import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Call;
@@ -37,9 +36,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Util class for Geode
+ * Util functions for Geode backend
  */
-class Geodes {
+final class Geodes {
 
   /**
    * Returns only predicate part to be appended to {@code WHERE} clause.
@@ -136,4 +135,6 @@ class Geodes {
     final List<Object> values = Visitors.toConstant(predicate.arguments().get(1)).values();
     return Optional.of(values);
   }
+
+  private Geodes() {}
 }

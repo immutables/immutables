@@ -38,7 +38,7 @@ class SyncInsert implements Callable<WriteResult> {
   }
 
   @Override
-  public WriteResult call() throws Exception {
+  public WriteResult call() {
     if (operation.values().isEmpty()) {
       return WriteResult.empty();
     }
