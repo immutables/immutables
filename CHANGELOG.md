@@ -1,7 +1,7 @@
-
 ### 2.8.0 (2019-09-19)
 - Criteria & Repositories API 
 - Not a bugfix release yet, expect more bugfixes in future 2.8.x versions
+- [2.8.0 release notes](https://github.com/immutables/immutables.github.io/blob/204c4ada80dcb42226b448294f1e90a36524ce52/2.8.0-release.md)
 
 ### 2.7.4 (2018-12-26)
 - Bugfix and refinements release! Thank you issue reports and PRs!
