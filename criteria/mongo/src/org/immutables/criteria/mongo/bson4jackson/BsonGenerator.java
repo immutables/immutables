@@ -38,8 +38,8 @@ public class BsonGenerator extends GeneratorBase implements Wrapper<BsonWriter> 
 
   private final BsonWriter writer;
 
-  BsonGenerator(int jsonFeatures, ObjectCodec codec, BsonWriter writer) {
-    super(jsonFeatures, codec);
+  BsonGenerator(int jsonFeatures, BsonWriter writer) {
+    super(jsonFeatures, null);
     this.writer = Objects.requireNonNull(writer, "writer");
   }
 

@@ -145,7 +145,7 @@ public class BsonParserTest {
 
     BasicOutputBuffer buffer = new BasicOutputBuffer();
     BsonWriter writer = new BsonBinaryWriter(buffer);
-    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    BsonGenerator generator = new BsonGenerator(0, writer);
     // write with jackson
     mapper.writeValue(generator, toWrite);
     BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
@@ -200,7 +200,7 @@ public class BsonParserTest {
     BasicOutputBuffer buffer = new BasicOutputBuffer();
     BsonWriter writer = new BsonBinaryWriter(buffer);
 
-    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    BsonGenerator generator = new BsonGenerator(0, writer);
     // write with Jackson
     mapper.writeValue(generator, expected);
 

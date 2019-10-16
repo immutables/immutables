@@ -64,14 +64,13 @@ class JacksonCodecRegistry implements CodecRegistry {
   private static class JacksonCodec<T> implements Codec<T> {
 
     private final Class<T> clazz;
-    private final ObjectMapper mapper;
     private final ObjectReader reader;
     private final ObjectWriter writer;
     private final IOContext ioContext;
 
     JacksonCodec(Class<T> clazz, ObjectMapper mapper) {
       this.clazz = Objects.requireNonNull(clazz, "clazz");
-      this.mapper = Objects.requireNonNull(mapper, "mapper");
+      Objects.requireNonNull(mapper, "mapper");
       this.reader = mapper.readerFor(clazz);
       this.writer = mapper.writerFor(clazz);
       this.ioContext =  new IOContext(new BufferRecycler(), null, false);
@@ -92,7 +91,7 @@ class JacksonCodecRegistry implements CodecRegistry {
 
     @Override
     public void encode(BsonWriter writer, T value, EncoderContext encoderContext) {
-      final BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+      final BsonGenerator generator = new BsonGenerator(0, writer);
       try {
         this.writer.writeValue(generator, value);
       } catch (IOException e) {

@@ -16,11 +16,11 @@
 
 package org.immutables.criteria.mongo.bson4jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentWriter;
 import org.bson.BsonNull;
 import org.bson.BsonValue;
+import org.bson.BsonWriter;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -34,12 +34,10 @@ import static org.immutables.check.Checkers.check;
  */
 class BsonGeneratorTest {
 
-  private final ObjectMapper mapper = new ObjectMapper();
-
   @Test
   void emptyObject() throws IOException {
     BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
-    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    BsonGenerator generator = generatorFor(writer);
     generator.writeStartObject();
     generator.writeEndObject();
 
@@ -50,7 +48,7 @@ class BsonGeneratorTest {
   @Test
   void binary() throws IOException {
     BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
-    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    BsonGenerator generator = generatorFor(writer);
     check(generator.canWriteBinaryNatively());
     check(writeAndReturnValue(gen -> gen.writeBinary(new byte[] {})).asBinary().getData()).isEmpty();
     check(writeAndReturnValue(gen -> gen.writeBinary(new byte[] {1})).asBinary().getData()).isOf((byte) 1);
@@ -61,7 +59,7 @@ class BsonGeneratorTest {
   @Test
   void checkClosed() throws IOException {
     BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
-    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    BsonGenerator generator = generatorFor(writer);
 
     check(!generator.isClosed());
     generator.close();
@@ -74,7 +72,7 @@ class BsonGeneratorTest {
   @Test
   void nulls() throws IOException {
     BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
-    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    BsonGenerator generator = generatorFor(writer);
     generator.writeStartObject();
 
     generator.writeFieldName("null");
@@ -101,7 +99,7 @@ class BsonGeneratorTest {
 
   private BsonValue writeAndReturnValue(IoConsumer<BsonGenerator> consumer) throws IOException {
     BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
-    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    BsonGenerator generator = generatorFor(writer);
     generator.writeStartObject();
     generator.writeFieldName("value");
     consumer.accept(generator);
@@ -113,6 +111,10 @@ class BsonGeneratorTest {
 
   private interface IoConsumer<T> {
     void accept(T value) throws IOException;
+  }
+
+  private BsonGenerator generatorFor(BsonWriter writer) {
+    return new BsonGenerator(0, writer);
   }
 
 
