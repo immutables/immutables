@@ -130,6 +130,10 @@ public class GeodeBackend implements Backend {
       }
 
       final StringBuilder oql = new StringBuilder("SELECT");
+      if (query.distinct()) {
+        oql.append(" DISTINCT ");
+      }
+
       if (!query.hasProjections()) {
         oql.append(query.count() ? " COUNT(*) " : " * ");
       } else {

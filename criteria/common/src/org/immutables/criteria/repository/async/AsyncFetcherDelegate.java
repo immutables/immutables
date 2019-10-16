@@ -67,7 +67,4 @@ class AsyncFetcherDelegate<T> implements AsyncFetcher<T> {
   static <T> AsyncFetcherDelegate<T> of(Query query, Backend.Session session) {
     return new AsyncFetcherDelegate<T>(ReactiveFetcher.of(query, session));
   }
-
-
-
 }

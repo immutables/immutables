@@ -16,22 +16,24 @@
 
 package org.immutables.criteria.repository.async;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapperTuple;
 
 import java.util.function.Function;
 
-public class AsyncMapperTuple {
+public interface AsyncMapperTuple {
 
-  private final ReactiveMapperTuple delegate;
+  <R> AsyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn);
 
-  AsyncMapperTuple(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapperTuple(query, session);
+  interface DistinctLimitOffset extends LimitOffset {
+    LimitOffset distinct();
   }
 
-  public <R> AsyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return AsyncFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface LimitOffset extends Offset {
+    Offset limit(long limit);
   }
+
+  interface Offset extends AsyncMapperTuple {
+    AsyncMapperTuple offset(long offset);
+  }
+
 }

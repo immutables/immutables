@@ -50,5 +50,16 @@ public interface RxJavaFetcher<T> extends Fetcher<T> {
    */
   Single<Long> count();
 
+  interface DistinctLimitOffset<T> extends LimitOffset<T> {
+    LimitOffset<T> distinct();
+  }
+
+  interface LimitOffset<T> extends Offset<T> {
+    Offset<T> limit(long limit);
+  }
+
+  interface Offset<T> extends RxJavaFetcher<T> {
+    RxJavaFetcher<T> offset(long offset);
+  }
 
 }

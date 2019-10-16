@@ -22,6 +22,7 @@ import org.immutables.criteria.repository.Fetcher;
 import org.reactivestreams.Publisher;
 
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * Reactive interface for fetcher
@@ -61,6 +62,16 @@ public interface ReactiveFetcher<T> extends Fetcher<T> {
    * Applies a mapping function to each element emitted by current fetcher
    */
   <X> ReactiveFetcher<X> map(Function<? super T, ? extends X> mapFn);
+
+  /**
+   * Applies mapping function to change query for current fetcher. Used to add query
+   * flags like {@code DISTINCT}, {@code LIMIT}, {@code OFFSET} etc.
+   *
+   * @param mapFn mapping function
+   * @return new fetcher instance with changed query
+   * @throws NullPointerException if {@code mapFn} argument is null
+   */
+  ReactiveFetcher<T> changeQuery(UnaryOperator<Query> mapFn);
 
   /**
    * Factory method

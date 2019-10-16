@@ -16,28 +16,27 @@
 
 package org.immutables.criteria.reactor;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction3;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapper3;
 
 import java.util.function.Function;
 
-public class ReactorMapper3<T1, T2, T3> {
+public interface ReactorMapper3<T1, T2, T3> {
 
-  private final ReactiveMapper3<T1, T2, T3> delegate;
+   <R> ReactorFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn);
 
-  ReactorMapper3(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper3<>(query, session);
+  <R> ReactorFetcher<R> map(Function<? super Tuple, ? extends R> mapFn);
+  
+  interface DistinctLimitOffset<T1, T2, T3> extends ReactorMapper3.LimitOffset<T1, T2, T3> {
+    LimitOffset<T1, T2, T3> distinct();
   }
 
-  public <R> ReactorFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
-    return ReactorFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface LimitOffset<T1, T2, T3> extends ReactorMapper3.Offset<T1, T2, T3> {
+    Offset<T1, T2, T3> limit(long limit);
   }
 
-  public <R> ReactorFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return ReactorFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface Offset<T1, T2, T3> extends ReactorMapper3<T1, T2, T3> {
+    ReactorMapper3<T1, T2, T3> offset(long offset);
   }
 
 }

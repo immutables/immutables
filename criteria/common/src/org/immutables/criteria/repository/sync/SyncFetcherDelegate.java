@@ -18,6 +18,7 @@ package org.immutables.criteria.repository.sync;
 
 import com.google.common.base.Preconditions;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
@@ -25,8 +26,13 @@ import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
-class SyncFetcherDelegate<T> implements SyncFetcher<T> {
+/**
+ * Implementation of {@link SyncFetcher}. Also has some package-private methods
+ * to allow delegation.
+ */
+class SyncFetcherDelegate<T> implements SyncFetcher<T>, SyncFetcher.DistinctLimitOffset<T> {
 
   private final ReactiveFetcher<T> fetcher;
 
@@ -59,6 +65,25 @@ class SyncFetcherDelegate<T> implements SyncFetcher<T> {
   @Override
   public long count() {
     return Publishers.blockingGet(fetcher.count());
+  }
+
+  @Override
+  public LimitOffset<T> distinct() {
+    return changeQuery(query -> ImmutableQuery.copyOf(query).withDistinct(true));
+  }
+
+  @Override
+  public Offset<T> limit(long limit) {
+    return changeQuery(query -> ImmutableQuery.copyOf(query).withLimit(limit));
+  }
+
+  @Override
+  public SyncFetcher<T> offset(long offset) {
+    return changeQuery(query -> ImmutableQuery.copyOf(query).withOffset(offset));
+  }
+
+  private SyncFetcherDelegate<T> changeQuery(UnaryOperator<Query> fn) {
+    return new SyncFetcherDelegate<>(fetcher.changeQuery(fn));
   }
 
   static <T> SyncFetcherDelegate<T> fromReactive(ReactiveFetcher<T> fetcher) {

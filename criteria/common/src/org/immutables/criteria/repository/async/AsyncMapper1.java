@@ -16,51 +16,26 @@
 
 package org.immutables.criteria.repository.async;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.reactive.ReactiveMapper1;
-
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletionStage;
 
-public class AsyncMapper1<T1> implements AsyncFetcher<T1> {
+public interface AsyncMapper1<T1> extends AsyncFetcher<T1> {
 
-  private final ReactiveMapper1<T1> mapper;
-  private final AsyncFetcherDelegate<T1> fetcher;
+  /**
+   * Wrap potentially nullable items in an {@link Optional}. Allows
+   * null-safe processing of elements after fetch.
+   */
+  AsyncFetcher<Optional<T1>> asOptional();
 
-  AsyncMapper1(Query query, Backend.Session session) {
-    this.mapper = new ReactiveMapper1<>(query, session);
-    this.fetcher = AsyncFetcherDelegate.fromReactive(mapper);
+  interface DistinctLimitOffset<T> extends AsyncMapper1<T>, LimitOffset<T> {
+    AsyncMapper1.LimitOffset<T> distinct();
   }
 
-  public AsyncFetcher<Optional<T1>> asOptional() {
-    return AsyncFetcherDelegate.fromReactive(mapper.asOptional());
+  interface LimitOffset<T> extends Offset<T> {
+    AsyncMapper1.Offset<T> limit(long limit);
   }
 
-  @Override
-  public CompletionStage<List<T1>> fetch() {
-    return fetcher.fetch();
+  interface Offset<T> extends AsyncMapper1<T> {
+    AsyncMapper1<T> offset(long offset);
   }
-
-  @Override
-  public CompletionStage<T1> one() {
-    return fetcher.one();
-  }
-
-  @Override
-  public CompletionStage<Optional<T1>> oneOrNone() {
-    return fetcher.oneOrNone();
-  }
-
-  @Override
-  public CompletionStage<Boolean> exists() {
-    return fetcher.exists();
-  }
-
-  @Override
-  public CompletionStage<Long> count() {
-    return fetcher.count();
-  }
-
+  
 }

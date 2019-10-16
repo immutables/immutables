@@ -16,28 +16,27 @@
 
 package org.immutables.criteria.repository.rxjava2;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapper2;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class RxJavaMapper2<T1, T2> {
+public interface RxJavaMapper2<T1, T2> {
 
-  private final ReactiveMapper2<T1, T2> delegate;
+  <R> RxJavaFetcher<R> map(BiFunction<T1, T2, R> mapFn);
 
-  RxJavaMapper2(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper2<>(query, session);
+  <R> RxJavaFetcher<R> map(Function<? super Tuple, ? extends R> mapFn);
+
+  interface DistinctLimitOffset<T1, T2> extends LimitOffset<T1, T2> {
+    LimitOffset<T1, T2> distinct();
   }
 
-  public <R> RxJavaFetcher<R> map(BiFunction<T1, T2, R> mapFn) {
-    return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface LimitOffset<T1, T2> extends Offset<T1, T2> {
+    Offset<T1, T2> limit(long limit);
   }
 
-  public <R> RxJavaFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface Offset<T1, T2> extends RxJavaMapper2<T1, T2> {
+    RxJavaMapper2<T1, T2> offset(long offset);
   }
 
 }

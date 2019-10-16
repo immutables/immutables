@@ -109,11 +109,15 @@ public class CriteriaChecker<T> {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T> CriteriaChecker<T> of(Reader<?> reader) {
+  public static <T> CriteriaChecker<T> ofReader(Reader<?> reader) {
     Preconditions.checkArgument(reader instanceof Fetcher,
             "%s should implement %s", reader.getClass(), Fetcher.class.getName());
 
     return new CriteriaChecker<>((Reader<T>) reader);
+  }
+
+  public static <T> CriteriaChecker<T> ofFetcher(Fetcher<?> fetcher) {
+    return ofReader((Reader<?>) fetcher);
   }
 
 }

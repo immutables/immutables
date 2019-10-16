@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
@@ -35,16 +36,16 @@ import java.util.stream.StreamSupport;
  * Synchronous (blocking) reader operations.
  * @param <T> entity type
  */
-public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements SyncFetcher<T> {
+public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements SyncFetcher.LimitOffset<T> {
 
-  private final Query query;
+  private final ImmutableQuery query;
   private final Backend.Session session;
   private final SyncFetcher<T> fetcher;
 
   public SyncReader(Query query, Backend.Session session) {
     super(query);
-    this.query = query;
-    this.session = session;
+    this.query = ImmutableQuery.copyOf(query);
+    this.session = Objects.requireNonNull(session, "session");
     this.fetcher = SyncFetcherDelegate.of(query, session);
   }
 
@@ -53,37 +54,37 @@ public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements Sync
     return new SyncReader<>(query, session);
   }
 
-  public <T1> SyncMapper1<T1> select(Projection<T1> proj1) {
+  public <T1> SyncMapper1.DistinctLimitOffset<T1> select(Projection<T1> proj1) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
-    return new SyncMapper1<T1>(newQuery, session);
+    return new SyncMappers.Mapper1<T1>(newQuery, session);
   }
 
-  public <T1, T2> SyncMapper2<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
+  public <T1, T2> SyncMapper2.DistinctLimitOffset<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2));
-    return new SyncMapper2<>(newQuery, session);
+    return new SyncMappers.Mapper2<>(newQuery, session);
   }
 
-  public <T1, T2, T3> SyncMapper3<T1, T2, T3> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3) {
+  public <T1, T2, T3> SyncMapper3.DistinctLimitOffset<T1, T2, T3> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3));
-    return new SyncMapper3<>(newQuery, session);
+    return new SyncMappers.Mapper3<>(newQuery, session);
   }
 
-  public <T1, T2, T3, T4> SyncMapper4<T1, T2, T3, T4> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4) {
+  public <T1, T2, T3, T4> SyncMapper4.DistinctLimitOffset<T1, T2, T3, T4> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4));
-    return new SyncMapper4<>(newQuery, session);
+    return new SyncMappers.Mapper4<>(newQuery, session);
   }
 
-  public <T1, T2, T3, T4, T5> SyncMapper5<T1, T2, T3, T4, T5> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4, Projection<T5> proj5) {
+  public <T1, T2, T3, T4, T5> SyncMapper5.DistinctLimitOffset<T1, T2, T3, T4, T5> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4, Projection<T5> proj5) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4), Matchers.toExpression(proj5));
-    return new SyncMapper5<>(newQuery, session);
+    return new SyncMappers.Mapper5<>(newQuery, session);
   }
 
-  public SyncMapperTuple select(Iterable<Projection<?>> projections) {
+  public SyncMapperTuple.DistinctLimitOffset select(Iterable<Projection<?>> projections) {
     Objects.requireNonNull(projections, "projections");
     Preconditions.checkArgument(!Iterables.isEmpty(projections), "empty projections");
     List<Expression> expressions = StreamSupport.stream(projections.spliterator(), false).map(Matchers::toExpression).collect(Collectors.toList());
     Query newQuery = this.query.addProjections(expressions);
-    return new SyncMapperTuple(newQuery, session);
+    return new SyncMappers.MapperTuple(newQuery, session);
   }
 
   @Override
@@ -109,6 +110,16 @@ public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements Sync
   @Override
   public long count() {
     return fetcher.count();
+  }
+
+  @Override
+  public Offset<T> limit(long limit) {
+    return newReader(query.withLimit(limit));
+  }
+
+  @Override
+  public SyncFetcher<T> offset(long offset) {
+    return newReader(query.withOffset(offset));
   }
 
 }

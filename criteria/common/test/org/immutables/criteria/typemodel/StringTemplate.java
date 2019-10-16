@@ -295,13 +295,13 @@ public abstract class StringTemplate {
    * Return {@link TypeHolder.StringHolder#value()} after applying a criteria
    */
   private IterableChecker<List<String>, String> values(StringHolderCriteria criteria) {
-    return  CriteriaChecker.<TypeHolder.StringHolder>of(repository.find(criteria)).toList(TypeHolder.StringHolder::value);
+    return  CriteriaChecker.<TypeHolder.StringHolder>ofReader(repository.find(criteria)).toList(TypeHolder.StringHolder::value);
   }
 
   /**
    * Return {@link TypeHolder.StringHolder#id()} after applying a criteria
    */
   private IterableChecker<List<String>, String> ids(StringHolderCriteria criteria) {
-    return  CriteriaChecker.<TypeHolder.StringHolder>of(repository.find(criteria)).toList(TypeHolder.StringHolder::id);
+    return  CriteriaChecker.<TypeHolder.StringHolder>ofReader(repository.find(criteria)).toList(TypeHolder.StringHolder::id);
   }
 }

@@ -48,4 +48,17 @@ public interface ReactorFetcher<T> extends Fetcher<T> {
    * @return Mono with number of elements (which can be 0)
    */
   Mono<Long> count();
+
+  interface DistinctLimitOffset<T> extends LimitOffset<T> {
+    LimitOffset<T> distinct();
+  }
+
+  interface LimitOffset<T> extends Offset<T> {
+    Offset<T> limit(long limit);
+  }
+
+  interface Offset<T> extends ReactorFetcher<T> {
+    ReactorFetcher<T> offset(long offset);
+  }
+
 }

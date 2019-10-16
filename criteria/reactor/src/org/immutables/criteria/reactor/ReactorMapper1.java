@@ -16,50 +16,22 @@
 
 package org.immutables.criteria.reactor;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.reactive.ReactiveMapper1;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.Optional;
 
-public class ReactorMapper1<T1> implements ReactorFetcher<T1> {
+public interface ReactorMapper1<T1> extends ReactorFetcher<T1> {
 
-  private final ReactiveMapper1<T1> mapper;
-  private final ReactorFetcher<T1> fetcher;
+  ReactorFetcher<Optional<T1>> asOptional();
 
-  ReactorMapper1(Query query, Backend.Session session) {
-    this.mapper = new ReactiveMapper1<>(query, session);
-    this.fetcher = ReactorFetcherDelegate.fromReactive(mapper);
+  interface DistinctLimitOffset<T> extends LimitOffset<T> {
+    ReactorMapper1.LimitOffset<T> distinct();
   }
 
-  public ReactorFetcher<Optional<T1>> asOptional() {
-    return ReactorFetcherDelegate.fromReactive(mapper.asOptional());
+  interface LimitOffset<T> extends ReactorMapper1.Offset<T> {
+    ReactorMapper1.Offset<T> limit(long limit);
   }
 
-  @Override
-  public Flux<T1> fetch() {
-    return fetcher.fetch();
+  interface Offset<T> extends ReactorMapper1<T> {
+    ReactorMapper1<T> offset(long offset);
   }
 
-  @Override
-  public Mono<T1> one() {
-    return fetcher.one();
-  }
-
-  @Override
-  public Mono<T1> oneOrNone() {
-    return fetcher.oneOrNone();
-  }
-
-  @Override
-  public Mono<Boolean> exists() {
-    return fetcher.exists();
-  }
-
-  @Override
-  public Mono<Long> count() {
-    return fetcher.count();
-  }
 }

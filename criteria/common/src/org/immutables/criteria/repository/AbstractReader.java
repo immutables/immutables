@@ -67,16 +67,6 @@ public abstract class AbstractReader<R extends Reader<R>> implements Reader<R> {
   }
 
   @Override
-  public R limit(long limit) {
-    return newReader(query.withLimit(limit));
-  }
-
-  @Override
-  public R offset(long offset) {
-    return newReader(query.withOffset(offset));
-  }
-
-  @Override
   public R groupBy(Projection<?> first, Projection<?> ... rest) {
     if (!query.groupBy().isEmpty()) {
       throw new IllegalStateException("GroupBy was already set");
@@ -89,4 +79,5 @@ public abstract class AbstractReader<R extends Reader<R>> implements Reader<R> {
     final List<Expression> groupBy = all.stream().map(Matchers::toExpression).collect(Collectors.toList());
     return newReader(query.addGroupBy(groupBy));
   }
+
 }

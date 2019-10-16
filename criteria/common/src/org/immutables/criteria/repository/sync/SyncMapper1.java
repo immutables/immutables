@@ -16,50 +16,26 @@
 
 package org.immutables.criteria.repository.sync;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.reactive.ReactiveMapper1;
-
-import java.util.List;
 import java.util.Optional;
 
-public class SyncMapper1<T1> implements SyncFetcher<T1> {
+public interface SyncMapper1<T1> extends SyncFetcher<T1> {
 
-  private final ReactiveMapper1<T1> mapper;
-  private final SyncFetcher<T1> fetcher;
+  /**
+   * Wrap potentially nullable items in an {@link Optional}. Allows
+   * null-safe processing of elements after fetch.
+   */
+  SyncFetcher<Optional<T1>> asOptional();
 
-  SyncMapper1(Query query, Backend.Session session) {
-    this.mapper = new ReactiveMapper1<>(query, session);
-    this.fetcher = SyncFetcherDelegate.fromReactive(mapper);
+  interface DistinctLimitOffset<T> extends SyncMapper1<T>, LimitOffset<T> {
+    SyncMapper1.LimitOffset<T> distinct();
   }
 
-  public SyncFetcher<Optional<T1>> asOptional() {
-    return SyncFetcherDelegate.fromReactive(mapper.asOptional());
+  interface LimitOffset<T> extends Offset<T>  {
+    SyncMapper1.Offset<T> limit(long limit);
   }
 
-  @Override
-  public List<T1> fetch() {
-    return fetcher.fetch();
-  }
-
-  @Override
-  public T1 one() {
-    return fetcher.one();
-  }
-
-  @Override
-  public Optional<T1> oneOrNone() {
-    return fetcher.oneOrNone();
-  }
-
-  @Override
-  public boolean exists() {
-    return fetcher.exists();
-  }
-
-  @Override
-  public long count() {
-    return fetcher.count();
+  interface Offset<T> extends SyncMapper1<T> {
+    SyncMapper1<T> offset(long offset);
   }
 
 }

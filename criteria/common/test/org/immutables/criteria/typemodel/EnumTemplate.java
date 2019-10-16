@@ -92,7 +92,7 @@ public abstract class EnumTemplate {
   }
 
   private IterableChecker<List<String>, String> ids(EnumHolderCriteria criteria) {
-    return  CriteriaChecker.<TypeHolder.EnumHolder>of(repository.find(criteria)).toList(TypeHolder.EnumHolder::id);
+    return  CriteriaChecker.<TypeHolder.EnumHolder>ofReader(repository.find(criteria)).toList(TypeHolder.EnumHolder::id);
   }
 
 }

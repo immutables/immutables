@@ -29,6 +29,7 @@ import org.reactivestreams.Publisher;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -115,4 +116,10 @@ public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>> i
   public <X> ReactiveFetcher<X> map(Function<? super T, ? extends X> mapFn) {
     return fetcher.map(mapFn);
   }
+
+  @Override
+  public ReactiveFetcher<T> changeQuery(UnaryOperator<Query> mapFn) {
+    return fetcher.changeQuery(mapFn);
+  }
+
 }

@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
@@ -35,15 +36,15 @@ import java.util.stream.StreamSupport;
 /**
  * Reader returning <a href="https://projectreactor.io">Reactor</a> types
  */
-public class ReactorReader<T> extends AbstractReader<ReactorReader<T>> implements ReactorFetcher<T> {
+public class ReactorReader<T> extends AbstractReader<ReactorReader<T>> implements ReactorFetcher.LimitOffset<T> {
 
-  private final Query query;
+  private final ImmutableQuery query;
   private final Backend.Session session;
   private final ReactorFetcher<T> fetcher;
 
   ReactorReader(Query query, Backend.Session session) {
     super(query);
-    this.query = query;
+    this.query = ImmutableQuery.copyOf(query);
     this.session = session;
     this.fetcher = ReactorFetcherDelegate.of(query, session);
   }
@@ -54,37 +55,37 @@ public class ReactorReader<T> extends AbstractReader<ReactorReader<T>> implement
   }
 
 
-  public <T1> ReactorMapper1<T1> select(Projection<T1> proj1) {
+  public <T1> ReactorMapper1.DistinctLimitOffset<T1> select(Projection<T1> proj1) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
-    return new ReactorMapper1<T1>(newQuery, session);
+    return new ReactorMappers.Mapper1<>(newQuery, session);
   }
 
-  public <T1, T2> ReactorMapper2<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
+  public <T1, T2> ReactorMapper2.DistinctLimitOffset<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2));
-    return new ReactorMapper2<>(newQuery, session);
+    return new ReactorMappers.Mapper2<>(newQuery, session);
   }
 
-  public <T1, T2, T3> ReactorMapper3<T1, T2, T3> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3) {
+  public <T1, T2, T3> ReactorMapper3.DistinctLimitOffset<T1, T2, T3> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3));
-    return new ReactorMapper3<>(newQuery, session);
+    return new ReactorMappers.Mapper3<>(newQuery, session);
   }
 
-  public <T1, T2, T3, T4> ReactorMapper4<T1, T2, T3, T4> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4) {
+  public <T1, T2, T3, T4> ReactorMapper4.DistinctLimitOffset<T1, T2, T3, T4> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4));
-    return new ReactorMapper4<>(newQuery, session);
+    return new ReactorMappers.Mapper4<>(newQuery, session);
   }
 
-  public <T1, T2, T3, T4, T5> ReactorMapper5<T1, T2, T3, T4, T5> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4, Projection<T5> proj5) {
+  public <T1, T2, T3, T4, T5> ReactorMapper5.DistinctLimitOffset<T1, T2, T3, T4, T5> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4, Projection<T5> proj5) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4), Matchers.toExpression(proj5));
-    return new ReactorMapper5<>(newQuery, session);
+    return new ReactorMappers.Mapper5<>(newQuery, session);
   }
 
-  public ReactorMapperTuple select(Iterable<Projection<?>> projections) {
+  public ReactorMapperTuple.DistinctLimitOffset select(Iterable<Projection<?>> projections) {
     Objects.requireNonNull(projections, "projections");
     Preconditions.checkArgument(!Iterables.isEmpty(projections), "empty projections");
     List<Expression> expressions = StreamSupport.stream(projections.spliterator(), false).map(Matchers::toExpression).collect(Collectors.toList());
     Query newQuery = this.query.addProjections(expressions);
-    return new ReactorMapperTuple(newQuery, session);
+    return new ReactorMappers.MapperTuple(newQuery, session);
   }
 
 
@@ -114,5 +115,15 @@ public class ReactorReader<T> extends AbstractReader<ReactorReader<T>> implement
   @Override
   public Mono<Long> count() {
     return fetcher.count();
+  }
+
+  @Override
+  public Offset<T> limit(long limit) {
+    return newReader(query.withLimit(limit));
+  }
+
+  @Override
+  public ReactorFetcher<T> offset(long offset) {
+    return newReader(query.withOffset(offset));
   }
 }

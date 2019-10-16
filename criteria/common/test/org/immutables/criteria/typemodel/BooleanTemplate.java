@@ -136,7 +136,7 @@ public abstract class BooleanTemplate {
   }
 
   private IterableChecker<List<String>, String> ids(BooleanHolderCriteria criteria) {
-    return CriteriaChecker.<TypeHolder.BooleanHolder>of(repository.find(criteria)).toList(TypeHolder.BooleanHolder::id);
+    return CriteriaChecker.<TypeHolder.BooleanHolder>ofReader(repository.find(criteria)).toList(TypeHolder.BooleanHolder::id);
   }
 
 }

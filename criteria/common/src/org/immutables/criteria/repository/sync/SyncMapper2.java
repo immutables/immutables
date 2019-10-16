@@ -16,28 +16,27 @@
 
 package org.immutables.criteria.repository.sync;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapper2;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class SyncMapper2<T1, T2> {
+public interface SyncMapper2<T1, T2> {
 
-  private final ReactiveMapper2<T1, T2> delegate;
+   <R> SyncFetcher<R> map(BiFunction<T1, T2, R> mapFn);
 
-  SyncMapper2(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper2<>(query, session);
-  }
+   <R> SyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn);
 
-  public <R> SyncFetcher<R> map(BiFunction<T1, T2, R> mapFn) {
-    return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
-  }
+   interface DistinctLimitOffset<T1, T2> extends LimitOffset<T1, T2>, SyncMapper2<T1, T2> {
+     LimitOffset<T1, T2> distinct();
+   }
 
-  public <R> SyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
-  }
+   interface LimitOffset<T1, T2> extends Offset<T1, T2> {
+     Offset<T1, T2> limit(long limit);
+   }
+
+   interface Offset<T1, T2> extends SyncMapper2<T1, T2> {
+     SyncMapper2<T1, T2> offset(long offset);
+   }
 
 }

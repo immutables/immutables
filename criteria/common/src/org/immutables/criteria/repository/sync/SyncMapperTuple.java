@@ -16,22 +16,23 @@
 
 package org.immutables.criteria.repository.sync;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapperTuple;
 
 import java.util.function.Function;
 
-public class SyncMapperTuple {
+public interface SyncMapperTuple {
 
-  private final ReactiveMapperTuple delegate;
+  <R> SyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn);
 
-  SyncMapperTuple(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapperTuple(query, session);
+  interface DistinctLimitOffset extends LimitOffset  {
+    LimitOffset distinct();
   }
 
-  public <R> SyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface LimitOffset extends Offset {
+    Offset limit(long limit);
+  }
+
+  interface Offset extends SyncMapperTuple {
+    SyncMapperTuple offset(long offset);
   }
 }

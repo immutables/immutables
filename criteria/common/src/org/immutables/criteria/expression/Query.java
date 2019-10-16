@@ -50,6 +50,14 @@ public abstract class Query {
   public abstract List<Expression> groupBy();
 
   /**
+   * Request results to be unique. {@code false} by default.
+   */
+  @Value.Default
+  public boolean distinct() {
+    return false;
+  }
+
+  /**
    * Similar to {@code COUNT(*)} in SQL. Wherever to compute just number of to be returned records.
    */
   @Value.Default

@@ -109,6 +109,6 @@ public abstract class LongTemplate {
   }
 
   private IterableChecker<List<String>, String> ids(LongHolderCriteria criteria) {
-    return CriteriaChecker.<TypeHolder.LongHolder>of(repository.find(criteria)).toList(TypeHolder.LongHolder::id);
+    return CriteriaChecker.<TypeHolder.LongHolder>ofReader(repository.find(criteria)).toList(TypeHolder.LongHolder::id);
   }
 }

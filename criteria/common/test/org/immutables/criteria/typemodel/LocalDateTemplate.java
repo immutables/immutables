@@ -158,7 +158,7 @@ public abstract class LocalDateTemplate {
   }
 
   private IterableChecker<List<String>, String> ids(LocalDateHolderCriteria criteria) {
-    return CriteriaChecker.<TypeHolder.LocalDateHolder>of(repository.find(criteria)).toList(TypeHolder.LocalDateHolder::id);
+    return CriteriaChecker.<TypeHolder.LocalDateHolder>ofReader(repository.find(criteria)).toList(TypeHolder.LocalDateHolder::id);
   }
 
 }

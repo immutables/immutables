@@ -16,22 +16,23 @@
 
 package org.immutables.criteria.reactor;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapperTuple;
 
 import java.util.function.Function;
 
-public class ReactorMapperTuple {
+public interface ReactorMapperTuple {
 
-  private final ReactiveMapperTuple delegate;
+  <R> ReactorFetcher<R> map(Function<? super Tuple, ? extends R> mapFn);
 
-  ReactorMapperTuple(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapperTuple(query, session);
+  interface DistinctLimitOffset extends LimitOffset {
+    LimitOffset distinct();
   }
 
-  public <R> ReactorFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return ReactorFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface LimitOffset extends Offset {
+    Offset limit(long limit);
+  }
+
+  interface Offset extends ReactorMapperTuple {
+    ReactorMapperTuple offset(long offset);
   }
 }

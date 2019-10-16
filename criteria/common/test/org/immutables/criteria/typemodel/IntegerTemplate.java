@@ -100,7 +100,7 @@ public abstract class IntegerTemplate {
 
 
   private IterableChecker<List<String>, String> ids(IntegerHolderCriteria criteria) {
-    return CriteriaChecker.<TypeHolder.IntegerHolder>of(repository.find(criteria)).toList(TypeHolder.IntegerHolder::id);
+    return CriteriaChecker.<TypeHolder.IntegerHolder>ofReader(repository.find(criteria)).toList(TypeHolder.IntegerHolder::id);
   }
 
 }

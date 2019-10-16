@@ -16,28 +16,27 @@
 
 package org.immutables.criteria.repository.rxjava2;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction3;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapper3;
 
 import java.util.function.Function;
 
-public class RxJavaMapper3<T1, T2, T3> {
+public interface RxJavaMapper3<T1, T2, T3> {
 
-  private final ReactiveMapper3<T1, T2, T3> delegate;
+  <R> RxJavaFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn);
 
-  RxJavaMapper3(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper3<>(query, session);
+  <R> RxJavaFetcher<R> map(Function<? super Tuple, ? extends R> mapFn);
+
+  interface DistinctLimitOffset<T1, T2, T3> extends LimitOffset<T1, T2, T3>, RxJavaMapper3<T1, T2, T3> {
+    LimitOffset<T1, T2, T3> distinct();
   }
 
-  public <R> RxJavaFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
-    return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface LimitOffset<T1, T2, T3> extends Offset<T1, T2, T3> {
+    Offset<T1, T2, T3> limit(long limit);
   }
 
-  public <R> RxJavaFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface Offset<T1, T2, T3> extends RxJavaMapper3<T1, T2, T3> {
+    RxJavaMapper3<T1, T2, T3> offset(long offset);
   }
 
 }

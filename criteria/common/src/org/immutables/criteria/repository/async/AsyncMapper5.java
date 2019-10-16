@@ -16,28 +16,27 @@
 
 package org.immutables.criteria.repository.async;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction5;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapper5;
 
 import java.util.function.Function;
 
-public class AsyncMapper5<T1, T2, T3, T4, T5> {
+public interface AsyncMapper5<T1, T2, T3, T4, T5> {
 
-  private final ReactiveMapper5<T1, T2, T3, T4, T5> delegate;
+  <R> AsyncFetcher<R> map(MapperFunction5<T1, T2, T3, T4, T5, R> mapFn);
 
-  AsyncMapper5(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper5<>(query, session);
+  <R> AsyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn);
+
+  interface DistinctLimitOffset<T1, T2, T3, T4, T5> extends AsyncMapper5.LimitOffset<T1, T2, T3, T4, T5>, AsyncMapper5<T1, T2, T3, T4, T5> {
+    AsyncMapper5.LimitOffset<T1, T2, T3, T4, T5> distinct();
   }
 
-  public <R> AsyncFetcher<R> map(MapperFunction5<T1, T2, T3, T4, T5, R> mapFn) {
-    return AsyncFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface LimitOffset<T1, T2, T3, T4, T5> extends AsyncMapper5.Offset<T1, T2, T3, T4, T5> {
+    AsyncMapper5.Offset<T1, T2, T3, T4, T5> limit(long limit);
   }
 
-  public <R> AsyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return AsyncFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface Offset<T1, T2, T3, T4, T5> extends AsyncMapper5<T1, T2, T3, T4, T5> {
+    AsyncMapper5<T1, T2, T3, T4, T5> offset(long offset);
   }
 
 }

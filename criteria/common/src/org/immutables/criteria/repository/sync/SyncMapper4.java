@@ -16,28 +16,26 @@
 
 package org.immutables.criteria.repository.sync;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction4;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapper4;
 
 import java.util.function.Function;
 
-public class SyncMapper4<T1, T2, T3, T4> {
+public interface SyncMapper4<T1, T2, T3, T4> {
 
-  private final ReactiveMapper4<T1, T2, T3, T4> delegate;
+  <R> SyncFetcher<R> map(MapperFunction4<T1, T2, T3, T4, R> mapFn);
 
-  SyncMapper4(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper4<>(query, session);
+  <R> SyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn);
+
+  interface DistinctLimitOffset<T1, T2, T3, T4> extends LimitOffset<T1, T2, T3, T4> {
+    LimitOffset<T1, T2, T3, T4> distinct();
   }
 
-  public <R> SyncFetcher<R> map(MapperFunction4<T1, T2, T3, T4, R> mapFn) {
-    return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface LimitOffset<T1, T2, T3, T4> extends Offset<T1, T2, T3, T4> {
+    Offset<T1, T2, T3, T4> limit(long limit);
   }
 
-  public <R> SyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
+  interface Offset<T1, T2, T3, T4> extends SyncMapper4<T1, T2, T3, T4> {
+    SyncMapper4<T1, T2, T3, T4> offset(long offset);
   }
-
 }

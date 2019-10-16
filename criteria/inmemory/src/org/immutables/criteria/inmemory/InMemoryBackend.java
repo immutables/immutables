@@ -140,6 +140,10 @@ public class InMemoryBackend implements Backend {
         stream = stream.map(extractor::extract);
       }
 
+      if (query.distinct()) {
+        stream = stream.distinct();
+      }
+
       if (query.offset().isPresent()) {
         stream = stream.skip(query.offset().getAsLong());
       }

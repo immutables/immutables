@@ -22,8 +22,10 @@ import org.immutables.criteria.repository.Mappers;
 import org.immutables.criteria.repository.Tuple;
 import org.reactivestreams.Publisher;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public class ReactiveMapper1<T1> implements ReactiveFetcher<T1> {
 
@@ -32,13 +34,18 @@ public class ReactiveMapper1<T1> implements ReactiveFetcher<T1> {
   private final ReactiveFetcher<T1> fetcher;
 
   public ReactiveMapper1(Query query, Backend.Session session) {
-    this.query = query;
-    this.session = session;
-    this.fetcher = ReactiveFetcher.<Tuple>of(query, session).map(Mappers.<T1>fromTuple());
+    this(query, session, ReactiveFetcher.<Tuple>of(query, session).map(Mappers.<T1>fromTuple()));
   }
 
-  public ReactiveFetcher<Optional<T1>> asOptional() {
-    return ReactiveFetcher.<Tuple>of(query, session).map(Mappers.<T1>fromTuple().andThen(Optional::ofNullable));
+  private ReactiveMapper1(Query query, Backend.Session session, ReactiveFetcher<T1> fetcher) {
+    this.query = Objects.requireNonNull(query, "query");
+    this.session = Objects.requireNonNull(session, "session");
+    this.fetcher = Objects.requireNonNull(fetcher, "fetcher");
+  }
+
+  public ReactiveMapper1<Optional<T1>> asOptional() {
+    ReactiveFetcher<Optional<T1>> fetcher = ReactiveFetcher.<Tuple>of(query, session).map(Mappers.<T1>fromTuple().andThen(Optional::ofNullable));
+    return new ReactiveMapper1<>(query, session, fetcher);
   }
 
   @Override
@@ -69,5 +76,10 @@ public class ReactiveMapper1<T1> implements ReactiveFetcher<T1> {
   @Override
   public <X> ReactiveFetcher<X> map(Function<? super T1, ? extends X> mapFn) {
     return fetcher.map(mapFn);
+  }
+
+  @Override
+  public ReactiveFetcher<T1> changeQuery(UnaryOperator<Query> mapFn) {
+    return fetcher.changeQuery(mapFn);
   }
 }

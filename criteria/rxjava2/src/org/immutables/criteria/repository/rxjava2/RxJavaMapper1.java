@@ -16,51 +16,22 @@
 
 package org.immutables.criteria.repository.rxjava2;
 
-import io.reactivex.Flowable;
-import io.reactivex.Maybe;
-import io.reactivex.Single;
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.reactive.ReactiveMapper1;
-
 import java.util.Optional;
 
-public class RxJavaMapper1<T1> implements RxJavaFetcher<T1> {
+public interface RxJavaMapper1<T1> extends RxJavaFetcher<T1> {
 
-  private final ReactiveMapper1<T1> mapper;
-  private final RxJavaFetcher<T1> fetcher;
+  RxJavaFetcher<Optional<T1>> asOptional();
 
-  RxJavaMapper1(Query query, Backend.Session session) {
-    this.mapper = new ReactiveMapper1<>(query, session);
-    this.fetcher = RxJavaFetcherDelegate.fromReactive(mapper);
+  interface DistinctLimitOffset<T> extends RxJavaMapper1<T>, RxJavaMapper1.LimitOffset<T> {
+    RxJavaMapper1.LimitOffset<T> distinct();
   }
 
-  public RxJavaFetcher<Optional<T1>> asOptional() {
-    return RxJavaFetcherDelegate.fromReactive(mapper.asOptional());
+  interface LimitOffset<T> extends RxJavaMapper1.Offset<T> {
+    RxJavaMapper1.Offset<T> limit(long limit);
   }
 
-  @Override
-  public Flowable<T1> fetch() {
-    return fetcher.fetch();
+  interface Offset<T> extends RxJavaMapper1<T> {
+    RxJavaMapper1<T> offset(long offset);
   }
 
-  @Override
-  public Single<T1> one() {
-    return fetcher.one();
-  }
-
-  @Override
-  public Maybe<T1> oneOrNone() {
-    return fetcher.oneOrNone();
-  }
-
-  @Override
-  public Single<Boolean> exists() {
-    return fetcher.exists();
-  }
-
-  @Override
-  public Single<Long> count() {
-    return fetcher.count();
-  }
 }

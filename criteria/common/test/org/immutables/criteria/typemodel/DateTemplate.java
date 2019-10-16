@@ -167,7 +167,7 @@ public abstract class DateTemplate {
   }
 
   private IterableChecker<List<String>, String> ids(DateHolderCriteria criteria) {
-    return CriteriaChecker.<TypeHolder.DateHolder>of(repository.find(criteria)).toList(TypeHolder.DateHolder::id);
+    return CriteriaChecker.<TypeHolder.DateHolder>ofReader(repository.find(criteria)).toList(TypeHolder.DateHolder::id);
   }
 
 }

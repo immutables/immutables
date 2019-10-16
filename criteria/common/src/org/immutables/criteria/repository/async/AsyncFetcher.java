@@ -25,6 +25,9 @@ import java.util.concurrent.CompletionStage;
 
 public interface AsyncFetcher<T> extends Fetcher<T> {
 
+  /**
+   * Fetch all elements matching current query
+   */
   CompletionStage<List<T>> fetch();
 
   /**
@@ -51,5 +54,17 @@ public interface AsyncFetcher<T> extends Fetcher<T> {
    * @return Future holding number of elements
    */
   CompletionStage<Long> count();
+
+  interface DistinctLimitOffset<T> extends LimitOffset<T> {
+    LimitOffset<T> distinct();
+  }
+
+  interface LimitOffset<T> extends Offset<T> {
+    Offset<T> limit(long limit);
+  }
+
+  interface Offset<T> extends AsyncFetcher<T> {
+    AsyncFetcher<T> offset(long offset);
+  }
 
 }

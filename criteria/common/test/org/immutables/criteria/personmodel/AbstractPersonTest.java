@@ -20,8 +20,9 @@ import com.google.common.collect.Ordering;
 import org.immutables.check.Checkers;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.repository.Fetcher;
 import org.immutables.criteria.repository.Reader;
-import org.immutables.criteria.repository.sync.SyncReader;
+import org.immutables.criteria.repository.sync.SyncFetcher;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
@@ -637,7 +638,7 @@ public abstract class AbstractPersonTest {
     Assumptions.assumeTrue(features().contains(feature), String.format("Feature %s not supported by current backend", feature));
   }
 
-  private static <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, SyncReader<Person> reader, Ordering<T> ordering) {
+  private static <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, SyncFetcher<Person> reader, Ordering<T> ordering) {
     List<T> parts = reader.fetch().stream().map(extractor).collect(Collectors.toList());
     if (!ordering.isOrdered(parts)) {
       throw new AssertionError(String.format("%s is not ordered. Expected: %s", parts, ordering.sortedCopy(parts)));
@@ -652,8 +653,8 @@ public abstract class AbstractPersonTest {
     repository().insertAll(persons);
   }
 
-  protected CriteriaChecker<Person> check(Reader<?> reader) {
-    return CriteriaChecker.of(reader);
+  protected CriteriaChecker<Person> check(Fetcher<?> reader) {
+    return CriteriaChecker.ofReader((Reader<?>) reader);
   }
 
   private CriteriaChecker<Person> check(Criterion<Person> criterion) {

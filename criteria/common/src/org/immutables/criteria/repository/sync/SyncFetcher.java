@@ -24,6 +24,9 @@ import java.util.Optional;
 
 public interface SyncFetcher<T> extends Fetcher<T> {
 
+  /**
+   * Fetch all elements matching current query
+   */
   List<T> fetch();
 
   /**
@@ -34,8 +37,9 @@ public interface SyncFetcher<T> extends Fetcher<T> {
   T one();
 
   /**
-   * Check that <i>at most one</i> element is matched by current query and return it (if available).
-   * @return Publisher with zero or one element, or Publisher that throws {@link NonUniqueResultException}
+   * Check that <i>at most one</i> element is matched by current query and return it (if available)
+   * @return Optional with zero or one element
+   * @throws NonUniqueResultException if more than one element retrieved
    */
   Optional<T> oneOrNone();
 
@@ -51,4 +55,16 @@ public interface SyncFetcher<T> extends Fetcher<T> {
    */
   long count();
 
+
+  interface DistinctLimitOffset<T> extends LimitOffset<T> {
+    LimitOffset<T> distinct();
+  }
+
+  interface LimitOffset<T> extends Offset<T> {
+    Offset<T> limit(long limit);
+  }
+
+  interface Offset<T> extends SyncFetcher<T> {
+    SyncFetcher<T> offset(long offset);
+  }
 }

@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
@@ -32,15 +33,15 @@ import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements AsyncFetcher<T> {
+public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements AsyncFetcher.LimitOffset<T> {
 
-  private final Query query;
+  private final ImmutableQuery query;
   private final Backend.Session session;
   private final AsyncFetcherDelegate<T> fetcher;
 
   AsyncReader(Query query, Backend.Session session) {
     super(query);
-    this.query = query;
+    this.query = ImmutableQuery.copyOf(query);
     this.session = Objects.requireNonNull(session, "session");
     this.fetcher = AsyncFetcherDelegate.of(query, session);
   }
@@ -50,37 +51,37 @@ public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements As
     return new AsyncReader<>(query, session);
   }
 
-  public <T1> AsyncMapper1<T1> select(Projection<T1> proj1) {
+  public <T1> AsyncMapper1.DistinctLimitOffset<T1> select(Projection<T1> proj1) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
-    return new AsyncMapper1<T1>(newQuery, session);
+    return new AsyncMappers.Mapper1<>(newQuery, session);
   }
 
-  public <T1, T2> AsyncMapper2<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
+  public <T1, T2> AsyncMapper2.DistinctLimitOffset<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2));
-    return new AsyncMapper2<>(newQuery, session);
+    return new AsyncMappers.Mapper2<>(newQuery, session);
   }
 
-  public <T1, T2, T3> AsyncMapper3<T1, T2, T3> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3) {
+  public <T1, T2, T3> AsyncMapper3.DistinctLimitOffset<T1, T2, T3> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3));
-    return new AsyncMapper3<>(newQuery, session);
+    return new AsyncMappers.Mapper3<>(newQuery, session);
   }
 
-  public <T1, T2, T3, T4> AsyncMapper4<T1, T2, T3, T4> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4) {
+  public <T1, T2, T3, T4> AsyncMapper4.DistinctLimitOffset<T1, T2, T3, T4> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4));
-    return new AsyncMapper4<>(newQuery, session);
+    return new AsyncMappers.Mapper4<>(newQuery, session);
   }
 
-  public <T1, T2, T3, T4, T5> AsyncMapper5<T1, T2, T3, T4, T5> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4, Projection<T5> proj5) {
+  public <T1, T2, T3, T4, T5> AsyncMapper5.DistinctLimitOffset<T1, T2, T3, T4, T5> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4, Projection<T5> proj5) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4), Matchers.toExpression(proj5));
-    return new AsyncMapper5<>(newQuery, session);
+    return new AsyncMappers.Mapper5<>(newQuery, session);
   }
 
-  public AsyncMapperTuple select(Iterable<Projection<?>> projections) {
+  public AsyncMapperTuple.DistinctLimitOffset select(Iterable<Projection<?>> projections) {
     Objects.requireNonNull(projections, "projections");
     Preconditions.checkArgument(!Iterables.isEmpty(projections), "empty projections");
     List<Expression> expressions = StreamSupport.stream(projections.spliterator(), false).map(Matchers::toExpression).collect(Collectors.toList());
     Query newQuery = this.query.addProjections(expressions);
-    return new AsyncMapperTuple(newQuery, session);
+    return new AsyncMappers.MapperTuple(newQuery, session);
   }
 
   @Override
@@ -106,5 +107,15 @@ public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements As
   @Override
   public CompletionStage<Long> count() {
     return fetcher.count();
+  }
+
+  @Override
+  public Offset<T> limit(long limit) {
+    return newReader(query.withLimit(limit));
+  }
+
+  @Override
+  public AsyncFetcher<T> offset(long offset) {
+    return newReader(query.withOffset(offset));
   }
 }

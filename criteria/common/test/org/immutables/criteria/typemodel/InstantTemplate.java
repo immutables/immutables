@@ -161,7 +161,7 @@ public abstract class InstantTemplate {
   }
 
   private IterableChecker<List<String>, String> ids(InstantHolderCriteria criteria) {
-    return CriteriaChecker.<TypeHolder.InstantHolder>of(repository.find(criteria)).toList(TypeHolder.InstantHolder::id);
+    return CriteriaChecker.<TypeHolder.InstantHolder>ofReader(repository.find(criteria)).toList(TypeHolder.InstantHolder::id);
   }
 
 }

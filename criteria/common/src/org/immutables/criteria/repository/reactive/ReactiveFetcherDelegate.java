@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
 
@@ -114,6 +115,11 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
     return new MappedFetcher<T, X>(this, mapFn);
   }
 
+  @Override
+  public ReactiveFetcher<T> changeQuery(UnaryOperator<Query> mapFn) {
+    return new ReactiveFetcherDelegate<>(mapFn.apply(query), session);
+  }
+
   private static class MappedFetcher<T, R> implements ReactiveFetcher<R> {
 
     private final ReactiveFetcher<T> delegate;
@@ -156,6 +162,11 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
     @Override
     public <X> ReactiveFetcher<X> map(Function<? super R, ? extends X> mapFn) {
       return new MappedFetcher<>(this, mapFn);
+    }
+
+    @Override
+    public ReactiveFetcher<R> changeQuery(UnaryOperator<Query> mapFn) {
+      return new MappedFetcher<>(delegate.changeQuery(mapFn), this.mapFn);
     }
   }
 

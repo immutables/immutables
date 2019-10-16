@@ -101,7 +101,7 @@ public abstract class DoubleTemplate {
 
 
   private IterableChecker<List<String>, String> ids(DoubleHolderCriteria criteria) {
-    return CriteriaChecker.<TypeHolder.DoubleHolder>of(repository.find(criteria)).toList(TypeHolder.DoubleHolder::id);
+    return CriteriaChecker.<TypeHolder.DoubleHolder>ofReader(repository.find(criteria)).toList(TypeHolder.DoubleHolder::id);
   }
 
 }
