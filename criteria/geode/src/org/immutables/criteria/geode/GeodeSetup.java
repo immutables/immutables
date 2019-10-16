@@ -37,6 +37,11 @@ public interface GeodeSetup {
     return IdResolver.defaultResolver();
   }
 
+  @Value.Default
+  default QueryServiceResolver queryServiceResolver() {
+    return QueryServiceResolver.defaultResolver();
+  }
+
   static GeodeSetup of(GemFireCache cache) {
     Objects.requireNonNull(cache, "cache");
     return of(RegionResolver.defaultResolver(cache));

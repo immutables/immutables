@@ -48,22 +48,17 @@ public class GeodeBackend implements Backend {
 
   static final Logger logger = Logger.getLogger(GeodeBackend.class.getName());
 
-  private final RegionResolver resolver;
-  private final IdResolver idResolver;
+  private final GeodeSetup setup;
 
 
   public GeodeBackend(GeodeSetup setup) {
-    Objects.requireNonNull(setup, "setup");
-    this.resolver = setup.regionResolver();
-    this.idResolver = setup.idResolver();
+    this.setup = Objects.requireNonNull(setup, "setup");
   }
 
   @Override
   public Backend.Session open(Class<?> entityType) {
     Objects.requireNonNull(entityType, "context");
-    @SuppressWarnings("unchecked")
-    Region<Object, Object> region = (Region<Object, Object>) resolver.resolve(entityType);
-    return new Session(entityType, idResolver, region);
+    return new Session(entityType, setup);
   }
 
   static class Session implements Backend.Session {
@@ -74,12 +69,14 @@ public class GeodeBackend implements Backend {
     final IdResolver idResolver;
     final QueryService queryService;
 
-    private Session(Class<?> entityType, IdResolver idResolver, Region<Object, Object> region) {
+    private Session(Class<?> entityType, GeodeSetup setup) {
       this.entityType = Objects.requireNonNull(entityType, "entityType");
-      this.region = Objects.requireNonNull(region, "region");
-      this.idResolver = Objects.requireNonNull(idResolver, "idResolver");
+      @SuppressWarnings("unchecked")
+      Region<Object, Object> region = (Region<Object, Object>) setup.regionResolver().resolve(entityType);
+      this.region = region;
+      this.idResolver = setup.idResolver();
       this.idExtractor = IdExtractor.fromResolver(idResolver);
-      this.queryService = region.getRegionService().getQueryService();
+      this.queryService = setup.queryServiceResolver().resolve(region);
     }
 
     @Override
