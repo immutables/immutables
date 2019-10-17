@@ -19,7 +19,6 @@ package org.immutables.criteria.geode;
 import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
-import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
@@ -103,4 +102,5 @@ public class GeodePersonTest extends AbstractPersonTest  {
     repository().delete(person.fullName.is("C"));
     check(repository().findAll()).toList(Person::id).isEmpty();
   }
+
 }

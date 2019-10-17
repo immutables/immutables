@@ -171,7 +171,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
 
   private static String toString(Object value) {
     if (value instanceof CharSequence) {
-      return "'" + value + "'";
+      return "'" + Geodes.escapeOql((CharSequence) value) + "'";
     } else if (value instanceof Collection) {
       @SuppressWarnings("unchecked")
       final Collection<Object> coll = (Collection<Object>) value;

@@ -46,35 +46,35 @@ public abstract class StringTemplate {
 
   @Test
   protected void startsWith() {
-    ids(string.value.startsWith("a")).isEmpty();
-    ids(string.value.startsWith("")).isEmpty();
+    values(string.value.startsWith("a")).isEmpty();
+    values(string.value.startsWith("")).isEmpty();
 
     repository.insert(generator.get().withValue("a"));
     repository.insert(generator.get().withValue("aa"));
     repository.insert(generator.get().withValue("b"));
     repository.insert(generator.get().withValue("bb"));
 
-    ids(string.value.startsWith("a")).hasContentInAnyOrder("a", "aa");
-    ids(string.value.startsWith("b")).hasContentInAnyOrder("b", "bb");
-    ids(string.value.startsWith("c")).isEmpty();
-    ids(string.value.startsWith("")).hasContentInAnyOrder("a", "aa", "b", "bb");
+    values(string.value.startsWith("a")).hasContentInAnyOrder("a", "aa");
+    values(string.value.startsWith("b")).hasContentInAnyOrder("b", "bb");
+    values(string.value.startsWith("c")).isEmpty();
+    values(string.value.startsWith("")).hasContentInAnyOrder("a", "aa", "b", "bb");
   }
 
   @Test
   protected void equality() {
-    ids(string.value.is("")).isEmpty();
-    ids(string.value.isNot("")).isEmpty();
+    values(string.value.is("")).isEmpty();
+    values(string.value.isNot("")).isEmpty();
     repository.insert(generator.get().withValue("a"));
     repository.insert(generator.get().withValue("bb"));
     repository.insert(generator.get().withValue("ccc"));
 
-    ids(string.value.is("a")).hasContentInAnyOrder("a");
-    ids(string.value.is("bb")).hasContentInAnyOrder("bb");
-    ids(string.value.isNot("bb")).hasContentInAnyOrder("a", "ccc");
-    ids(string.value.isNot("a")).hasContentInAnyOrder("bb", "ccc");
-    ids(string.value.in("a", "bb", "ccc")).hasContentInAnyOrder("a", "bb", "ccc");
-    ids(string.value.in("a", "bb")).hasContentInAnyOrder("a", "bb");
-    ids(string.value.notIn("a", "bb", "ccc")).isEmpty();
+    values(string.value.is("a")).hasContentInAnyOrder("a");
+    values(string.value.is("bb")).hasContentInAnyOrder("bb");
+    values(string.value.isNot("bb")).hasContentInAnyOrder("a", "ccc");
+    values(string.value.isNot("a")).hasContentInAnyOrder("bb", "ccc");
+    values(string.value.in("a", "bb", "ccc")).hasContentInAnyOrder("a", "bb", "ccc");
+    values(string.value.in("a", "bb")).hasContentInAnyOrder("a", "bb");
+    values(string.value.notIn("a", "bb", "ccc")).isEmpty();
   }
 
   @Test
@@ -83,74 +83,74 @@ public abstract class StringTemplate {
     repository.insert(generator.get().withValue(" "));
     repository.insert(generator.get().withValue("\n"));
 
-    ids(string.value.is("")).hasContentInAnyOrder("");
-    ids(string.value.is(" ")).hasContentInAnyOrder(" ");
-    ids(string.value.is("\n")).hasContentInAnyOrder("\n");
-    ids(string.value.isNot("")).hasContentInAnyOrder(" ", "\n");
-    ids(string.value.isNot(" ")).hasContentInAnyOrder("", "\n");
-    ids(string.value.isNot("\n")).hasContentInAnyOrder(" ", "");
+    values(string.value.is("")).hasContentInAnyOrder("");
+    values(string.value.is(" ")).hasContentInAnyOrder(" ");
+    values(string.value.is("\n")).hasContentInAnyOrder("\n");
+    values(string.value.isNot("")).hasContentInAnyOrder(" ", "\n");
+    values(string.value.isNot(" ")).hasContentInAnyOrder("", "\n");
+    values(string.value.isNot("\n")).hasContentInAnyOrder(" ", "");
   }
 
   @Test
   protected void endsWith() {
-    ids(string.value.endsWith("a")).isEmpty();
-    ids(string.value.endsWith("")).isEmpty();
+    values(string.value.endsWith("a")).isEmpty();
+    values(string.value.endsWith("")).isEmpty();
 
     repository.insert(generator.get().withValue("a"));
     repository.insert(generator.get().withValue("aa"));
     repository.insert(generator.get().withValue("b"));
     repository.insert(generator.get().withValue("bb"));
 
-    ids(string.value.endsWith("a")).hasContentInAnyOrder("a", "aa");
-    ids(string.value.endsWith("b")).hasContentInAnyOrder("b", "bb");
-    ids(string.value.endsWith("c")).isEmpty();
-    ids(string.value.endsWith("")).hasContentInAnyOrder("a", "aa", "b", "bb");
+    values(string.value.endsWith("a")).hasContentInAnyOrder("a", "aa");
+    values(string.value.endsWith("b")).hasContentInAnyOrder("b", "bb");
+    values(string.value.endsWith("c")).isEmpty();
+    values(string.value.endsWith("")).hasContentInAnyOrder("a", "aa", "b", "bb");
   }
 
   @Test
   protected void contains() {
-    ids(string.value.contains("")).isEmpty();
-    ids(string.value.contains(" ")).isEmpty();
-    ids(string.value.contains("aa")).isEmpty();
+    values(string.value.contains("")).isEmpty();
+    values(string.value.contains(" ")).isEmpty();
+    values(string.value.contains("aa")).isEmpty();
     repository.insert(generator.get().withValue("a"));
-    ids(string.value.contains("a")).hasContentInAnyOrder("a");
-    ids(string.value.contains("b")).isEmpty();
-    ids(string.value.contains("")).hasContentInAnyOrder("a");
+    values(string.value.contains("a")).hasContentInAnyOrder("a");
+    values(string.value.contains("b")).isEmpty();
+    values(string.value.contains("")).hasContentInAnyOrder("a");
     repository.insert(generator.get().withValue("b"));
-    ids(string.value.contains("a")).hasContentInAnyOrder("a");
-    ids(string.value.contains("b")).hasContentInAnyOrder("b");
+    values(string.value.contains("a")).hasContentInAnyOrder("a");
+    values(string.value.contains("b")).hasContentInAnyOrder("b");
 
     repository.insert(generator.get().withValue("ab"));
-    ids(string.value.contains("a")).hasContentInAnyOrder("a", "ab");
-    ids(string.value.contains("b")).hasContentInAnyOrder("b", "ab");
-    ids(string.value.contains("ab")).hasContentInAnyOrder("ab");
-    ids(string.value.contains("ba")).isEmpty();
-    ids(string.value.contains("abc")).isEmpty();
+    values(string.value.contains("a")).hasContentInAnyOrder("a", "ab");
+    values(string.value.contains("b")).hasContentInAnyOrder("b", "ab");
+    values(string.value.contains("ab")).hasContentInAnyOrder("ab");
+    values(string.value.contains("ba")).isEmpty();
+    values(string.value.contains("abc")).isEmpty();
   }
 
   @Test
   protected void empty() {
-    ids(string.value.isEmpty()).isEmpty();
-    ids(string.value.notEmpty()).isEmpty();
+    values(string.value.isEmpty()).isEmpty();
+    values(string.value.notEmpty()).isEmpty();
 
     repository.insert(generator.get().withValue("a"));
-    ids(string.value.isEmpty()).isEmpty();
-    ids(string.value.notEmpty()).hasContentInAnyOrder("a");
+    values(string.value.isEmpty()).isEmpty();
+    values(string.value.notEmpty()).hasContentInAnyOrder("a");
 
     repository.insert(generator.get().withValue(""));
-    ids(string.value.isEmpty()).hasContentInAnyOrder("");
-    ids(string.value.notEmpty()).hasContentInAnyOrder("a");
+    values(string.value.isEmpty()).hasContentInAnyOrder("");
+    values(string.value.notEmpty()).hasContentInAnyOrder("a");
 
     repository.insert(generator.get().withValue(" "));
-    ids(string.value.isEmpty()).hasContentInAnyOrder("");
-    ids(string.value.notEmpty()).hasContentInAnyOrder("a", " ");
+    values(string.value.isEmpty()).hasContentInAnyOrder("");
+    values(string.value.notEmpty()).hasContentInAnyOrder("a", " ");
 
     repository.insert(generator.get().withValue("\n"));
-    ids(string.value.isEmpty()).hasContentInAnyOrder("");
-    ids(string.value.notEmpty()).hasContentInAnyOrder("a", " ", "\n");
+    values(string.value.isEmpty()).hasContentInAnyOrder("");
+    values(string.value.notEmpty()).hasContentInAnyOrder("a", " ", "\n");
 
     repository.insert(generator.get().withValue(""));
-    ids(string.value.isEmpty()).hasContentInAnyOrder("", "");
+    values(string.value.isEmpty()).hasContentInAnyOrder("", "");
   }
 
   @Test
@@ -190,12 +190,12 @@ public abstract class StringTemplate {
     repository.insert(generator.get().withValue("null").withNullable(null));
     repository.insert(generator.get().withValue("notnull").withNullable("notnull"));
 
-    ids(string.nullable.isPresent()).hasContentInAnyOrder("notnull");
-    ids(string.nullable.isAbsent()).hasContentInAnyOrder("null");
-    ids(string.nullable.is("null")).isEmpty();
-    ids(string.nullable.is("")).isEmpty();
-    ids(string.value.is("null")).hasContentInAnyOrder("null");
-    ids(string.value.is("notnull")).hasContentInAnyOrder("notnull");
+    values(string.nullable.isPresent()).hasContentInAnyOrder("notnull");
+    values(string.nullable.isAbsent()).hasContentInAnyOrder("null");
+    values(string.nullable.is("null")).isEmpty();
+    values(string.nullable.is("")).isEmpty();
+    values(string.value.is("null")).hasContentInAnyOrder("null");
+    values(string.value.is("notnull")).hasContentInAnyOrder("notnull");
   }
 
   @Test
@@ -203,11 +203,11 @@ public abstract class StringTemplate {
     repository.insert(generator.get().withValue("null").withNullable(null).withOptional(Optional.empty()));
     repository.insert(generator.get().withValue("notnull").withNullable("notnull").withOptional("notempty"));
 
-    ids(string.optional.isAbsent()).hasContentInAnyOrder("null");
-    ids(string.optional.isPresent()).hasContentInAnyOrder("notnull");
-    ids(string.optional.is("null")).isEmpty();
-    ids(string.optional.is("notempty")).hasContentInAnyOrder("notnull");
-    ids(string.optional.is("")).isEmpty();
+    values(string.optional.isAbsent()).hasContentInAnyOrder("null");
+    values(string.optional.isPresent()).hasContentInAnyOrder("notnull");
+    values(string.optional.is("null")).isEmpty();
+    values(string.optional.is("notempty")).hasContentInAnyOrder("notnull");
+    values(string.optional.is("")).isEmpty();
   }
 
   /**
@@ -239,7 +239,69 @@ public abstract class StringTemplate {
     check(!repository.find(string.value.is("v3")).oneOrNone().isPresent());
   }
 
-  private IterableChecker<List<String>, String> ids(StringHolderCriteria criteria) {
+  /**
+   * Usually single-quotes have to be replaced
+   */
+  @Test
+  void quoteEscape() {
+    repository.insert(generator.get().withId("id1").withValue("O'Hare"));
+    repository.insert(generator.get().withId("id2").withValue("'"));
+    repository.insert(generator.get().withId("id3").withValue("''"));
+    repository.insert(generator.get().withId("id4").withValue("'test'"));
+
+    ids(string.value.is("O'Hare")).isOf("id1");
+    ids(string.value.is("'")).isOf("id2");
+    ids(string.value.is("''")).isOf("id3");
+    ids(string.value.is("'test'")).isOf("id4");
+    ids(string.value.is("'''")).isEmpty();
+    ids(string.value.in("'", "''")).hasContentInAnyOrder("id2", "id3");
+    ids(string.value.in("O'Hare", "'test'")).hasContentInAnyOrder("id1", "id4");
+  }
+
+  /**
+   * Usually double-quotes have to be replaced
+   */
+  @Test
+  void doubleQuoteEscape() {
+    repository.insert(generator.get().withId("id1").withValue("\""));
+    repository.insert(generator.get().withId("id2").withValue("\"\""));
+    repository.insert(generator.get().withId("id3").withValue("\"\"\""));
+    repository.insert(generator.get().withId("id4").withValue("\"test\""));
+    repository.insert(generator.get().withId("id5").withValue("a\"b"));
+
+    ids(string.value.is("\"")).isOf("id1");
+    ids(string.value.is("\"\"")).isOf("id2");
+    ids(string.value.is("\"\"\"")).isOf("id3");
+    ids(string.value.is("\"test\"")).isOf("id4");
+    ids(string.value.is("a\"b")).isOf("id5");
+    ids(string.value.is("\" \"")).isEmpty();
+    ids(string.value.in("\"", "\"\"")).hasContentInAnyOrder("id1", "id2");
+  }
+
+  @Test
+  void specialChars() {
+    repository.insert(generator.get().withId("id1").withValue("!@#$%^&*()_+"));
+    repository.insert(generator.get().withId("id2").withValue("[]{};',./"));
+    repository.insert(generator.get().withId("id3").withValue("`~"));
+    repository.insert(generator.get().withId("id4").withValue("<>|\\"));
+
+    ids(string.value.is("!@#$%^&*()_+")).isOf("id1");
+    ids(string.value.is("[]{};',./")).isOf("id2");
+    ids(string.value.is("`~")).isOf("id3");
+    ids(string.value.is("<>|\\")).isOf("id4");
+  }
+
+  /**
+   * Return {@link TypeHolder.StringHolder#value()} after applying a criteria
+   */
+  private IterableChecker<List<String>, String> values(StringHolderCriteria criteria) {
     return  CriteriaChecker.<TypeHolder.StringHolder>of(repository.find(criteria)).toList(TypeHolder.StringHolder::value);
+  }
+
+  /**
+   * Return {@link TypeHolder.StringHolder#id()} after applying a criteria
+   */
+  private IterableChecker<List<String>, String> ids(StringHolderCriteria criteria) {
+    return  CriteriaChecker.<TypeHolder.StringHolder>of(repository.find(criteria)).toList(TypeHolder.StringHolder::id);
   }
 }
