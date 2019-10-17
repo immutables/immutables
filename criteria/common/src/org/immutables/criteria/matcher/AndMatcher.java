@@ -17,10 +17,7 @@
 package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressions;
-
-import java.util.function.UnaryOperator;
+import org.immutables.criteria.expression.Operators;
 
 /**
  * Combines matchers using logical {@code AND}
@@ -30,15 +27,20 @@ public interface AndMatcher<R extends Criterion<?>> extends Matcher {
 
   /**
    * Combine {@code this} and {@code other} expression (criteria / matcher) using logical {@code AND}
-   * operator. Equivalent to {@code this AND other}.
+   * operator. Equivalent to {@code (this) AND (other)}.
+   *
+   * <p>Not exactly same as DNF expression
+   * <pre>
+   *   DNF : A.or().B.C is equivalent to A or B and C
+   *   this: A.or().B.and(C) is equivalent to (A or B) and C
+   * </pre>
    *
    * @param other other matcher
    * @return new root criteria with updated expression
    */
+  @SuppressWarnings("unchecked")
   default R and(R other) {
-    final CriteriaContext context = Matchers.extract(this);
-    final UnaryOperator<Expression> expr = e -> Expressions.and(Matchers.concat(e, other));
-    return context.applyAndCreateRoot(expr);
+    return Matchers.combine((R) this, other, Operators.AND);
   }
 
 }

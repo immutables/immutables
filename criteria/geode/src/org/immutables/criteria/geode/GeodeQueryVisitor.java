@@ -85,8 +85,8 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
 
     if (op == Operators.AND || op == Operators.OR) {
       Preconditions.checkArgument(!args.isEmpty(), "Size should be >=1 for %s but was %s", op, args.size());
-      final String join = " " + op.name() + " ";
-      final String newOql = args.stream().map(a -> a.accept(this)).map(OqlWithVariables::oql).collect(Collectors.joining(join));
+      final String join = ") " + op.name() + " (";
+      final String newOql = "(" + args.stream().map(a -> a.accept(this)).map(OqlWithVariables::oql).collect(Collectors.joining(join)) + ")";
       return new OqlWithVariables(variables, newOql);
     }
 

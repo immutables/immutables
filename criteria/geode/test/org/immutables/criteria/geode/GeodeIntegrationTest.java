@@ -20,6 +20,7 @@ import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
+import org.immutables.criteria.typemodel.BooleanLogicTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
@@ -67,6 +68,13 @@ class GeodeIntegrationTest {
     @Disabled("optionals don't work well in Geode yet (pdx serialization)")
     @Override
     protected void optional() {}
+  }
+
+  @Nested
+  class BooleanLogicTest extends BooleanLogicTemplate {
+    private BooleanLogicTest() {
+      super(backend);
+    }
   }
 
   @Nested

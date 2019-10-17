@@ -16,27 +16,25 @@
 
 package org.immutables.criteria.matcher;
 
-import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.personmodel.PersonCriteria;
+import org.junit.jupiter.api.Test;
 
-/**
- * Combines matchers using logical {@code OR}
- * @param <R> root criteria type
- */
-public interface OrMatcher<R extends Criterion<?>> extends Matcher {
+import static org.immutables.check.Checkers.check;
 
-  /**
-   * Combine {@code this} and {@code other} expression (criteria / matcher) using logical {@code OR}
-   * operator. Equivalent to {@code this OR other}.
-   *
-   * @param other other matcher
-   * @return new root criteria with updated expression
-   */
-  @SuppressWarnings("unchecked")
-  default R or(R other) {
-    return Matchers.combine((R) this, other, Operators.OR);
+class MatchersTest {
+
+  @Test
+  void projection() {
+    Expression expr1 = Matchers.toExpression(PersonCriteria.person.fullName);
+    check(expr1 instanceof Path);
+    check(((Path) expr1).toStringPath()).is("fullName");
+
+    Expression expr2 = Matchers.toExpression(PersonCriteria.person.bestFriend.value().hobby);
+    check(expr2 instanceof Path);
+    check(((Path) expr2).toStringPath()).is("bestFriend.hobby");
   }
+
 
 }

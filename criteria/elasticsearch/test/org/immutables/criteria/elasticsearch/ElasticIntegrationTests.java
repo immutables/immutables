@@ -21,6 +21,7 @@ import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
+import org.immutables.criteria.typemodel.BooleanLogicTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
@@ -65,6 +66,13 @@ class ElasticIntegrationTests {
   @Nested
   class StringTest extends StringTemplate {
     private StringTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class BooleanLogicTest extends BooleanLogicTemplate {
+    private BooleanLogicTest() {
       super(backend);
     }
   }

@@ -17,6 +17,7 @@
 package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
@@ -35,7 +36,7 @@ public final class CriteriaContext implements Queryable {
 
   private final Expression expression;
   private final Path path;
-  private final Class<?> entityClass;
+  final Class<?> entityClass;
   private final CriteriaContext root;
   private final CriteriaContext parent;
   private final CriteriaCreator<?> creator;
@@ -44,7 +45,7 @@ public final class CriteriaContext implements Queryable {
     this(entityClass, new DnfExpression(), null, creator, null);
   }
 
-  private CriteriaContext(Class<?> entityClass, Expression expression, Path path, CriteriaCreator<?> creator, CriteriaContext parent) {
+  CriteriaContext(Class<?> entityClass, Expression expression, Path path, CriteriaCreator<?> creator, CriteriaContext parent) {
     this.expression = expression;
     this.path = path;
     this.creator = Objects.requireNonNull(creator, "creator");
@@ -58,6 +59,14 @@ public final class CriteriaContext implements Queryable {
   }
 
   public Expression expression() {
+    if (expression instanceof DnfExpression) {
+      return dnfExpression().isEmpty() ? path() : dnfExpression().simplify();
+    }
+
+    if (expression == null) {
+      return path();
+    }
+
     return expression;
   }
 
@@ -115,7 +124,15 @@ public final class CriteriaContext implements Queryable {
   @Override
   public Query query() {
     final Query query = Query.of(entityClass);
-    return !dnfExpression().isEmpty() ? query.withFilter(dnfExpression().simplify()) : query;
+    Expression expression = expression();
+    if (expression instanceof DnfExpression) {
+      DnfExpression dnfExpression = dnfExpression();
+      return dnfExpression.isEmpty() ? query : query.withFilter(dnfExpression.simplify());
+    } else if (expression != null) {
+      return query.withFilter(expression);
+    }
+
+    return query;
   }
 
   <R> R createWith(CriteriaCreator<R> creator) {
@@ -133,7 +150,14 @@ public final class CriteriaContext implements Queryable {
   CriteriaContext apply(UnaryOperator<Expression> fn) {
     Objects.requireNonNull(fn, "fn");
     final Expression apply = fn.apply(path);
-    final DnfExpression newExpression = dnfExpression().and(apply);
+    final Expression newExpression;
+    if (expression instanceof DnfExpression) {
+      newExpression = dnfExpression().and(apply);
+    } else if (expression != null) {
+      newExpression = Expressions.and(expression, apply);
+    } else {
+      newExpression = apply;
+    }
     final CriteriaContext parentOrSelf = parent != null ? parent : this;
     return new CriteriaContext(entityClass, newExpression, parentOrSelf.path, parentOrSelf.creator, parentOrSelf.parent);
   }

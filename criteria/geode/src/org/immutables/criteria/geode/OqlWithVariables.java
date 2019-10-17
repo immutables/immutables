@@ -50,7 +50,10 @@ class OqlWithVariables {
       builder.append(" with ").append(variables.size()).append(" variables [");
       for (int i = 0; i < variables.size(); i++) {
         builder.append("$").append(i + 1).append("=").append(variables.get(i));
-        builder.append(", ");
+        boolean isLast = i == variables.size() - 1;
+        if (!isLast) {
+          builder.append(", ");
+        }
       }
       builder.append("]");
     }

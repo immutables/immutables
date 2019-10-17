@@ -20,6 +20,8 @@ import com.google.common.reflect.TypeToken;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressions;
+import org.immutables.criteria.expression.Operator;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -48,6 +50,25 @@ public final class Matchers {
     return Stream.concat(Stream.of(existing), restStream)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
+
+  }
+
+  static <R extends Criterion<?>> R combine(R left, R right, Operator operator) {
+    CriteriaContext context = Matchers.extract(left);
+    Expression leftExpression = context.expression();
+    Expression rightExpression = Matchers.extract(right).expression();
+    Expression expression = null;
+    if (leftExpression != null && rightExpression != null) {
+      expression = Expressions.call(operator, leftExpression, rightExpression);
+    } else if (rightExpression != null) {
+      expression = rightExpression;
+    } else if (leftExpression != null) {
+      expression = leftExpression;
+    }
+
+    CriteriaContext root = context.root();
+    CriteriaCreator<R> creator = root.creator();
+    return creator.create(new CriteriaContext(root.entityClass, expression, root.path(), creator, null));
 
   }
 
