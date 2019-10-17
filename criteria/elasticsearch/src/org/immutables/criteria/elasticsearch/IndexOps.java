@@ -51,6 +51,12 @@ class IndexOps {
     this.index = Objects.requireNonNull(index, "index");
   }
 
+  Single<Boolean> exists() {
+    final String uri = String.format(Locale.ROOT, "/%s/_mapping", index);
+    final Request request = new Request("GET", uri);
+    return transport.execute(request).map(x -> true).onErrorResumeNext(e -> Single.just(false));
+  }
+
   /**
    * Return mapping for current index
    */

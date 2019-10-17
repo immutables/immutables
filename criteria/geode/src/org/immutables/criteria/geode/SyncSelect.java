@@ -70,7 +70,15 @@ class SyncSelect implements Callable<Iterable<Object>> {
     }
 
     // for projections use tuple function
-    Function<Object, Object> tupleFn = operation.query().hasProjections() ? obj -> Geodes.castNumbers(toTuple(operation.query(), obj)) : x -> x;
+    Function<Object, Object> tupleFn;
+    if (operation.query().count()) {
+      // geode will return integer for count(*)
+      tupleFn = x -> Geodes.convert(x, Long.class);
+    } else if (operation.query().hasProjections()) {
+      tupleFn =  x -> Geodes.castNumbers(toTuple(operation.query(), x));
+    } else {
+      tupleFn = Function.identity();
+    }
     @SuppressWarnings("unchecked")
     Iterable<Object> result = (Iterable<Object>) session.queryService.newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
     // lazy transform

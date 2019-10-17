@@ -62,8 +62,12 @@ public class ReactiveMapper1<T1> implements ReactiveFetcher<T1> {
   }
 
   @Override
+  public Publisher<Long> count() {
+    return fetcher.count();
+  }
+
+  @Override
   public <X> ReactiveFetcher<X> map(Function<? super T1, ? extends X> mapFn) {
     return fetcher.map(mapFn);
   }
-
 }

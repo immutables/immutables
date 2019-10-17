@@ -102,6 +102,12 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
   }
 
   @Override
+  public Publisher<Long> count() {
+    Query newQuery = this.query.withCount(true);
+    return session.execute(StandardOperations.Select.of(newQuery)).publisher();
+  }
+
+  @Override
   public <X> ReactiveFetcher<X> map(Function<? super T, ? extends X> mapFn) {
     return new MappedFetcher<T, X>(this, mapFn);
   }
@@ -138,6 +144,11 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
     @Override
     public Publisher<Boolean> exists() {
       return delegate.exists();
+    }
+
+    @Override
+    public Publisher<Long> count() {
+      return delegate.count();
     }
 
     @Override

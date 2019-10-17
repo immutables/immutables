@@ -111,4 +111,9 @@ public class RxJavaReader<T> extends AbstractReader<RxJavaReader<T>> implements 
   public Single<Boolean> exists() {
     return fetcher.exists();
   }
+
+  @Override
+  public Single<Long> count() {
+    return fetcher.count();
+  }
 }

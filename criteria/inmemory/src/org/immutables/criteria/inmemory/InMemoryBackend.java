@@ -101,26 +101,26 @@ public class InMemoryBackend implements Backend {
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
     }
 
-    private <T> Publisher<T> query(StandardOperations.Select select) {
+    private Publisher<?> query(StandardOperations.Select select) {
       final Query query = select.query();
       if (query.hasAggregations()) {
         throw new UnsupportedOperationException("Aggregations are not yet supported by " + InMemoryBackend.class.getSimpleName());
       }
-      Stream<T> stream = (Stream<T>) store.values().stream();
+      Stream<Object> stream = store.values().stream();
 
       // filter
       if (query.filter().isPresent()) {
-        Predicate<T> predicate = InMemoryExpressionEvaluator.of(query.filter().get());
+        Predicate<Object> predicate = InMemoryExpressionEvaluator.of(query.filter().get());
         stream = stream.filter(predicate);
       }
 
       // sort
       if (!query.collations().isEmpty()) {
-        Comparator<T> comparator = null;
+        Comparator<Object> comparator = null;
         for (Collation collation: query.collations()) {
-          Function<T, Comparable<?>> fn = obj -> (Comparable<?>) pathExtractor.extract(collation.path(), obj);
+          Function<Object, Comparable<Object>> fn = obj -> (Comparable<Object>) pathExtractor.extract(collation.path(), obj);
           @SuppressWarnings("unchecked")
-          Comparator<T> newComparator = Comparator.<T, Comparable>comparing(fn);
+          Comparator<Object> newComparator = Comparator.<Object, Comparable>comparing(fn);
           if (!collation.direction().isAscending()) {
             newComparator = newComparator.reversed();
           }
@@ -137,7 +137,7 @@ public class InMemoryBackend implements Backend {
 
       if (query.hasProjections()) {
         final TupleExtractor extractor = new TupleExtractor(query, pathExtractor);
-        stream = (Stream<T>) stream.map(extractor::extract);
+        stream = stream.map(extractor::extract);
       }
 
       if (query.offset().isPresent()) {
@@ -146,6 +146,11 @@ public class InMemoryBackend implements Backend {
 
       if (query.limit().isPresent()) {
         stream = stream.limit(query.limit().getAsLong());
+      }
+
+      if (query.count()) {
+        // just return count
+        return Flowable.just(stream.count());
       }
 
       return Flowable.fromIterable(stream.collect(Collectors.toList()));

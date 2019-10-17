@@ -45,5 +45,10 @@ public interface SyncFetcher<T> extends Fetcher<T> {
    */
   boolean exists();
 
+  /**
+   * Count number of elements to be returned. Similar to {@code COUNT(*)} in SQL.
+   * @return number of elements (can be 0)
+   */
+  long count();
 
 }

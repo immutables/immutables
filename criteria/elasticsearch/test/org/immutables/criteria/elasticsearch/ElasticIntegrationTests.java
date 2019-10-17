@@ -22,6 +22,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
@@ -52,7 +53,11 @@ class ElasticIntegrationTests {
     // auto-create ES mapping on session open
     Consumer<Class<?>> onOpen = entity -> {
       String name = IndexResolver.defaultResolver().resolve(entity);
-      new IndexOps(restClient, mapper, name).create(Mappings.of(entity)).blockingAwait();
+      IndexOps ops = new IndexOps(restClient, mapper, name);
+      // create index if doesn't exists
+      if (!ops.exists().blockingGet()) {
+        ops.create(Mappings.of(entity)).blockingGet();
+      }
     };
     this.backend = WithSessionCallback.wrap(backend, onOpen);
   }
@@ -130,6 +135,13 @@ class ElasticIntegrationTests {
   @Nested
   class DateTest extends DateTemplate {
     private DateTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class Count extends CountTemplate {
+    private Count() {
       super(backend);
     }
   }

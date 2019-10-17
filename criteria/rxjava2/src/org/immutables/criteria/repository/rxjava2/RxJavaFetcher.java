@@ -44,5 +44,11 @@ public interface RxJavaFetcher<T> extends Fetcher<T> {
    */
   Single<Boolean> exists();
 
+  /**
+   * Count number of elements to be returned. Similar to {@code COUNT(*)} in SQL.
+   * @return Single with number of elements
+   */
+  Single<Long> count();
+
 
 }

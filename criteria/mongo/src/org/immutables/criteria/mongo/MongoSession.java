@@ -39,6 +39,8 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.BackendException;
 import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.ExpressionNaming;
+import org.immutables.criteria.backend.IdExtractor;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
@@ -49,8 +51,6 @@ import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Visitors;
-import org.immutables.criteria.backend.IdExtractor;
-import org.immutables.criteria.backend.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
@@ -79,7 +79,7 @@ class MongoSession implements Backend.Session {
     this.pathNaming = pathNaming;
   }
 
-  private Bson toBson(Query query) {
+  private Bson toBsonFilter(Query query) {
     Bson bson = query.filter().map(converter::convert).orElseGet(BsonDocument::new);
     if (logger.isLoggable(Level.FINE)) {
       BsonDocument filter = bson.toBsonDocument(BsonDocument.class, collection.getCodecRegistry());
@@ -119,15 +119,15 @@ class MongoSession implements Backend.Session {
     return Flowable.fromPublisher(publisher).compose(wrapMongoException());
   }
 
-  private <T> Publisher<T> query(StandardOperations.Select select) {
+  private Publisher<?> query(StandardOperations.Select select) {
     final Query query = select.query();
 
     final boolean hasAggregations =  query.hasAggregations();
     final boolean hasProjections = query.hasProjections();
+
     ExpressionNaming expressionNaming = hasAggregations ? ExpressionNaming.of(UniqueCachedNaming.of(query.projections())) : expression -> pathNaming.name((Path) expression);
 
-    @SuppressWarnings("unchecked")
-    final MongoCollection<T> collection = (MongoCollection<T>) (hasProjections ?
+    final MongoCollection<?> collection = (hasProjections ?
             this.collection.withDocumentClass(ProjectedTuple.class).withCodecRegistry(CodecRegistries.fromRegistries(this.collection.getCodecRegistry(),
                     CodecRegistries.fromProviders(new TupleCodecProvider(query, expressionNaming))))
             : this.collection);
@@ -135,11 +135,17 @@ class MongoSession implements Backend.Session {
     if (hasAggregations) {
       // aggregations
       AggregationQuery agg = new AggregationQuery(query, pathNaming);
-      return (Publisher<T>) collection.aggregate(agg.toPipeline(), ProjectedTuple.class);
+      return collection.aggregate(agg.toPipeline(), ProjectedTuple.class);
     }
 
+    Bson filter = toBsonFilter(query);
 
-    final FindPublisher<T> find = collection.find(toBson(query));
+    if (query.count()) {
+      // do count(*)
+      return Flowable.fromPublisher(collection.countDocuments(filter));
+    }
+
+    final FindPublisher<?> find = collection.find(filter);
     if (!query.collations().isEmpty()) {
       // add sorting
       final Function<Collation, Bson> toSortFn = col -> {
@@ -212,7 +218,7 @@ class MongoSession implements Backend.Session {
       return Flowable.error(new UnsupportedOperationException("Replacing whole objects not yet supported by " + MongoBackend.class.getSimpleName()));
     }
 
-    Bson filter = toBson(operation.query());
+    Bson filter = toBsonFilter(operation.query());
     Document set = new Document();
     operation.values().forEach((path, value) -> {
       if (path.returnType() != Optional.class && Optional.empty().equals(value)) {
@@ -227,7 +233,7 @@ class MongoSession implements Backend.Session {
   }
 
   private Publisher<WriteResult> delete(StandardOperations.Delete delete) {
-    final Bson filter = toBson(delete.query());
+    final Bson filter = toBsonFilter(delete.query());
     return Flowable.fromPublisher(collection.deleteMany(filter))
             .map(r -> WriteResult.unknown());
   }
@@ -240,7 +246,7 @@ class MongoSession implements Backend.Session {
 
   private <X> Publisher<X> watch(StandardOperations.Watch operation) {
     final MongoCollection<X> collection = (MongoCollection<X>) this.collection;
-    final Bson filter = new Document("fullDocument", toBson(operation.query()));
+    final Bson filter = new Document("fullDocument", toBsonFilter(operation.query()));
     return Flowable.fromPublisher(collection.watch(Collections.singletonList(filter))
             .fullDocument(FullDocument.UPDATE_LOOKUP)
             .withDocumentClass(collection.getDocumentClass()));

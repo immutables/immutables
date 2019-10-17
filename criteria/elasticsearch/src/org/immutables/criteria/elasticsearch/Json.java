@@ -57,6 +57,24 @@ import java.util.stream.StreamSupport;
 class Json {
 
   /**
+   * Reply of <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-count.html">search-count</a>
+   * endpoint aka {@code _count}.
+   */
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  static class Count {
+    private final long count;
+
+    @JsonCreator
+    Count(@JsonProperty("count") long count) {
+      this.count = count;
+    }
+
+    public long count() {
+      return count;
+    }
+  }
+
+  /**
    * Response from Elastic
    */
   @JsonIgnoreProperties(ignoreUnknown = true)

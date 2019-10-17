@@ -98,7 +98,10 @@ class AggregationQuery {
 
   List<Bson> toPipeline() {
     final List<Bson> aggregates = new ArrayList<>();
-    List<Pipeline> pipelines = Arrays.asList(new MatchPipeline(), new NameAndExtractFields(), new Group(), new Sort(), new Skip(), new Limit());
+    final List<Pipeline> pipelines = new ArrayList<>(Arrays.asList(new MatchPipeline(), new NameAndExtractFields(), new Group(), new Sort(), new Skip(), new Limit()));
+    if (query.count()) {
+      pipelines.add(new Count());
+    }
     pipelines.forEach(p -> p.process(aggregates::add));
 
     return Collections.unmodifiableList(aggregates);
@@ -106,6 +109,13 @@ class AggregationQuery {
 
   private interface Pipeline {
     void process(Consumer<Bson> consumer);
+  }
+
+  private class Count implements Pipeline {
+    @Override
+    public void process(Consumer<Bson> consumer) {
+      throw new UnsupportedOperationException("count(*) is not yet supported with aggregations");
+    }
   }
 
   private class MatchPipeline implements Pipeline {

@@ -167,6 +167,16 @@ class ElasticsearchOps {
             .map(x -> converter.convert(x.source()));
   }
 
+  /**
+   * Call {@code _count} endpoint to get count of documents matching a query.
+   * @see <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-count.html">search-count</a>
+   */
+  Single<Json.Count> count(ObjectNode query) {
+    final Request request = new Request("POST", String.format("/%s/_count", index));
+    request.setJsonEntity(query.toString());
+    return transport.execute(request).map(r -> convert(r, Json.Count.class));
+  }
+
   Single<Json.Result> searchRaw(ObjectNode query, Map<String, String> httpParams) {
       final Request request = new Request("POST", String.format("/%s/_search", index));
       httpParams.forEach(request::addParameter);

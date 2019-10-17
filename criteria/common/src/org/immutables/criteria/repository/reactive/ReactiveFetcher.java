@@ -52,6 +52,12 @@ public interface ReactiveFetcher<T> extends Fetcher<T> {
   Publisher<Boolean> exists();
 
   /**
+   * Count number of elements to be returned. Similar to {@code COUNT(*)} in SQL.
+   * @return Publisher with a single long value
+   */
+  Publisher<Long> count();
+
+  /**
    * Applies a mapping function to each element emitted by current fetcher
    */
   <X> ReactiveFetcher<X> map(Function<? super T, ? extends X> mapFn);

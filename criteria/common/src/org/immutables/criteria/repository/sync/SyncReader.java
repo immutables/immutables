@@ -106,4 +106,9 @@ public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements Sync
     return fetcher.exists();
   }
 
+  @Override
+  public long count() {
+    return fetcher.count();
+  }
+
 }

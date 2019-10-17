@@ -52,6 +52,11 @@ class ReactorFetcherDelegate<T> implements ReactorFetcher<T> {
     return Mono.from(delegate.exists());
   }
 
+  @Override
+  public Mono<Long> count() {
+    return Mono.from(delegate.count());
+  }
+
   static <T> ReactorFetcherDelegate<T> fromReactive(ReactiveFetcher<T> delegate) {
     return new ReactorFetcherDelegate<T>(delegate);
   }

@@ -110,4 +110,9 @@ public class ReactorReader<T> extends AbstractReader<ReactorReader<T>> implement
   public Mono<Boolean> exists() {
     return fetcher.exists();
   }
+
+  @Override
+  public Mono<Long> count() {
+    return fetcher.count();
+  }
 }

@@ -107,6 +107,11 @@ public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>> i
   }
 
   @Override
+  public Publisher<Long> count() {
+    return fetcher.count();
+  }
+
+  @Override
   public <X> ReactiveFetcher<X> map(Function<? super T, ? extends X> mapFn) {
     return fetcher.map(mapFn);
   }

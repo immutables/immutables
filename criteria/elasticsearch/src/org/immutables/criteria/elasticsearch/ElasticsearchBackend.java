@@ -24,13 +24,13 @@ import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
+import org.immutables.criteria.backend.IdExtractor;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.backend.IdExtractor;
-import org.immutables.criteria.backend.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
@@ -66,12 +66,12 @@ public class ElasticsearchBackend implements Backend {
   }
 
   @SuppressWarnings("unchecked")
-  private static class Session implements Backend.Session {
-    private final Class<?> entityType;
-    private final ObjectMapper objectMapper;
-    private final ElasticsearchOps ops;
-    private final IdExtractor idExtractor;
-    private final JsonConverter<Object> converter;
+  static class Session implements Backend.Session {
+    final Class<?> entityType;
+    final ObjectMapper objectMapper;
+    final ElasticsearchOps ops;
+    final IdExtractor idExtractor;
+    final JsonConverter<Object> converter;
     private final boolean hasId;
 
 
@@ -122,12 +122,17 @@ public class ElasticsearchBackend implements Backend {
 
     private Flowable<?> select(StandardOperations.Select op) {
       final Query query = op.query();
+
+      if (query.count()) {
+        return new CountCall(op, this).call().toFlowable();
+      }
+
       if (query.hasAggregations()) {
         return aggregate(op);
       }
       final ObjectNode json = objectMapper.createObjectNode();
 
-      query.filter().ifPresent(f -> json.set("query", Elasticsearch.query(objectMapper).convert(f)));
+      query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(objectMapper).convert(f)));
       query.limit().ifPresent(limit -> json.put("size", limit));
       query.offset().ifPresent(offset -> json.put("from", offset));
       if (!query.collations().isEmpty()) {

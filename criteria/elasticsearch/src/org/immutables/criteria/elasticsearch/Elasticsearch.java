@@ -18,6 +18,7 @@ package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionConverter;
 
 import java.util.Objects;
@@ -26,15 +27,17 @@ final class Elasticsearch {
 
   private  Elasticsearch() {}
 
+  static QueryBuilders.QueryBuilder toBuilder(Expression expression) {
+    return expression.accept(new ElasticsearchQueryVisitor());
+  }
+
   /**
    * {@code query} part of the JSON
    */
-  static ExpressionConverter<ObjectNode> query(ObjectMapper mapper) {
+  static ExpressionConverter<ObjectNode> constantScoreQuery(ObjectMapper mapper) {
     Objects.requireNonNull(mapper, "expression");
-
     return expression -> {
-      final ElasticsearchQueryVisitor visitor = new ElasticsearchQueryVisitor();
-      final QueryBuilders.QueryBuilder builder = expression.accept(visitor);
+      final QueryBuilders.QueryBuilder builder = toBuilder(expression);
       return QueryBuilders.constantScoreQuery(builder).toJson(mapper);
     };
   }

@@ -94,7 +94,7 @@ class AggregateQueryBuilder {
     json.put("_source", false);
     json.put("size", 0);
 
-    query.filter().ifPresent(f -> json.set("query", Elasticsearch.query(mapper).convert(f)));
+    query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(mapper).convert(f)));
 
     // due to ES aggregation format. fields in "order by" clause should go first
     // if "order by" is missing. order in "group by" is un-important

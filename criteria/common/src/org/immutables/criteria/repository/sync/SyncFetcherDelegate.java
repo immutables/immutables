@@ -56,6 +56,11 @@ class SyncFetcherDelegate<T> implements SyncFetcher<T> {
     return Publishers.blockingGet(fetcher.exists());
   }
 
+  @Override
+  public long count() {
+    return Publishers.blockingGet(fetcher.count());
+  }
+
   static <T> SyncFetcherDelegate<T> fromReactive(ReactiveFetcher<T> fetcher) {
     return new SyncFetcherDelegate<T>(fetcher);
   }

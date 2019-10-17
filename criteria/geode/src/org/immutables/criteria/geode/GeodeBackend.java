@@ -119,16 +119,21 @@ public class GeodeBackend implements Backend {
     }
 
     OqlWithVariables toOql(Query query, boolean useBindVariables) {
+      if (query.count() && (query.hasAggregations() || !query.groupBy().isEmpty())) {
+        throw new UnsupportedOperationException("Aggregations / Group By and count(*) are not yet supported");
+      }
+
       final StringBuilder oql = new StringBuilder("SELECT");
       if (!query.hasProjections()) {
-        oql.append(" * ");
+        oql.append(query.count() ? " COUNT(*) " : " * ");
       } else {
         // explicitly add list of projections
         List<String> paths = query.projections().stream()
                 .map(Session::toProjection)
                 .collect(Collectors.toList());
+        String projections = query.count() ? " COUNT(*) " : String.join(", ", paths);
         oql.append(" ");
-        oql.append(String.join( ", ", paths));
+        oql.append(projections);
         oql.append(" ");
       }
 

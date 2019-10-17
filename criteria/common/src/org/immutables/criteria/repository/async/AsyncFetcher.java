@@ -46,4 +46,10 @@ public interface AsyncFetcher<T> extends Fetcher<T> {
    */
   CompletionStage<Boolean> exists();
 
+  /**
+   * Count number of elements to be returned. Similar to {@code COUNT(*)} in SQL.
+   * @return Future holding number of elements
+   */
+  CompletionStage<Long> count();
+
 }

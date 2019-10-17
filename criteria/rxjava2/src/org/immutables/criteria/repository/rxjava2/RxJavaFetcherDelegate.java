@@ -53,6 +53,11 @@ class RxJavaFetcherDelegate<T> implements RxJavaFetcher<T> {
     return Single.fromPublisher(delegate.exists());
   }
 
+  @Override
+  public Single<Long> count() {
+    return Single.fromPublisher(delegate.count());
+  }
+
   static <T> RxJavaFetcherDelegate<T> fromReactive(ReactiveFetcher<T> delegate) {
     return new RxJavaFetcherDelegate<T>(delegate);
   }

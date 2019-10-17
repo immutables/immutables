@@ -58,4 +58,9 @@ public class AsyncMapper1<T1> implements AsyncFetcher<T1> {
     return fetcher.exists();
   }
 
+  @Override
+  public CompletionStage<Long> count() {
+    return fetcher.count();
+  }
+
 }

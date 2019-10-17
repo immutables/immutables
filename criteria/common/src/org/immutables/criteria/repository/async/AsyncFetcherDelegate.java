@@ -55,6 +55,11 @@ class AsyncFetcherDelegate<T> implements AsyncFetcher<T> {
     return Publishers.toFuture(fetcher.exists());
   }
 
+  @Override
+  public CompletionStage<Long> count() {
+    return Publishers.toFuture(fetcher.count());
+  }
+
   static <T> AsyncFetcherDelegate<T> fromReactive(ReactiveFetcher<T> fetcher) {
     return new AsyncFetcherDelegate<T>(fetcher);
   }

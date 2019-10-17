@@ -57,4 +57,9 @@ public class SyncMapper1<T1> implements SyncFetcher<T1> {
     return fetcher.exists();
   }
 
+  @Override
+  public long count() {
+    return fetcher.count();
+  }
+
 }

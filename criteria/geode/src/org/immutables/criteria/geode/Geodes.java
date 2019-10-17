@@ -63,7 +63,7 @@ final class Geodes {
     return ProjectedTuple.of(tuple.paths(), newVaues);
   }
 
-  private static Object convert(Object value, Type destinationType) {
+  static Object convert(Object value, Type destinationType) {
     if (value == null) {
       return null;
     }

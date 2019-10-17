@@ -20,6 +20,7 @@ import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
@@ -130,6 +131,13 @@ class MongoIntegrationTest {
   @Nested
   class WriteTest extends WriteTemplate {
     private WriteTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class Count extends CountTemplate {
+    private Count() {
       super(backend);
     }
   }

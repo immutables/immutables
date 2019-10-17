@@ -102,4 +102,9 @@ public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements As
   public CompletionStage<Boolean> exists() {
     return fetcher.exists();
   }
+
+  @Override
+  public CompletionStage<Long> count() {
+    return fetcher.count();
+  }
 }

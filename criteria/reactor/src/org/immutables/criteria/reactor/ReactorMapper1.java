@@ -57,4 +57,9 @@ public class ReactorMapper1<T1> implements ReactorFetcher<T1> {
   public Mono<Boolean> exists() {
     return fetcher.exists();
   }
+
+  @Override
+  public Mono<Long> count() {
+    return fetcher.count();
+  }
 }

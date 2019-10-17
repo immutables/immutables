@@ -21,6 +21,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
@@ -163,6 +164,13 @@ class GeodeIntegrationTest {
   @Nested
   class Write extends WriteTemplate {
     private Write() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class Count extends CountTemplate {
+    private Count() {
       super(backend);
     }
   }

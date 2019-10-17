@@ -47,6 +47,14 @@ public abstract class Query {
   public abstract List<Expression> groupBy();
 
   /**
+   * Similar to {@code COUNT(*)} in SQL. Wherever to compute just number of to be returned records.
+   */
+  @Value.Default
+  public boolean count() {
+    return false;
+  }
+
+  /**
    * Check if current query has any projections
    */
   public boolean hasProjections() {
@@ -88,6 +96,10 @@ public abstract class Query {
     return ImmutableQuery.builder().from(this).addGroupBy(groupBy).build();
   }
 
+  public Query withCount(boolean count) {
+    return ImmutableQuery.builder().from(this).count(count).build();
+  }
+
   public Query withOffset(long offset) {
     return ImmutableQuery.copyOf(this).withOffset(offset);
   }
@@ -126,6 +138,5 @@ public abstract class Query {
     offset().ifPresent(offset -> writer.append(" offset:").append(String.valueOf(offset)).println());
 
     return string.toString();
-
   }
 }

@@ -42,4 +42,10 @@ public interface ReactorFetcher<T> extends Fetcher<T> {
    * @return Mono with {@code true} if there are any matches / {@code false} otherwise
    */
   Mono<Boolean> exists();
+
+  /**
+   * Count number of elements to be returned. Similar to {@code COUNT(*)} in SQL.
+   * @return Mono with number of elements (which can be 0)
+   */
+  Mono<Long> count();
 }

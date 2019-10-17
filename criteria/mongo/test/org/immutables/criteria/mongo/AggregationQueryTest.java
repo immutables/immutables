@@ -25,6 +25,7 @@ import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -33,13 +34,13 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class AggregationQueryTest {
+class AggregationQueryTest {
 
   private final PersonCriteria person = PersonCriteria.person;
 
 
   @Test
-  public void basic() {
+  void basic() {
     // select nickName, sum(age) from ... group by nickName
     Query query = Query.of(Person.class)
             .addGroupBy(Matchers.toExpression(person.nickName))
@@ -51,7 +52,7 @@ public class AggregationQueryTest {
   }
 
   @Test
-  public void withSort() {
+  void withSort() {
     Query query = Query.of(Person.class)
             .addGroupBy(Matchers.toExpression(person.nickName))
             .addCollations(Collections.singleton(Collation.of(Matchers.toExpression(person.nickName))))
@@ -65,7 +66,20 @@ public class AggregationQueryTest {
             "{$sort: {expr0: 1}}",
             "{$skip: 1}",
             "{$limit: 2}");
+  }
 
+  @Disabled
+  @Test
+  void withCount() {
+
+    Query query = Query.of(Person.class)
+            .addGroupBy(Matchers.toExpression(person.nickName))
+            .addProjections(Matchers.toExpression(person.nickName))
+            .withCount(true);
+
+    assertAgg(query, "{$project: {expr0: '$nickName'}}",
+            "{$group: {_id: '$expr0'}}",
+            "{$count: 'count'}");
   }
 
   private static void assertAgg(Query query, String ... lines) {
@@ -82,9 +96,10 @@ public class AggregationQueryTest {
               .map(b -> b.toJson(settings)).collect(Collectors.joining("\n"));
 
       // used to pretty print Assertion error
-      Assertions.assertEquals("expected and actual Mongo pipelines do not match",
+      Assertions.assertEquals(
               prettyFn.apply(expected),
-              prettyFn.apply(actual));
+              prettyFn.apply(actual),
+              "expected and actual Mongo pipelines do not match");
 
       Assertions.fail("Should have failed previously because expected != actual is known to be true");
     }

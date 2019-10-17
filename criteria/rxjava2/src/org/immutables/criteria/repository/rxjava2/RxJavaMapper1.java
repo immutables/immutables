@@ -58,4 +58,9 @@ public class RxJavaMapper1<T1> implements RxJavaFetcher<T1> {
   public Single<Boolean> exists() {
     return fetcher.exists();
   }
+
+  @Override
+  public Single<Long> count() {
+    return fetcher.count();
+  }
 }
