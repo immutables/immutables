@@ -19,6 +19,7 @@ package org.immutables.criteria.geode;
 import com.google.common.base.Preconditions;
 import org.apache.geode.cache.Region;
 import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
@@ -46,8 +47,8 @@ final class Geodes {
    *
    * @return predicate, empty string if no predicate
    */
-  static ExpressionConverter<OqlWithVariables> converter(boolean useBindVariables) {
-    return expression -> expression.accept(new GeodeQueryVisitor(useBindVariables));
+  static ExpressionConverter<OqlWithVariables> converter(boolean useBindVariables, PathNaming pathNaming) {
+    return expression -> expression.accept(new GeodeQueryVisitor(useBindVariables, pathNaming));
   }
 
   /**

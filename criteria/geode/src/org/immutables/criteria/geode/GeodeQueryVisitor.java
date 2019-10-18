@@ -18,6 +18,7 @@ package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.ComparableOperators;
@@ -34,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  */
 class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
 
-  private final Function<Path, String> pathFn;
+  private final PathNaming pathNaming;
 
   /**
    * Bind variables. Remains empty if variables are not used
@@ -55,13 +55,9 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
   /**
    * @param useBindVariables wherever query should be generated with bind variables or not
    */
-  GeodeQueryVisitor(boolean useBindVariables) {
-    this(useBindVariables, Path::toStringPath);
-  }
-
-  GeodeQueryVisitor(boolean useBindVariables, Function<Path, String> pathFn) {
+  GeodeQueryVisitor(boolean useBindVariables, PathNaming pathNaming) {
     super(e -> { throw new UnsupportedOperationException(); });
-    this.pathFn = Objects.requireNonNull(pathFn, "pathFn");
+    this.pathNaming = Objects.requireNonNull(pathNaming, "pathFn");
     this.variables = new ArrayList<>();
     this.useBindVariables = useBindVariables;
   }
@@ -111,7 +107,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
       Preconditions.checkArgument(args.size() == 1, "Size should be == 1 for %s but was %s", op, args.size());
       final Path path = Visitors.toPath(args.get(0));
       final String isNull = op == OptionalOperators.IS_PRESENT ? "!= null" : "= null";
-      return oql(pathFn.apply(path) + " " + isNull);
+      return oql(pathNaming.name(path) + " " + isNull);
     } else if (op == Operators.NOT) {
       return oql("NOT (" + args.get(0).accept(this).oql() + ")");
     }
@@ -156,10 +152,10 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
     if (useBindVariables) {
       variables.add(variable);
       // bind variables in Geode start at index 1: $1, $2, $3 etc.
-      return oql(String.format("%s %s $%d", pathFn.apply(path), operator, variables.size()));
+      return oql(String.format("%s %s $%d", pathNaming.name(path), operator, variables.size()));
     }
 
-    return oql(String.format("%s %s %s", pathFn.apply(path), operator, toString(variable)));
+    return oql(String.format("%s %s %s", pathNaming.name(path), operator, toString(variable)));
   }
 
   /**

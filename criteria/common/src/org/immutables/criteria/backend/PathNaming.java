@@ -19,7 +19,7 @@ package org.immutables.criteria.backend;
 import org.immutables.criteria.expression.Path;
 
 /**
- * Strategy represent {@link Path}s as String.
+ * Strategy to represent a {@link Path}s as String (eg {@code foo.bar.qux})
  *
  * @see org.immutables.criteria.Criteria.Id
  */
@@ -28,10 +28,13 @@ public interface PathNaming extends NamingStrategy<Path> {
   /**
    * Return name of a field (aka {@link Path}) like {@code a.b.c} or {@code _id}.
    * Should take in consideration {@code ID} naming properties of the backend.
-   * @param path
+   * @param path path to be converted to string
    * @return path representation as string
    */
   @Override
   String name(Path path);
 
+  static PathNaming defaultNaming() {
+    return Path::toStringPath;
+  }
 }

@@ -54,7 +54,7 @@ class SyncDelete implements Callable<WriteResult> {
       return deleteByKeys(ids.get());
     }
 
-    GeodeQueryVisitor visitor = new GeodeQueryVisitor(true, path -> String.format("e.value.%s", path.toStringPath()));
+    GeodeQueryVisitor visitor = new GeodeQueryVisitor(true, path -> String.format("e.value.%s", session.pathNaming.name(path)));
     OqlWithVariables oql = filter.accept(visitor);
 
     // delete by query. Perform separate query to get list of IDs

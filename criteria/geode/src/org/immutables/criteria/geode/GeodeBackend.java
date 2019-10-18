@@ -27,6 +27,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.expression.AggregationCall;
@@ -49,16 +50,18 @@ public class GeodeBackend implements Backend {
   static final Logger logger = Logger.getLogger(GeodeBackend.class.getName());
 
   private final GeodeSetup setup;
+  private final PathNaming pathNaming;
 
 
   public GeodeBackend(GeodeSetup setup) {
     this.setup = Objects.requireNonNull(setup, "setup");
+    this.pathNaming = PathNaming.defaultNaming();
   }
 
   @Override
   public Backend.Session open(Class<?> entityType) {
     Objects.requireNonNull(entityType, "context");
-    return new Session(entityType, setup);
+    return new Session(entityType, this);
   }
 
   static class Session implements Backend.Session {
@@ -68,15 +71,18 @@ public class GeodeBackend implements Backend {
     final IdExtractor idExtractor;
     final IdResolver idResolver;
     final QueryService queryService;
+    final PathNaming pathNaming;
 
-    private Session(Class<?> entityType, GeodeSetup setup) {
+    private Session(Class<?> entityType, GeodeBackend backend) {
       this.entityType = Objects.requireNonNull(entityType, "entityType");
+      GeodeSetup setup = backend.setup;
       @SuppressWarnings("unchecked")
       Region<Object, Object> region = (Region<Object, Object>) setup.regionResolver().resolve(entityType);
       this.region = region;
       this.idResolver = setup.idResolver();
       this.idExtractor = IdExtractor.fromResolver(idResolver);
       this.queryService = setup.queryServiceResolver().resolve(region);
+      this.pathNaming = backend.pathNaming;
     }
 
     @Override
@@ -140,7 +146,7 @@ public class GeodeBackend implements Backend {
       oql.append(" FROM ").append(region.getFullPath());
       final List<Object> variables = new ArrayList<>();
       if (query.filter().isPresent()) {
-        OqlWithVariables withVars = Geodes.converter(useBindVariables).convert(query.filter().get());
+        OqlWithVariables withVars = Geodes.converter(useBindVariables, pathNaming).convert(query.filter().get());
         oql.append(" WHERE ").append(withVars.oql());
         variables.addAll(withVars.variables());
       }

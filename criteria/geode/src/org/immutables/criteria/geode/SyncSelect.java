@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 class SyncSelect implements Callable<Iterable<Object>> {
+  
 
   /**
    * Convert Geode specific {@link QueryService#UNDEFINED} value to null
