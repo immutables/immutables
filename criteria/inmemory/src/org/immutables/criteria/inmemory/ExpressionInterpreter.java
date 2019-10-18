@@ -32,20 +32,20 @@ import org.immutables.criteria.expression.StringOperators;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * Evaluator (predicate) based on reflection. Uses expression visitor API to construct the predicate.
- *
- * <p>Probably most useful in testing scenarios</p>
+ * Evaluator which uses reflection to get path from an object.
+ * Uses expression visitor API to interpret the expression.
  */
-class InMemoryExpressionEvaluator<T> implements Predicate<T> {
+class ExpressionInterpreter implements Function<Object, Object> {
 
   /**
-   * Sentinel used for Three-Valued Logic: true / false / unknown
+   * Sentinel used for Three-Valued Logic (3VL): true / false / unknown
    */
   private static final Object UNKNOWN = new Object() {
     @Override
@@ -56,32 +56,33 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
   private final Expression expression;
 
-  private InMemoryExpressionEvaluator(Expression expression) {
+  private ExpressionInterpreter(Expression expression) {
     this.expression = Objects.requireNonNull(expression, "expression");
   }
 
+  static ExpressionInterpreter of(Expression expression) {
+    return new ExpressionInterpreter(expression);
+  }
+
   /**
-   * Factory method to create evaluator instance
+   * Predicate to check that current expression with given parameter evaluates to {@code true}
    */
-  public static <T> Predicate<T> of(Expression expression) {
-    return instance -> Boolean.TRUE.equals(expression.accept(new LocalVisitor(instance)));
+  Predicate<Object> asPredicate() {
+    return value -> Boolean.TRUE.equals(apply(value));
   }
 
   @Override
-  public boolean test(T instance) {
-    Objects.requireNonNull(instance, "instance");
-    final LocalVisitor visitor = new LocalVisitor(instance);
-    return Boolean.TRUE.equals(expression.accept(visitor));
+  public Object apply(Object instance) {
+    return expression.accept(new LocalVisitor(instance));
   }
 
   private static class LocalVisitor implements ExpressionVisitor<Object> {
 
-    private final PathExtractor extractor;
+    private static final PathExtractor EXTRACTOR = new ReflectionExtractor();
     private final Object instance;
 
     private LocalVisitor(Object instance) {
       this.instance = instance;
-      this.extractor = new ReflectionExtractor();
     }
 
     @Override
@@ -252,7 +253,7 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
     @Override
     public Object visit(Path path) {
-      final Object extracted = extractor.extract(path, instance);
+      final Object extracted = EXTRACTOR.extract(path, instance);
       return extracted == null ? UNKNOWN : extracted;
     }
   }

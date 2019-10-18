@@ -110,7 +110,7 @@ public class InMemoryBackend implements Backend {
 
       // filter
       if (query.filter().isPresent()) {
-        Predicate<Object> predicate = InMemoryExpressionEvaluator.of(query.filter().get());
+        Predicate<Object> predicate = ExpressionInterpreter.of(query.filter().get()).asPredicate();
         stream = stream.filter(predicate);
       }
 

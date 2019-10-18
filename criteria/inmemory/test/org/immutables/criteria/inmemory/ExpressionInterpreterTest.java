@@ -29,7 +29,7 @@ import java.util.Optional;
 
 import static org.immutables.check.Checkers.check;
 
-public class InMemoryExpressionEvaluatorTest {
+public class ExpressionInterpreterTest {
 
   private final ImmutablePerson example = ImmutablePerson.builder()
           .id("abc123")
@@ -113,7 +113,7 @@ public class InMemoryExpressionEvaluatorTest {
   }
 
   private static boolean evaluate(PersonCriteria criteria, Person person) {
-    return Criterias.toQuery(criteria).filter().map(f -> InMemoryExpressionEvaluator.of(f).test(person)).orElse(true);
+    return Criterias.toQuery(criteria).filter().map(f -> ExpressionInterpreter.of(f).asPredicate().test(person)).orElse(true);
   }
 
 }
