@@ -63,4 +63,17 @@ public interface WriteResult {
    */
   OptionalLong updatedCount();
 
+  /**
+   * Total number of changes occurred after a write operation. Sum of existing counts
+   * if they're all defined, otherwise return {@link OptionalLong#empty()}.
+   */
+  default OptionalLong totalCount() {
+    if (insertedCount().isPresent() && deletedCount().isPresent() && updatedCount().isPresent()) {
+      long value = insertedCount().getAsLong() + deletedCount().getAsLong() + updatedCount().getAsLong();
+      return OptionalLong.of(value);
+    }
+
+    return OptionalLong.empty();
+  }
+
 }
