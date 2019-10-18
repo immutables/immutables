@@ -46,7 +46,7 @@ public class JavaBeanModelTest {
 
     List<String> attributes = valueType.allMarshalingAttributes().stream().map(ValueAttribute::name).collect(Collectors.toList());
 
-    check(attributes).hasContentInAnyOrder("set", "foo", "base", "dep", "deps", "nullableDep");
+    check(attributes).hasContentInAnyOrder("set", "foo", "base", "dep", "deps", "nullableDep", "boxedInteger");
     // java.lang.Object should not be included
     check(attributes).not().hasContentInAnyOrder("equals", "hashCode", "toString", "getClass");
     check(attributes).not().hasContentInAnyOrder("ignore", "missingField");
@@ -69,6 +69,32 @@ public class JavaBeanModelTest {
     ValueType valueType = rule.value(Model1.class);
     Function<String, ValueAttribute> findFn = name -> valueType.attributes.stream().filter(a -> a.name().equals(name)).findAny().get();
     check(findFn.apply("nullableDep").isNullable());
+  }
+
+  /**
+   * JavaBean(s) have nullable types by default (except for primitives / optionals / iterables)
+   */
+  @Test
+  public void nullableByDefault() {
+    ValueType valueType = rule.value(Model1.class);
+    Function<String, ValueAttribute> findFn = name -> valueType.attributes.stream().filter(a -> a.name().equals(name)).findAny().get();
+
+    // TODO: generate optional version of criteria ?
+    check(findFn.apply("dep").isNullable());
+
+    // boxed versions are nullable
+    check(findFn.apply("boxedInteger").isNullable());
+
+    // base is string (and can be null)
+    check(findFn.apply("base").isNullable());
+
+    // exclude nullable property from primitives / collections and optionals
+    // foo is int (primitive)
+    check(!findFn.apply("foo").isNullable());
+    // set is boolean
+    check(!findFn.apply("set").isNullable());
+    // deps is collection
+    check(!findFn.apply("deps").isNullable());
   }
 
   @Test
@@ -131,6 +157,8 @@ public class JavaBeanModelTest {
     private int foo;
     private List<Dep> deps;
 
+    private Integer boxedInteger;
+
     private Dep dep;
 
     @Nullable
@@ -189,6 +217,14 @@ public class JavaBeanModelTest {
 
     public void setNullableDep(Dep nullableDep) {
       this.nullableDep = nullableDep;
+    }
+
+    public Integer getBoxedInteger() {
+      return boxedInteger;
+    }
+
+    public void setBoxedInteger(Integer boxedInteger) {
+      this.boxedInteger = boxedInteger;
     }
   }
 

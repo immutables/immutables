@@ -19,46 +19,14 @@ package org.immutables.criteria.javabean;
 import org.immutables.criteria.Criteria;
 
 @Criteria
-public class JavaBean1 extends AbstractBean {
+public class DepBean {
+  private String foo;
 
-  private int int1;
-
-  private Integer boxedInteger;
-
-  private DepBean depBean;
-
-  @Criteria.Id
-  private String string1;
-
-  public int getInt1() {
-    return int1;
+  public String getFoo() {
+    return foo;
   }
 
-  public void setInt1(int int1) {
-    this.int1 = int1;
-  }
-
-  public String getString1() {
-    return string1;
-  }
-
-  public void setString1(String string1) {
-    this.string1 = string1;
-  }
-
-  public DepBean getDepBean() {
-    return depBean;
-  }
-
-  public void setDepBean(DepBean depBean) {
-    this.depBean = depBean;
-  }
-
-  public Integer getBoxedInteger() {
-    return boxedInteger;
-  }
-
-  public void setBoxedInteger(Integer boxedInteger) {
-    this.boxedInteger = boxedInteger;
+  public void setFoo(String foo) {
+    this.foo = foo;
   }
 }

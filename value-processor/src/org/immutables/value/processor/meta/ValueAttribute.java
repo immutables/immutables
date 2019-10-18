@@ -1178,6 +1178,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     }
 
     initAttributeBuilder();
+    maybeInitJavaBean();
   }
 
   private Set<String> thrownCheckedExceptions = ImmutableSet.of();
@@ -1669,6 +1670,25 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       } else {
         builderSwitcherModel = new SwitcherModel(switcher.get(), names, containedTypeElement);
       }
+    }
+  }
+
+  /**
+   * Init (or override) internal attributes specific to JavaBeans
+   */
+  private void maybeInitJavaBean() {
+    if (!containingType.kind().isJavaBean()) {
+      return;
+    }
+
+    // JavaBeans have nullable attributes by default (except for primitives / optionals / collections / criteria)
+    // allow only scalar types to be nullable (by default) for JavaBeans
+    // override nullability if not set
+    if (this.nullability == null
+            && !isPrimitive()
+            && !isOptionalType()
+            && !isCollectionType()) {
+      this.nullability = NullabilityAnnotationInfo.forTypeUse();
     }
   }
 
