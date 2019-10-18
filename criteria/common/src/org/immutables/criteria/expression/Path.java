@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -28,12 +29,18 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Access to a property or entity (class) possibly via several paths like {@code foo.bar.qux}
+ * Access to a property or entity (class) possibly via several paths like {@code foo.bar.qux}.
+ *
+ * <p>Path always starts with an entity (class) which is root. Each subsequent {@link Member} is appended
+ * as child. So {@code foo.bar.qux} starts with root which is class of {@code foo} then
+ * member {@code foo}, member {@code bar} and member {@code qux}.
+ *
+ * <p>This class is immutable
  */
+@Immutable
 public class Path implements Expression {
 
   private final Path parent;
@@ -47,7 +54,6 @@ public class Path implements Expression {
   }
 
   private static Type extractReturnType(AnnotatedElement element) {
-    Objects.requireNonNull(element, "element");
     if (element instanceof Field)  {
       return ((Field) element).getGenericType();
     } else if (element instanceof Method) {
@@ -63,63 +69,59 @@ public class Path implements Expression {
     return Optional.ofNullable(parent);
   }
 
-  public AnnotatedElement annotatedElement() {
+  public AnnotatedElement element() {
     return annotatedElement;
   }
 
   /**
    * Means current path represents an entity (class) not necessarily a member like field or method.
    */
-  public boolean isEntityPath() {
-    return annotatedElement.getClass() == Class.class;
+  public boolean isRoot() {
+    return parent == null;
+  }
+
+  public Path root() {
+    return parent != null ? parent.root() : this;
   }
 
   /**
-   * Paths from root to current element
+   * Return list of path members starting with root (excluded) to current element (included).
+   * For root path returns empty list.
    */
-  public List<AnnotatedElement> paths() {
+  public List<Member> members() {
+    ImmutableList.Builder<Member> parents = ImmutableList.builder();
     Path current = this;
-    final ImmutableList.Builder<AnnotatedElement> parents = ImmutableList.builder();
-    do {
-      parents.add(current.annotatedElement());
+    while (!current.isRoot()) {
+      parents.add((Member) current.element());
       current = current.parent;
-    } while (current != null);
-
+    }
     return parents.build().reverse();
   }
 
-  public Path with(Member member) {
-    Objects.requireNonNull(annotatedElement, "annotatedElement");
+  /**
+   * Create new instance of path with {@code member} appended
+   */
+  public Path append(Member member) {
+    Objects.requireNonNull(member, "member");
+    Preconditions.checkArgument(member instanceof AnnotatedElement, "Expected %s to implement %s", member.getClass(), AnnotatedElement.class);
     return new Path(this, (AnnotatedElement) member);
   }
 
-  public static Path of(Member member) {
+  public static Path ofMember(Member member) {
     Objects.requireNonNull(member, "member");
-    Preconditions.checkArgument(member instanceof AnnotatedElement, "%s instanceof %s",
-            member.getClass().getName(),
-            AnnotatedElement.class.getSimpleName());
-    return of((AnnotatedElement) member);
+    return ofClass(member.getDeclaringClass()).append(member);
   }
 
-  public static Path of(AnnotatedElement annotatedElement) {
-    return new Path(null, annotatedElement);
+  public static Path ofClass(Class<?> type) {
+    return new Path(null, type);
   }
 
   /**
-   * Returns current path in java bean format: {@code foo.bar.qux}
+   * Returns current path in java bean format: {@code foo.bar.qux}. For root path returns
+   * empty list ({@code ""}).
    */
   public String toStringPath() {
-    final Function<AnnotatedElement, String> fn = elem -> {
-      if (elem instanceof Member) {
-        return ((Member) elem).getName();
-      } else if (elem instanceof Class) {
-        return ((Class) elem).getSimpleName();
-      }
-
-      throw new IllegalArgumentException("Unknown element " + elem);
-    };
-
-    return paths().stream().map(fn).collect(Collectors.joining("."));
+    return members().stream().map(Member::getName).collect(Collectors.joining("."));
   }
 
   @Override

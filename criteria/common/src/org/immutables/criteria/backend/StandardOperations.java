@@ -128,7 +128,7 @@ public final class StandardOperations {
      * Replace means override whole record / document not a subset of attributes.
      */
     default Optional<Object> replace() {
-      Optional<Path> found = values().keySet().stream().map(Visitors::toPath).filter(Path::isEntityPath).findAny();
+      Optional<Path> found = values().keySet().stream().map(Visitors::toPath).filter(Path::isRoot).findAny();
       // check that there is just a replace value. no others (like attribute set)
       found.ifPresent(p -> {
         if (values().size() != 1) {

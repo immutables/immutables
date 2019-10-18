@@ -146,7 +146,7 @@ final class Geodes {
 
     final Path path = Visitors.toPath(predicate.arguments().get(0));
 
-    if (!(path.paths().size() == 1 && idResolver.asPredicate().test((Member) path.annotatedElement()))) {
+    if (!(path.members().size() == 1 && idResolver.asPredicate().test((Member) path.element()))) {
       return Optional.empty();
     }
 

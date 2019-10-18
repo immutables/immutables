@@ -20,7 +20,6 @@ import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.reflect.MemberExtractor;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,8 +39,8 @@ class ReflectionExtractor implements PathExtractor {
 
     Object result = instance;
 
-    for (AnnotatedElement member: path.paths()) {
-      result = extractor.extract((Member) member, result);
+    for (Member member: path.members()) {
+      result = extractor.extract(member, result);
       if (result == null) {
         return null;
       }

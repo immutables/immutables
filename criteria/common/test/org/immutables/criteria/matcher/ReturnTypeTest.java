@@ -146,7 +146,7 @@ class ReturnTypeTest {
   private static Type projectionTypeInternal(Projection<?> projection) throws ClassNotFoundException, NoSuchFieldException {
     Objects.requireNonNull(projection, "projection");
     final Path path = (Path) Matchers.toExpression(projection);
-    AnnotatedElement element = path.annotatedElement();
+    AnnotatedElement element = path.element();
     final Class<?> declaringClass;
     if (element instanceof Field) {
       declaringClass = ((Field) element).getDeclaringClass();

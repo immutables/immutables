@@ -101,7 +101,7 @@ public final class CriteriaContext implements Queryable {
             .findAny()
             .orElseThrow(() -> new IllegalArgumentException(String.format("Path %s not found in %s", pathAsString, type)));
 
-    final Path newPath = this.path != null ? this.path.with(member) : Path.of(member);
+    final Path newPath = this.path != null ? this.path.append(member) : Path.ofMember(member);
     return new CriteriaContext(entityClass, expression, newPath, creator, this);
   }
 

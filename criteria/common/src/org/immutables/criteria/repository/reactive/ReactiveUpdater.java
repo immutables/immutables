@@ -49,7 +49,7 @@ public class ReactiveUpdater<T> implements Updater<T, Publisher<WriteResult>> {
 
   @Override
   public WriteExecutor<Publisher<WriteResult>> replace(T newValue) {
-    return new ReactiveSetter(ImmutableMap.of(Path.of(query.entityClass()), newValue));
+    return new ReactiveSetter(ImmutableMap.of(Path.ofClass(query.entityClass()), newValue));
   }
 
   public class ReactiveSetter implements Updater.Setter<Publisher<WriteResult>> {

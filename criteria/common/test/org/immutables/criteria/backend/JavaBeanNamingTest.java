@@ -49,7 +49,7 @@ class JavaBeanNamingTest {
   }
 
   private Path path(String name) throws NoSuchMethodException {
-    return Path.of((Member) JavaBean.class.getDeclaredMethod(name));
+    return Path.ofMember(JavaBean.class.getDeclaredMethod(name));
   }
 
   static class JavaBean {

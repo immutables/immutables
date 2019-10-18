@@ -73,7 +73,7 @@ public class JavaBeanNaming implements PathNaming {
 
   @Override
   public String name(Path path) {
-    return path.paths().stream().map(p -> maybeNameFromGetterSetter((Member) p)).collect(Collectors.joining("."));
+    return path.members().stream().map(p -> maybeNameFromGetterSetter((Member) p)).collect(Collectors.joining("."));
   }
 
   private String maybeNameFromGetterSetter(Member member) {

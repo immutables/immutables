@@ -17,11 +17,10 @@
 package org.immutables.criteria.mongo;
 
 import org.immutables.criteria.backend.ExpressionNaming;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.backend.IdResolver;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 import java.util.Objects;
 import java.util.function.Function;
@@ -42,21 +41,17 @@ class MongoPathNaming implements PathNaming {
   @Override
   public String name(Path path) {
     Objects.requireNonNull(path, "path");
-    Function<AnnotatedElement, String> toStringFn = a -> {
+    Function<Member, String> toStringFn = a -> {
       Objects.requireNonNull(a, "null element");
-      if (a instanceof Member && idResolver.asPredicate().test((Member) a)) {
-        // id ID attribute ?
+      if (idResolver.asPredicate().test(a)) {
+        // is ID attribute ?
         return "_id";
-      } else if (a instanceof Member) {
-        return ((Member) a).getName();
-      } else if (a instanceof Class) {
-        return ((Class) a).getSimpleName();
+      } else {
+        return a.getName();
       }
-
-      throw new IllegalArgumentException("Don't know how to name " + a);
     };
 
-    return path.paths().stream().map(toStringFn).collect(Collectors.joining("."));
+    return path.members().stream().map(toStringFn).collect(Collectors.joining("."));
   }
 
   ExpressionNaming toExpression() {
