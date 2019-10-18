@@ -30,7 +30,7 @@ class ReflectionExtractor implements PathExtractor {
   private final MemberExtractor extractor;
 
   ReflectionExtractor() {
-    this.extractor = MemberExtractor.ofReflection();
+    this.extractor = new UnwrapOptional(new NullSafe(MemberExtractor.ofReflection()));
   }
 
   @Override
@@ -41,8 +41,7 @@ class ReflectionExtractor implements PathExtractor {
     Object result = instance;
 
     for (AnnotatedElement member: path.paths()) {
-      result = extract((Member) member, result);
-      result = maybeUnwrapOptional(result);
+      result = extractor.extract((Member) member, result);
       if (result == null) {
         return null;
       }
@@ -51,24 +50,40 @@ class ReflectionExtractor implements PathExtractor {
     return result;
   }
 
-  private Object extract(Member member, Object instance) {
-    if (instance == null) {
-      return null;
+  private static class NullSafe implements MemberExtractor {
+    private final MemberExtractor delegate;
+
+    private NullSafe(MemberExtractor delegate) {
+      this.delegate = delegate;
     }
 
-    return extractor.extract(member, instance);
+    @Override
+    public Object extract(Member member, Object instance) {
+      return instance != null ? delegate.extract(member, instance) : null;
+    }
   }
 
-  @SuppressWarnings("unchecked")
-  private static Object maybeUnwrapOptional(Object maybeOptional) {
-    if ((maybeOptional instanceof Optional)) {
-      return  ((Optional) maybeOptional).orElse(null);
+  private static class UnwrapOptional implements MemberExtractor {
+
+    private final MemberExtractor delegate;
+
+    private UnwrapOptional(MemberExtractor delegate) {
+      this.delegate = delegate;
     }
 
-    if (maybeOptional instanceof com.google.common.base.Optional) {
-      return ((com.google.common.base.Optional) maybeOptional).orNull();
-    }
+    @SuppressWarnings("unchecked")
+    @Override
+    public Object extract(Member member, Object instance) {
+      Object maybeOptional = delegate.extract(member, instance);
+      if ((maybeOptional instanceof Optional)) {
+        return  ((Optional) maybeOptional).orElse(null);
+      }
 
-    return maybeOptional;
+      if (maybeOptional instanceof com.google.common.base.Optional) {
+        return ((com.google.common.base.Optional) maybeOptional).orNull();
+      }
+      return maybeOptional;
+    }
   }
+
 }
