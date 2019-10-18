@@ -113,7 +113,7 @@ public abstract class Query {
     final StringWriter string = new StringWriter();
     final PrintWriter writer = new PrintWriter(string);
 
-    final DebugExpressionVisitor<Object> visitor = new DebugExpressionVisitor<>(writer);
+    final DebugExpressionVisitor<PrintWriter> visitor = new DebugExpressionVisitor<>(writer);
     writer.append("entity: ").append(entityClass().getName()).println();
 
     if (!projections().isEmpty()) {

@@ -66,7 +66,7 @@ class SimpleCall implements Call {
     printer.append(SimpleCall.class.getSimpleName());
     printer.append("{");
     printer.print(operator().name());
-    DebugExpressionVisitor<Void> debug = new DebugExpressionVisitor<>(printer);
+    DebugExpressionVisitor<PrintWriter> debug = new DebugExpressionVisitor<>(printer);
     arguments().forEach(a -> {
       a.accept(debug);
     });

@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.expression;
 
+import com.google.common.io.CharStreams;
+
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Objects;
@@ -23,19 +25,25 @@ import java.util.Objects;
 /**
  * Used to output expression tree as string. Useful for debugging expressions.
  */
-public class DebugExpressionVisitor<Void> extends AbstractExpressionVisitor<Void> {
+public class DebugExpressionVisitor<A extends Appendable> extends AbstractExpressionVisitor<A> {
 
   private final PrintWriter writer;
+  private final A target;
 
   private int depth;
 
-  public DebugExpressionVisitor(PrintWriter writer) {
+  public DebugExpressionVisitor(A target) {
     super(e -> { throw new UnsupportedOperationException(); });
-    this.writer = Objects.requireNonNull(writer, "writer");
+    this.target = Objects.requireNonNull(target, "target");
+    this.writer = new PrintWriter(CharStreams.asWriter(target));
+  }
+
+  private A target() {
+    return target;
   }
 
   @Override
-  public Void visit(Call call) {
+  public A visit(Call call) {
     writer.println();
     writer.print(String.join("", Collections.nCopies(depth * 2, " ")));
     writer.print("call op=" + call.operator().name());
@@ -44,21 +52,20 @@ public class DebugExpressionVisitor<Void> extends AbstractExpressionVisitor<Void
       expr.accept(this);
       depth--;
     }
-    return null;
+    return target();
   }
 
   @Override
-  public Void visit(Constant constant) {
+  public A visit(Constant constant) {
     writer.print(" constant=");
     writer.print(constant.value());
-    return null;
+    return target();
   }
 
   @Override
-  public Void visit(Path path) {
+  public A visit(Path path) {
     writer.print(" path=");
     writer.print(path.toStringPath());
-    return null;
+    return target();
   }
-
 }

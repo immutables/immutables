@@ -398,9 +398,9 @@ class ExpressionAsStringTest {
 
 
   private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {
-    final StringWriter out = new StringWriter();
+    final StringBuilder out = new StringBuilder();
     Query query = Criterias.toQuery(crit);
-    query.filter().ifPresent(f -> f.accept(new DebugExpressionVisitor<>(new PrintWriter(out))));
+    query.filter().ifPresent(f -> f.accept(new DebugExpressionVisitor<>(out)));
     final String expected = Arrays.stream(expectedLines).collect(Collectors.joining(System.lineSeparator()));
     Assertions.assertEquals(expected, out.toString().trim());
   }

@@ -46,10 +46,9 @@ public class AggregationExpressionTest {
 
   private static void assertProjection(Aggregation<?> aggregation, String ... expectedLines) {
     Expression expression = Matchers.toExpression(aggregation);
-    StringWriter out = new StringWriter();
-    expression.accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
+    String out = expression.accept(new DebugExpressionVisitor<>(new StringBuilder())).toString();
     final String expected = Arrays.stream(expectedLines).collect(Collectors.joining(System.lineSeparator()));
-    Assertions.assertEquals(expected, out.toString().trim());
+    Assertions.assertEquals(expected, out.trim());
   }
 
 
