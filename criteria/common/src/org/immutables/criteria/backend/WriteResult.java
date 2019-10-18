@@ -16,26 +16,29 @@
 
 package org.immutables.criteria.backend;
 
+import org.immutables.value.Value;
+
 import java.util.OptionalLong;
 
 /**
  * Result of a <i>successful</i> write operation. It is up to back-end to provide
  * some, all or none of exposed statistics.
  */
+@Value.Immutable
 public interface WriteResult {
 
   /**
-   * Backend doesn't return statistics about a write operation
+   * Backend doesn't return statistics about a write operation. All counters return {@link OptionalLong#empty()}.
    */
-  static WriteResult unknown() {
-    return UnknownWriteResult.INSTANCE;
+  static ImmutableWriteResult unknown() {
+    return WriteResults.UNKNOWN;
   }
 
   /**
-   * Write operation was a no-op. No changes happened on the backend.
+   * Write operation was a no-op. No changes happened on the backend. All counters return {@code 0} (zero).
    */
-  static WriteResult empty() {
-    return EmptyWriteResult.INSTANCE;
+  static ImmutableWriteResult empty() {
+    return WriteResults.EMPTY;
   }
 
   /**

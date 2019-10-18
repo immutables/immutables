@@ -52,6 +52,6 @@ class SyncInsert implements Callable<WriteResult> {
       }
     }
 
-    return GeodeWriteResult.of().withInsertedCount(toInsert.size());
+    return WriteResult.empty().withInsertedCount(toInsert.size());
   }
 }

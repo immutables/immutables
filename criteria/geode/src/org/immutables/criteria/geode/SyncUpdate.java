@@ -62,7 +62,7 @@ class SyncUpdate implements Callable<WriteResult> {
       }
     }
 
-    return GeodeWriteResult.of().withInsertedCount(inserted).withUpdatedCount(updated);
+    return WriteResult.empty().withInsertedCount(inserted).withUpdatedCount(updated);
   }
 
   private WriteResult upsert(Map<Object, Object> toUpsert) {
@@ -70,7 +70,7 @@ class SyncUpdate implements Callable<WriteResult> {
       // for single value upsert one can return more meaningful WriteResult
       Map.Entry<Object, Object> entry = toUpsert.entrySet().iterator().next();
       Object result = region.put(entry.getKey(), entry.getValue());
-      return result == null ? GeodeWriteResult.of().withInsertedCount(1) : GeodeWriteResult.of().withUpdatedCount(1);
+      return result == null ? WriteResult.empty().withInsertedCount(1) : WriteResult.empty().withUpdatedCount(1);
     }
 
     // generic case upsert in bulk

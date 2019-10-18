@@ -61,7 +61,7 @@ class SyncDelete implements Callable<WriteResult> {
     String query = String.format("select distinct e.key from %s.entries e where %s", region.getFullPath(), oql.oql());
     Collection<?> keys = (Collection<?>) session.queryService.newQuery(query).execute(oql.variables().toArray(new Object[0]));
     region.removeAll(keys);
-    return GeodeWriteResult.of().withDeletedCount(keys.size());
+    return WriteResult.empty().withDeletedCount(keys.size());
   }
 
   /**
@@ -78,7 +78,7 @@ class SyncDelete implements Callable<WriteResult> {
     // this return is used for WriteResult statistics
     if (keys.size() == 1) {
       boolean removed = region.remove(keys.get(0)) != null;
-      return GeodeWriteResult.of().withDeletedCount(removed ? 1 :0);
+      return WriteResult.empty().withDeletedCount(removed ? 1 :0);
     }
 
     region.removeAll(keys);

@@ -16,29 +16,14 @@
 
 package org.immutables.criteria.backend;
 
-import java.util.OptionalLong;
-
 /**
- * Used as a <b>null object</b> if backend can't provide information about a write operation
+ * Store singleton instances of {@link WriteResult}
  */
-final class UnknownWriteResult implements WriteResult {
+final class WriteResults {
 
-  static final UnknownWriteResult INSTANCE = new UnknownWriteResult();
+  static final ImmutableWriteResult UNKNOWN = ImmutableWriteResult.builder().build();
 
-  private UnknownWriteResult() {}
+  static final ImmutableWriteResult EMPTY = ImmutableWriteResult.builder().deletedCount(0).updatedCount(0).updatedCount(0).build();
 
-  @Override
-  public OptionalLong insertedCount() {
-    return OptionalLong.empty();
-  }
-
-  @Override
-  public OptionalLong deletedCount() {
-    return OptionalLong.empty();
-  }
-
-  @Override
-  public OptionalLong updatedCount() {
-    return OptionalLong.empty();
-  }
+  private WriteResults () {}
 }
