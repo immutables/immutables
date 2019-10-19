@@ -21,6 +21,7 @@ import org.immutables.criteria.backend.ContainerResolver;
 
 public interface IndexResolver extends ContainerResolver<String> {
 
+  @Override
   String resolve(Class<?> entityType);
 
   /**

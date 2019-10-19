@@ -19,8 +19,6 @@ package org.immutables.criteria.repository;
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criterion;
 
-import java.util.Arrays;
-
 /**
  * Declares repository as writable. Means documents can be inserted / updated / deleted.
  *

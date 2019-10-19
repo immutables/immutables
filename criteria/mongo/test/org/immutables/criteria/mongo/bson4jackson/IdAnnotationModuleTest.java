@@ -24,11 +24,11 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.javabean.JavaBean1;
 import org.immutables.criteria.personmodel.ImmutablePerson;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
-import org.immutables.criteria.backend.IdResolver;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 

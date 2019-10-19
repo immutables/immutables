@@ -17,8 +17,6 @@
 package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
 /**

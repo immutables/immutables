@@ -22,7 +22,6 @@ import org.immutables.criteria.personmodel.CriteriaChecker;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.function.Supplier;

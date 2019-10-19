@@ -19,8 +19,6 @@ package org.immutables.criteria.backend;
 import org.immutables.criteria.expression.Path;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Member;
-
 import static org.immutables.check.Checkers.check;
 
 class JavaBeanNamingTest {

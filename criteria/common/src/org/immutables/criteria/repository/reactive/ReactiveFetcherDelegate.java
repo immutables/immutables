@@ -20,6 +20,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.NonUniqueResultException;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
@@ -34,11 +35,12 @@ import java.util.function.Function;
 
 class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
 
-  private final Query query;
+  private final ImmutableQuery query;
   private final Backend.Session session;
 
   private ReactiveFetcherDelegate(Query query, Backend.Session session) {
-    this.query = Objects.requireNonNull(query, "query");
+    Objects.requireNonNull(query, "query");
+    this.query = ImmutableQuery.copyOf(query);
     this.session = Objects.requireNonNull(session, "session");
   }
 
@@ -79,7 +81,7 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
   }
 
   private Publisher<T> validateAsList(Consumer<List<T>> validatorFn) {
-    Query query = this.query;
+    ImmutableQuery query = ImmutableQuery.copyOf(this.query);
     if (!query.limit().isPresent()) {
       // ensure at most one element
       // fail if there are 2 or more
@@ -103,7 +105,7 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
 
   @Override
   public Publisher<Long> count() {
-    Query newQuery = this.query.withCount(true);
+    Query newQuery = query.withCount(true);
     return session.execute(StandardOperations.Select.of(newQuery)).publisher();
   }
 

@@ -24,8 +24,6 @@ import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 

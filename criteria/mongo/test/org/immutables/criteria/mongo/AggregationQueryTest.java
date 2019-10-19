@@ -38,7 +38,6 @@ class AggregationQueryTest {
 
   private final PersonCriteria person = PersonCriteria.person;
 
-
   @Test
   void basic() {
     // select nickName, sum(age) from ... group by nickName

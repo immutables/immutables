@@ -18,6 +18,7 @@ package org.immutables.criteria.repository;
 
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Ordering;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
@@ -35,10 +36,11 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractReader<R extends Reader<R>> implements Reader<R> {
 
-  private final Query query;
+  private final ImmutableQuery query;
 
   protected AbstractReader(Query query) {
-    this.query = Objects.requireNonNull(query, "query");
+    Objects.requireNonNull(query, "query");
+    this.query = ImmutableQuery.copyOf(query);
   }
 
   protected abstract R newReader(Query query);

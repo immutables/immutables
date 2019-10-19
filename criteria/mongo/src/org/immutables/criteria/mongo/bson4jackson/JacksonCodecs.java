@@ -18,7 +18,6 @@ package org.immutables.criteria.mongo.bson4jackson;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationConfig;
@@ -52,7 +51,6 @@ import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
-import java.io.IOException;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -98,7 +96,7 @@ public final class JacksonCodecs {
     Objects.requireNonNull(codec, "codec");
     return new JsonDeserializer<T>() {
       @Override
-      public T deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+      public T deserialize(JsonParser parser, DeserializationContext ctxt) {
         @SuppressWarnings("unchecked")
         final BsonReader reader = ((Wrapper<BsonReader>) parser).unwrap();
         return codec.decode(reader, DecoderContext.builder().build());

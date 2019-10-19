@@ -27,9 +27,12 @@ import java.util.OptionalLong;
 /**
  * Query which is composed of predicates, projections, limit, offset, group by and order by expressions.
  */
-@Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
 @Value.Immutable
 public abstract class Query {
+
+  public static ImmutableQuery of(Class<?> entityClass) {
+    return ImmutableQuery.of(entityClass);
+  }
 
   @Value.Parameter
   public abstract Class<?> entityClass();
@@ -68,44 +71,24 @@ public abstract class Query {
     return !groupBy().isEmpty() || projections().stream().anyMatch(p -> p instanceof AggregationCall);
   }
 
-  public static Query of(Class<?> entityClass) {
-    return ImmutableQuery.of(entityClass);
-  }
-
-  public Query withFilter(Expression filter) {
-    return ImmutableQuery.copyOf(this).withFilter(filter);
-  }
-
-  public Query addCollations(Iterable<Collation> collations) {
+  public ImmutableQuery addCollations(Iterable<Collation> collations) {
     return ImmutableQuery.builder().from(this).addAllCollations(collations).build();
   }
 
-  public Query addProjections(Expression ... projections) {
+  public ImmutableQuery addProjections(Expression ... projections) {
     return ImmutableQuery.builder().from(this).addProjections(projections).build();
   }
 
-  public Query addProjections(Iterable<Expression> projections) {
+  public ImmutableQuery addProjections(Iterable<Expression> projections) {
     return ImmutableQuery.builder().from(this).addAllProjections(projections).build();
   }
 
-  public Query addGroupBy(Iterable<Expression> groupBy) {
+  public ImmutableQuery addGroupBy(Iterable<Expression> groupBy) {
     return ImmutableQuery.builder().from(this).addAllGroupBy(groupBy).build();
   }
 
-  public Query addGroupBy(Expression ... groupBy) {
+  public ImmutableQuery addGroupBy(Expression ... groupBy) {
     return ImmutableQuery.builder().from(this).addGroupBy(groupBy).build();
-  }
-
-  public Query withCount(boolean count) {
-    return ImmutableQuery.builder().from(this).count(count).build();
-  }
-
-  public Query withOffset(long offset) {
-    return ImmutableQuery.copyOf(this).withOffset(offset);
-  }
-
-  public Query withLimit(long limit) {
-    return ImmutableQuery.copyOf(this).withLimit(limit);
   }
 
   @Override

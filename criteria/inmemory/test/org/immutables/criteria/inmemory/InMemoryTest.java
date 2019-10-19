@@ -16,7 +16,6 @@
 
 package org.immutables.criteria.inmemory;
 
-import org.immutables.criteria.personmodel.ImmutablePerson;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.personmodel.PersonGenerator;

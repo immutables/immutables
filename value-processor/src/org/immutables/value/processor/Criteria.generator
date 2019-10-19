@@ -40,35 +40,11 @@ package [type.package];
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.matcher.AbstractContextHolder;
 import org.immutables.criteria.matcher.CriteriaContext;
-import org.immutables.criteria.matcher.CriteriaCreator;
-import org.immutables.criteria.matcher.IterableMatcher;
 import org.immutables.criteria.matcher.AndMatcher;
 import org.immutables.criteria.matcher.OrMatcher;
-import org.immutables.criteria.matcher.Matchers;
-import org.immutables.criteria.matcher.OptionalMatcher;
-import org.immutables.criteria.matcher.ObjectMatcher;
-import org.immutables.criteria.matcher.StringMatcher;
-import org.immutables.criteria.matcher.BooleanMatcher;
 import org.immutables.criteria.matcher.NotMatcher;
 import org.immutables.criteria.matcher.WithMatcher;
-import org.immutables.criteria.matcher.ComparableMatcher;
 import org.immutables.criteria.matcher.Projection;
-import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.ExpressionVisitor;
-import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Constant;
-import org.immutables.criteria.expression.Operators;
-import org.immutables.criteria.expression.Operator;
-import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Call;
-
-import java.util.Objects;
-
-[for a in type.allMarshalingAttributes]
-[if a.hasCriteria]
-import [a.criteria.rawTypeName];
-[/if]
-[/for]
 
 [for starImport in type.requiredSourceStarImports]
 import [starImport];
@@ -105,23 +81,14 @@ import [starImport];
 package [type.package];
 [/if]
 
-import org.immutables.criteria.Criterion;
-import org.immutables.criteria.matcher.AbstractContextHolder;
 import org.immutables.criteria.matcher.CriteriaContext;
 import org.immutables.criteria.matcher.CriteriaCreator;
 import org.immutables.criteria.matcher.Disjunction;
-import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.expression.Queryable;
-
-[for a in type.allMarshalingAttributes]
-[if a.hasCriteria]
-import [a.criteria.rawTypeName];
-[/if]
-[/for]
 
 [for starImport in type.requiredSourceStarImports]
 import [starImport];
 [/for]
+
 /**
  * A {@code [type.name]Criteria} provides fluent, type-safe API for querying documents
  * based on {@link [type.name]} model.

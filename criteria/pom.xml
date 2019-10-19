@@ -56,6 +56,12 @@
                     <compilerArgs>
                         <arg>-Xep:CheckReturnValue:ERROR</arg>
                         <arg>-Xep:MethodCanBeStatic:ERROR</arg>
+                        <arg>-Xep:BadImport:ERROR</arg>
+                        <arg>-Xep:MissingOverride:ERROR</arg>
+                        <arg>-Xep:OrphanedFormatString:ERROR</arg>
+                        <arg>-Xep:RedundantOverride:ERROR</arg>
+                        <arg>-Xep:RedundantThrows:ERROR</arg>
+                        <arg>-Xep:RemoveUnusedImports:ERROR</arg>
                         <arg>-Xlint:unchecked</arg>
                     </compilerArgs>
                 </configuration>

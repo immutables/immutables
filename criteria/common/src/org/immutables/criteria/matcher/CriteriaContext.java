@@ -18,6 +18,7 @@ package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
@@ -123,7 +124,7 @@ public final class CriteriaContext implements Queryable {
 
   @Override
   public Query query() {
-    final Query query = Query.of(entityClass);
+    final ImmutableQuery query = Query.of(entityClass);
     Expression expression = expression();
     if (expression instanceof DnfExpression) {
       DnfExpression dnfExpression = dnfExpression();
