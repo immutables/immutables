@@ -44,6 +44,7 @@ class RxJavaUpdaterDelegate<T> implements Updater<T, Single<WriteResult >> {
     return () -> Flowable.fromPublisher(delegate.replace(newValue).execute()).singleOrError();
   }
 
+  @SuppressWarnings("unchecked")
   private static class RxJavaSetter<T> implements Updater.Setter<Single<WriteResult>> {
 
     private final ReactiveUpdater.ReactiveSetter delegate;
@@ -59,7 +60,6 @@ class RxJavaUpdaterDelegate<T> implements Updater<T, Single<WriteResult >> {
 
     @Override
     public Single<WriteResult> execute() {
-      @SuppressWarnings("unchecked")
       Publisher<WriteResult> execute = delegate.execute();
       return Flowable.fromPublisher(execute).singleOrError();
     }

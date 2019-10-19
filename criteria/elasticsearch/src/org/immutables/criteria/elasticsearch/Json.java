@@ -680,8 +680,9 @@ class Json {
 
     private static MultiValue parseValue(JsonParser parser, String name, ObjectNode node)
             throws JsonProcessingException {
-
-      return new MultiValue(name, parser.getCodec().treeToValue(node, Map.class));
+      @SuppressWarnings("unchecked")
+      Map<String, Object> values = (Map<String, Object>) parser.getCodec().treeToValue(node, Map.class);
+      return new MultiValue(name, values);
     }
 
     private static Aggregation parseBuckets(JsonParser parser, String name, ArrayNode nodes)

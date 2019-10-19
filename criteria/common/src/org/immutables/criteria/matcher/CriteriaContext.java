@@ -80,8 +80,9 @@ public final class CriteriaContext implements Queryable {
     return (R) createWith(creator);
   }
 
-  CriteriaCreator creator() {
-    return creator;
+  @SuppressWarnings("unchecked")
+  <R> CriteriaCreator<R> creator() {
+    return (CriteriaCreator<R>) creator;
   }
 
   /**

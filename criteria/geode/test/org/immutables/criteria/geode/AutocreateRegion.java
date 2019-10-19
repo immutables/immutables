@@ -40,10 +40,12 @@ class AutocreateRegion implements Consumer<Class<?>> {
       return;
     }
 
+    @SuppressWarnings("unchecked")
+    Class<Object> valueConstraint = (Class<Object>) entity;
     // if not, create
     cache.createRegionFactory()
             .setScope(Scope.LOCAL) // otherwise ConcurrentMap API doesn't work for Region
-            .setValueConstraint((Class<Object>) entity)
+            .setValueConstraint(valueConstraint)
             .create(name);
   }
 }

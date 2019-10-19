@@ -85,6 +85,7 @@ public class CriteriaChecker<T> {
     return check(result.stream().map(fn).collect(Collectors.toList()));
   }
 
+  @SuppressWarnings("unchecked")
   private static <T> List<T> fetch(Reader<T> reader) {
     final List<T> result;
     if (reader instanceof SyncReader) {

@@ -20,6 +20,7 @@ import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.Updater;
 import org.immutables.criteria.repository.reactive.ReactiveUpdater;
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -42,6 +43,7 @@ class ReactorUpdaterDelegate<T> implements Updater<T, Mono<WriteResult>> {
     return () -> Mono.from(delegate.replace(newValue).execute());
   }
 
+  @SuppressWarnings("unchecked")
   private static class ReactorSetter<T> implements Updater.Setter<Mono<WriteResult>> {
 
     private final ReactiveUpdater.ReactiveSetter delegate;
@@ -57,7 +59,8 @@ class ReactorUpdaterDelegate<T> implements Updater<T, Mono<WriteResult>> {
 
     @Override
     public Mono<WriteResult> execute() {
-      return Mono.from(delegate.execute());
+      Publisher<WriteResult> execute = delegate.execute();
+      return Mono.from(execute);
     }
   }
 

@@ -21,6 +21,7 @@ import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.Updater;
 import org.immutables.criteria.repository.reactive.ReactiveUpdater;
+import org.reactivestreams.Publisher;
 
 import java.util.Objects;
 
@@ -42,6 +43,7 @@ class SyncUpdaterDelegate<T> implements Updater<T, WriteResult> {
     return () -> Publishers.blockingGet(delegate.replace(newValue).execute());
   }
 
+  @SuppressWarnings("unchecked")
   private static class SyncSetter implements Updater.Setter<WriteResult> {
 
     private final ReactiveUpdater.ReactiveSetter delegate;
@@ -57,7 +59,8 @@ class SyncUpdaterDelegate<T> implements Updater<T, WriteResult> {
 
     @Override
     public WriteResult execute() {
-      return Publishers.<WriteResult>blockingGet(delegate.execute());
+      Publisher<WriteResult> execute = delegate.execute();
+      return Publishers.blockingGet(execute);
     }
   }
 }

@@ -58,6 +58,7 @@ class AsyncUpdaterDelegate<T> implements Updater<T, CompletionStage<WriteResult>
     }
   }
 
+  @SuppressWarnings("unchecked")
   private static class AsyncSetter implements Updater.Setter<CompletionStage<WriteResult>> {
 
     private final ReactiveUpdater.ReactiveSetter delegate;
@@ -73,7 +74,9 @@ class AsyncUpdaterDelegate<T> implements Updater<T, CompletionStage<WriteResult>
 
     @Override
     public CompletionStage<WriteResult> execute() {
-      return Publishers.toFuture(delegate.execute());
+
+      Publisher<WriteResult> execute = delegate.execute();
+      return Publishers.toFuture(execute);
     }
   }
 }

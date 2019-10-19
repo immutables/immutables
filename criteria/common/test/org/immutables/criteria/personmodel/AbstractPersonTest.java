@@ -553,7 +553,7 @@ public abstract class AbstractPersonTest {
     Checkers.check(repository().findAll().select(person.isActive).fetch()).hasContentInAnyOrder(true, false, true);
     Checkers.check(repository().findAll().select(person.isActive, person.dateOfBirth).map((x, date) -> date).fetch()).hasContentInAnyOrder(dob, dob, dob);
 
-    Checkers.check(repository().findAll().select(person.id, person.fullName).map((k, v) -> new AbstractMap.SimpleImmutableEntry(k, v)).fetch())
+    Checkers.check(repository().findAll().select(person.id, person.fullName).map((k, v) -> new AbstractMap.SimpleImmutableEntry<>(k, v)).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("id1", "John"), new AbstractMap.SimpleImmutableEntry<>("id2", "Mary"), new AbstractMap.SimpleImmutableEntry<>("id3", "Emma"));
   }
 
@@ -626,9 +626,8 @@ public abstract class AbstractPersonTest {
 
     // nickname
     Checkers.check(repository().findAll().select(person.nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
-    Checkers.check(repository().findAll().select(person.fullName, person.nickName).map((k, v) -> new AbstractMap.SimpleImmutableEntry(k, v)).fetch())
-            .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("John", Optional.empty()), new AbstractMap.SimpleImmutableEntry<>("Mary", Optional.of("a")),
-                    new AbstractMap.SimpleImmutableEntry<>("Emma", Optional.of("b")));
+    Checkers.check(repository().findAll().select(person.fullName, person.nickName).map((k, v) -> k + "-" + v.orElse("")).fetch())
+            .hasContentInAnyOrder("John-", "Mary-a", "Emma-b");
 
     Checkers.check(repository().findAll().select(person.address).fetch()).notEmpty();
     Checkers.check(repository().findAll().select(person.bestFriend).fetch()).notEmpty();
