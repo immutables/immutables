@@ -29,8 +29,8 @@ import java.util.Arrays;
  */
 public interface Writable<T, R> extends Facet {
 
-  default R insert(T ... docs) {
-    return insertAll(Arrays.asList(docs));
+  default R insert(T doc) {
+    return insertAll(ImmutableList.of(doc));
   }
 
   /**

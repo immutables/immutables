@@ -27,6 +27,7 @@ import org.immutables.criteria.typemodel.TypeHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ class IdAttributeTest {
   void idAttribute() {
     StringHolderRepository repository = new StringHolderRepository(resource.backend());
     ImmutableStringHolder holder = TypeHolder.StringHolder.generator().get().withId("id1");
-    repository.insert(holder, holder.withId("id2"));
+    repository.insertAll(Arrays.asList(holder, holder.withId("id2")));
 
     MongoCollection<BsonDocument> collection = resource.collection(TypeHolder.StringHolder.class)
             .withDocumentClass(BsonDocument.class);
