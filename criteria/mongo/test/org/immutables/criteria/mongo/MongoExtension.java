@@ -66,7 +66,7 @@ public class MongoExtension implements BeforeTestExecutionCallback, ParameterRes
             MongoDatabase.class.getName(), MongoClient.class.getName(), type.getName()));
   }
 
-  private MongoResource getOrCreate(ExtensionContext context) {
+  private static MongoResource getOrCreate(ExtensionContext context) {
     return context.getRoot().getStore(NAMESPACE).getOrComputeIfAbsent(KEY, key -> new MongoResource(MongoInstance.create()), MongoResource.class);
   }
 
@@ -83,6 +83,7 @@ public class MongoExtension implements BeforeTestExecutionCallback, ParameterRes
       this.instance = Objects.requireNonNull(instance, "instance");
     }
 
+    @SuppressWarnings("CheckReturnValue")
     private void clear() {
       // drop all collections
       MongoDatabase database = instance.database();

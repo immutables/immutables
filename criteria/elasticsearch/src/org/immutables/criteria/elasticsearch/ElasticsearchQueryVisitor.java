@@ -79,7 +79,7 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
     throw new UnsupportedOperationException("Don't know how to handle " + call);
   }
 
-  private QueryBuilders.QueryBuilder binaryCall(Call call) {
+  private static QueryBuilders.QueryBuilder binaryCall(Call call) {
     final List<Expression> arguments = call.arguments();
     Preconditions.checkArgument(arguments.size() == 2, "Size should be 2 for %s but was %s",
             call.operator(), arguments.size());

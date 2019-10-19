@@ -17,6 +17,7 @@
 package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Throwables;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.personmodel.PersonAggregationTest;
@@ -38,7 +39,7 @@ public class ElasticAggregationTest extends PersonAggregationTest {
 
   ElasticAggregationTest(RestClient restClient) throws IOException {
     IndexOps ops = new IndexOps(restClient, MAPPER, INDEX_NAME);
-    ops.create(PersonModel.MAPPING).blockingGet();
+    ops.create(PersonModel.MAPPING).blockingAwait();
     this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(restClient).objectMapper(MAPPER).build());
   }
 

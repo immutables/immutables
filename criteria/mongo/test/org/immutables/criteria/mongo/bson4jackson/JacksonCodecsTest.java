@@ -155,7 +155,7 @@ public class JacksonCodecsTest {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T writeThenRead(CodecRegistry registry, ObjectMapper mapper, T value) throws IOException {
+  private static <T> T writeThenRead(CodecRegistry registry, ObjectMapper mapper, T value) throws IOException {
     BasicOutputBuffer buffer = new BasicOutputBuffer();
     BsonWriter writer = new BsonBinaryWriter(buffer);
     registry.get((Class<T>) value.getClass()).encode(writer, value, EncoderContext.builder().build());

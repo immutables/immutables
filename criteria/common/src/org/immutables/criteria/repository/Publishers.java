@@ -18,6 +18,7 @@ package org.immutables.criteria.repository;
 
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+import io.reactivex.disposables.Disposable;
 import org.reactivestreams.Publisher;
 
 import java.util.List;
@@ -79,7 +80,7 @@ public final class Publishers {
   private static <X> io.reactivex.functions.Function<Single<X>, CompletionStage<X>> singleToFuture() {
     return single -> {
       final CompletableFuture<X> fut = new CompletableFuture<>();
-      single.subscribe(fut::complete, fut::completeExceptionally);
+      Disposable disposable = single.subscribe(fut::complete, fut::completeExceptionally);
       return fut;
     };
   }

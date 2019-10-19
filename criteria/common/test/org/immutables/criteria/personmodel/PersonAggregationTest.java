@@ -165,7 +165,7 @@ public abstract class PersonAggregationTest {
             .map((count, sum, min, max, avg) -> String.format(Locale.ROOT, "count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
             .hasContentInAnyOrder("count=3 sum=90 max=40 min=20 avg=30.00");
 
-    // add filter age <= 10
+    // add filter age <= 10JavaBeanNamingTest.java
     check(repository().find(person.age.atMost(10))
             .select(person.id.count(), person.age.sum(), person.age.max(), person.age.min(), person.age.avg())
             .map((count, sum, min, max, avg) -> String.format(Locale.ROOT, "count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
@@ -180,7 +180,7 @@ public abstract class PersonAggregationTest {
     repository().insertAll(persons);
   }
 
-  private <T> IterableChecker<List<T>, T> check(SyncFetcher<T> fetcher) {
+  private static <T> IterableChecker<List<T>, T> check(SyncFetcher<T> fetcher) {
     return Checkers.check(fetcher.fetch());
   }
 

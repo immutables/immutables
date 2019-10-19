@@ -62,7 +62,7 @@ class GeodeExtension implements ParameterResolver, AfterEachCallback {
     return getOrCreate(extensionContext).cache();
   }
 
-  private GeodeResource getOrCreate(ExtensionContext context) {
+  private static GeodeResource getOrCreate(ExtensionContext context) {
     return context.getStore(NAMESPACE).getOrComputeIfAbsent(KEY, key -> new GeodeResource(), GeodeResource.class);
   }
 

@@ -249,7 +249,7 @@ class QueryBuilders {
       return result;
     }
 
-    private void writeJsonArray(String field, List<QueryBuilder> clauses, ObjectNode node, ObjectMapper mapper) {
+    private static void writeJsonArray(String field, List<QueryBuilder> clauses, ObjectNode node, ObjectMapper mapper) {
       if (clauses.isEmpty()) {
         return;
       }

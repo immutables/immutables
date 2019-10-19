@@ -166,7 +166,7 @@ class ExpressionInterpreter implements Function<Object, Object> {
       throw new UnsupportedOperationException("Don't know how to handle " + op);
     }
 
-    private Object binaryCall(Call call, Object left, Object right) {
+    private static Object binaryCall(Call call, Object left, Object right) {
       Preconditions.checkArgument(call.operator().arity() == Operator.Arity.BINARY, "Expected binary call got %s", call);
       final Operator op = call.operator();
 

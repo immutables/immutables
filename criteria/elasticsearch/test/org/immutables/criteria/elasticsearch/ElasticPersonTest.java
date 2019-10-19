@@ -54,7 +54,7 @@ public class ElasticPersonTest extends AbstractPersonTest  {
 
   ElasticPersonTest(RestClient restClient) throws IOException {
     ops = new IndexOps(restClient, MAPPER, INDEX_NAME);
-    ops.create(PersonModel.MAPPING).blockingGet();
+    ops.create(PersonModel.MAPPING).blockingAwait();
     this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(restClient).objectMapper(MAPPER).build());
   }
 

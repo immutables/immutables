@@ -57,7 +57,7 @@ class TupleExtractor  {
   /**
    * Expected result might be optional
    */
-  private Object maybeWrapOptional(Object value, Path path) {
+  private static Object maybeWrapOptional(Object value, Path path) {
     Type type = path.returnType();
     final Class<?> klass;
     if (type instanceof ParameterizedType) {

@@ -222,7 +222,7 @@ public class BsonParserTest {
     return (ObjectNode) toChange;
   }
 
-  private BsonValue maybeUnwrap(BsonDocument document) {
+  private static BsonValue maybeUnwrap(BsonDocument document) {
     return document.containsKey("ignore") ? document.get("ignore") : document;
   }
 }

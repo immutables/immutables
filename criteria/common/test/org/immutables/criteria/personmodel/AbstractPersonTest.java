@@ -638,7 +638,7 @@ public abstract class AbstractPersonTest {
     Assumptions.assumeTrue(features().contains(feature), String.format("Feature %s not supported by current backend", feature));
   }
 
-  private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, SyncReader<Person> reader, Ordering<T> ordering) {
+  private static <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, SyncReader<Person> reader, Ordering<T> ordering) {
     List<T> parts = reader.fetch().stream().map(extractor).collect(Collectors.toList());
     if (!ordering.isOrdered(parts)) {
       throw new AssertionError(String.format("%s is not ordered. Expected: %s", parts, ordering.sortedCopy(parts)));

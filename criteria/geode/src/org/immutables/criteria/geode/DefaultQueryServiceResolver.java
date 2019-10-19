@@ -58,7 +58,7 @@ class DefaultQueryServiceResolver implements QueryServiceResolver {
             : queryServiceFrom(region);
   }
 
-  private QueryService resolveClientQueryService(Region<?, ?> region) {
+  private static QueryService resolveClientQueryService(Region<?, ?> region) {
     Preconditions.checkArgument(region.getRegionService() instanceof ClientCache, "Expected to get %s got %s for region %s", ClientCache.class, region.getRegionService(), region.getFullPath());
     ClientCache clientCache = (ClientCache) region.getRegionService();
 
@@ -67,24 +67,24 @@ class DefaultQueryServiceResolver implements QueryServiceResolver {
             : queryServiceFrom(region));
   }
 
-  private boolean requiresLocalQueryService(Region<?, ?> region) {
+  private static boolean requiresLocalQueryService(Region<?, ?> region) {
     return Scope.LOCAL.equals(region.getAttributes().getScope()) && isLocalWithNoServerProxy(region);
   }
 
-  private boolean isLocalWithNoServerProxy(Region<?, ?> region) {
+  private static boolean isLocalWithNoServerProxy(Region<?, ?> region) {
     return region instanceof LocalRegion && !((LocalRegion) region).hasServerProxy();
   }
 
-  private boolean requiresPooledQueryService(Region<?, ?> region) {
+  private static boolean requiresPooledQueryService(Region<?, ?> region) {
     String pool = poolNameFrom(region);
     return pool != null && !pool.isEmpty();
   }
 
-  private QueryService queryServiceFrom(Region<?, ?> region) {
+  private static QueryService queryServiceFrom(Region<?, ?> region) {
     return region.getRegionService().getQueryService();
   }
 
-  private String poolNameFrom(Region<?, ?> region) {
+  private static String poolNameFrom(Region<?, ?> region) {
     return region.getAttributes().getPoolName();
   }
 }

@@ -101,6 +101,7 @@
     <maven.compiler.compilerVersion>1.7</maven.compiler.compilerVersion>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     <!-- Shared versions -->
     <retro.version>2.5.1</retro.version>
     <errorprone.version>2.3.3</errorprone.version>

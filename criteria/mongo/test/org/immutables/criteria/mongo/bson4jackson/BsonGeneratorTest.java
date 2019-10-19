@@ -97,7 +97,7 @@ class BsonGeneratorTest {
     check(doc.get("bigInteger")).is(BsonNull.VALUE);
   }
 
-  private BsonValue writeAndReturnValue(IoConsumer<BsonGenerator> consumer) throws IOException {
+  private static BsonValue writeAndReturnValue(IoConsumer<BsonGenerator> consumer) throws IOException {
     BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
     BsonGenerator generator = generatorFor(writer);
     generator.writeStartObject();
@@ -113,9 +113,7 @@ class BsonGeneratorTest {
     void accept(T value) throws IOException;
   }
 
-  private BsonGenerator generatorFor(BsonWriter writer) {
+  private static BsonGenerator generatorFor(BsonWriter writer) {
     return new BsonGenerator(0, writer);
   }
-
-
 }

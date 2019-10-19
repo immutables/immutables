@@ -48,7 +48,7 @@ class JavaBeanNamingTest {
     check(JavaBeanNaming.IS_GETTER.test(JavaBean.class.getDeclaredMethod("getA")));
   }
 
-  private Path path(String name) throws NoSuchMethodException {
+  private static Path path(String name) throws NoSuchMethodException {
     return Path.ofMember(JavaBean.class.getDeclaredMethod(name));
   }
 

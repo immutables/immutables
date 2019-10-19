@@ -47,10 +47,9 @@ class ElasticExtension implements ParameterResolver, AfterEachCallback {
     return getOrCreate(extensionContext).restClient();
   }
 
-  private ElasticResource getOrCreate(ExtensionContext context) {
+  private static ElasticResource getOrCreate(ExtensionContext context) {
     return context.getStore(NAMESPACE).getOrComputeIfAbsent(KEY, key -> new ElasticResource(EmbeddedElasticsearchNode.create()), ElasticResource.class);
   }
-
 
   @Override
   public void afterEach(ExtensionContext context) throws Exception {

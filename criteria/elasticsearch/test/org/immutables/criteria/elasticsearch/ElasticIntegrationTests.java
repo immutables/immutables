@@ -57,7 +57,7 @@ class ElasticIntegrationTests {
       IndexOps ops = new IndexOps(restClient, mapper, name);
       // create index if doesn't exists
       if (!ops.exists().blockingGet()) {
-        ops.create(Mappings.of(entity)).blockingGet();
+        ops.create(Mappings.of(entity)).blockingAwait();
       }
     };
     this.backend = WithSessionCallback.wrap(backend, onOpen);

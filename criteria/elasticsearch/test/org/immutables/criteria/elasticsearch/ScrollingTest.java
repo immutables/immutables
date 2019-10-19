@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
+import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.personmodel.CriteriaChecker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,7 +66,7 @@ public class ScrollingTest {
             .put("intNumber", "integer")
             .build();
 
-    new IndexOps(restClient, MAPPER, "test").create(model).blockingGet();
+    new IndexOps(restClient, MAPPER, "test").create(model).blockingAwait();
 
     ElasticsearchBackend backend = backend();
     ElasticsearchOps ops = new ElasticsearchOps(restClient, "test", MAPPER, 1024);
@@ -75,7 +76,7 @@ public class ScrollingTest {
               .put("bool", true)
               .put("intNumber", i);
 
-      ops.insertDocument(doc).blockingGet();
+      WriteResult result = ops.insertDocument(doc).blockingGet();
     }
   }
 

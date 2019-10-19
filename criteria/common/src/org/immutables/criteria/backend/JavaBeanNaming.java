@@ -76,7 +76,7 @@ public class JavaBeanNaming implements PathNaming {
     return path.members().stream().map(p -> maybeNameFromGetterSetter((Member) p)).collect(Collectors.joining("."));
   }
 
-  private String maybeNameFromGetterSetter(Member member) {
+  private static String maybeNameFromGetterSetter(Member member) {
     if (!(member instanceof Method)) {
       return member.getName();
     }
