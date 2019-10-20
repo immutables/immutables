@@ -41,7 +41,7 @@ import java.util.stream.IntStream;
  * @see Scrolling
  */
 @ExtendWith(ElasticExtension.class)
-public class ScrollingTest {
+class ScrollingTest {
 
   private static final ObjectMapper MAPPER = ElasticPersonTest.MAPPER;
 
@@ -58,7 +58,7 @@ public class ScrollingTest {
   private static final int SIZE = 20;
 
   @BeforeEach
-  private void elasticseachInit() throws IOException {
+  void elasticseachInit() throws IOException {
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")
             .put("optionalString", "keyword")
@@ -89,7 +89,7 @@ public class ScrollingTest {
   }
 
   @Test
-  public void noLimit() throws Exception {
+  void noLimit() throws Exception {
     ElasticModelRepository repository = new ElasticModelRepository(backend(1024));
 
     CriteriaChecker.<ElasticModel>of(repository.findAll())
@@ -108,7 +108,7 @@ public class ScrollingTest {
    * Set scroll sizes like {@code 1, 2, 3 ...} and validates number of returned records
    */
   @Test
-  public void withLimit() throws Exception {
+  void withLimit() throws Exception {
     // set of scroll sizes / limits to tests
     final int[] samples = {1, 2, 3, SIZE - 1, SIZE, SIZE + 1, 2 * SIZE, SIZE * SIZE};
     for (int scrollSize: samples) {
@@ -144,6 +144,7 @@ public class ScrollingTest {
    * Queries {@code /_nodes/stats/indices/search} endpoint.
    * @see <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-stats.html">Indices Stats</a>
    */
+  @SuppressWarnings("unused") // for errorprone
   private void assertNoActiveScrolls() throws Exception {
     // get node stats
     final Response response = restClient

@@ -62,6 +62,7 @@
                         <arg>-Xep:RedundantOverride:ERROR</arg>
                         <arg>-Xep:RedundantThrows:ERROR</arg>
                         <arg>-Xep:RemoveUnusedImports:ERROR</arg>
+                        <arg>-Xep:UnusedMethod:ERROR</arg>
                         <arg>-Xlint:unchecked</arg>
                     </compilerArgs>
                 </configuration>

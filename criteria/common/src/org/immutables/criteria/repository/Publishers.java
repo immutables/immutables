@@ -80,7 +80,7 @@ public final class Publishers {
   private static <X> io.reactivex.functions.Function<Single<X>, CompletionStage<X>> singleToFuture() {
     return single -> {
       final CompletableFuture<X> fut = new CompletableFuture<>();
-      Disposable disposable = single.subscribe(fut::complete, fut::completeExceptionally);
+      Disposable unused = single.subscribe(fut::complete, fut::completeExceptionally);
       return fut;
     };
   }

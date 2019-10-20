@@ -260,6 +260,7 @@ public class JavaBeanModelTest {
    */
   @ProcessorRule.TestImmutable
   @Criteria
+  @SuppressWarnings("unused")
   static class VisibilityModel {
     public int publicField;
     int packageField;
