@@ -1,3 +1,10 @@
+### 2.8.1 (2019-10-19)
+- Support for JavaBeans in Criteria API
+- Partial updates applied in the backend
+- Top level `count()`
+- lazyhash
+- [2.8.1 release notes](https://github.com/immutables/immutables.github.io/blob/3e800596e5577770df9bb466977614fe01e6b08d/2.8.1-release.md)
+
 ### 2.8.0 (2019-09-19)
 - Criteria & Repositories API 
 - Not a bugfix release yet, expect more bugfixes in future 2.8.x versions
