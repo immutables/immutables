@@ -65,7 +65,7 @@ public class PersonOrderingTest {
 
   }
 
-  private static Function<? super Person, ? extends Integer> age() {
+  private static Function<? super Person, Integer> age() {
     return new Function<Person, Integer>() {
       @Override
       public Integer apply(Person input) {
@@ -91,8 +91,6 @@ public class PersonOrderingTest {
       }
     };
   }
-
-
 
   @Test
   public void empty() throws Exception {
