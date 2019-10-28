@@ -93,6 +93,7 @@ class AggregateQueryBuilder {
 
     json.put("_source", false);
     json.put("size", 0);
+    json.put("stored_fields", "_none_"); // avoid fetch phase
 
     query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(mapper).convert(f)));
 

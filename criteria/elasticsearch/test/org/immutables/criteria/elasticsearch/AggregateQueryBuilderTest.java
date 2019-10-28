@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
-public class AggregateQueryBuilderTest {
+class AggregateQueryBuilderTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper()
           .registerModule(new JavaTimeModule())
@@ -43,7 +43,7 @@ public class AggregateQueryBuilderTest {
   private final Mapping mapping = Mapping.ofElastic(PersonModel.MAPPING);
 
   @Test
-  public void agg1() {
+  void agg1() {
     PersonCriteria person = PersonCriteria.person;
 
     // select nickName, sum(age), max(dateOfBirth) from person
@@ -63,6 +63,7 @@ public class AggregateQueryBuilderTest {
 
     JsonChecker.of(json).is("{'_source':false,",
             "size:0,",
+            "'stored_fields':'_none_',",
             "'query.constant_score.filter.range.age.gte' : 30,",
             "aggregations:{expr0:{terms:{field:'nickName',missing:'__MISSING__',size:11,"
                     + " order:{'_key':'asc'}},",
