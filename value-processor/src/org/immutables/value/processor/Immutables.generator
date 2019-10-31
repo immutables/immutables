@@ -2480,6 +2480,7 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [anj]
   [/for]
   [jsonIgnore type]
+  [if type.useLazyhash][hiddenMutableState type][/if]
   private[if not type.serial.simple] transient[/if][if type.usePrehashed] final[/if] int hashCode;[if type.useLazyhash] // hashCode lazily computed[/if]
 [/if]
 [if type.generateOrdinalValue]
