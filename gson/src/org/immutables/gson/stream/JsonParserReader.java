@@ -16,6 +16,7 @@
 package org.immutables.gson.stream;
 
 import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
@@ -143,7 +144,12 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
   @Override
   public boolean nextBoolean() throws IOException {
     requirePeek();
-    boolean value = parser.getBooleanValue();
+    boolean value;
+    try {
+      value = parser.getBooleanValue();
+    } catch (JsonParseException e) {
+      value = Boolean.parseBoolean(parser.getValueAsString());
+    }
     clearPeek();
     return value;
   }

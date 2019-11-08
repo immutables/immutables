@@ -22,6 +22,8 @@ import java.io.Writer;
 import java.util.concurrent.Callable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import static java.lang.Math.floor;
+
 /**
  * {@link JsonWriter} impementation backed by Jackson's {@link JsonGenerator}.
  * Provides measurable JSON writing improvements over Gson's native implementation.
@@ -145,7 +147,12 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
         throw new IllegalArgumentException("JSON forbids NaN and infinities: " + value);
       }
     }
-    generator.writeNumber(d);
+    if (floor(d) == d) {
+      int a = value.intValue();
+      generator.writeNumber(a);
+    } else {
+      generator.writeNumber(d);
+    }
     return this;
   }
 
