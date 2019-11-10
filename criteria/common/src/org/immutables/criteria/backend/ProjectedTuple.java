@@ -74,4 +74,17 @@ public class ProjectedTuple {
     return of(ImmutableList.of(path), Collections.singleton(value));
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ProjectedTuple that = (ProjectedTuple) o;
+    return Objects.equals(expressions, that.expressions) &&
+            Objects.equals(values, that.values);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(expressions, values);
+  }
 }

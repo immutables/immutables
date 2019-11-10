@@ -191,6 +191,19 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
     public List<?> values() {
       return delegate.values();
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      TupleAdapter that = (TupleAdapter) o;
+      return Objects.equals(delegate, that.delegate);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(delegate);
+    }
   }
 
 }

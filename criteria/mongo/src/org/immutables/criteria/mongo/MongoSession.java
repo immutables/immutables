@@ -34,6 +34,7 @@ import org.bson.Document;
 import org.bson.codecs.Codec;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.BackendException;
@@ -122,26 +123,38 @@ class MongoSession implements Backend.Session {
   private Publisher<?> query(StandardOperations.Select select) {
     final Query query = select.query();
 
-    final boolean hasAggregations =  query.hasAggregations();
     final boolean hasProjections = query.hasProjections();
 
-    ExpressionNaming expressionNaming = hasAggregations ? ExpressionNaming.of(UniqueCachedNaming.of(query.projections())) : expression -> pathNaming.name((Path) expression);
+    boolean useAggregationPipeline = query.hasAggregations() || query.distinct();
+    ExpressionNaming expressionNaming = useAggregationPipeline ? ExpressionNaming.of(UniqueCachedNaming.of(query.projections())) : expression -> pathNaming.name((Path) expression);
 
-    final MongoCollection<?> collection = (hasProjections ?
-            this.collection.withDocumentClass(ProjectedTuple.class).withCodecRegistry(CodecRegistries.fromRegistries(this.collection.getCodecRegistry(),
-                    CodecRegistries.fromProviders(new TupleCodecProvider(query, expressionNaming))))
-            : this.collection);
+    MongoCollection<?> collection = this.collection;
+    if (hasProjections) {
+      // add special TupleCodecProvider for projections
+      CodecRegistry newRegistry = CodecRegistries.fromRegistries(this.collection.getCodecRegistry(),
+              CodecRegistries.fromProviders(new TupleCodecProvider(query, expressionNaming)));
 
-    if (hasAggregations) {
+      collection = this.collection.withDocumentClass(ProjectedTuple.class)
+              .withCodecRegistry(newRegistry);
+    }
+
+    if (useAggregationPipeline) {
       // aggregations
       AggregationQuery agg = new AggregationQuery(query, pathNaming);
+      if (query.count()) {
+        // count will return single document like {count:1}
+        // also for empty result-set mongo does not return single(0) but empty publisher
+        return Flowable.fromPublisher(collection.aggregate(agg.toPipeline(), BsonDocument.class))
+                .map(d -> d.get("count").asNumber().longValue())
+                .defaultIfEmpty(0L); // return Single.just(0) for empty publisher
+      }
       return collection.aggregate(agg.toPipeline(), ProjectedTuple.class);
     }
 
     Bson filter = toBsonFilter(query);
 
     if (query.count()) {
-      // do count(*)
+      // simple form of count all (without distinct, aggregations etc.) : count(*)
       return Flowable.fromPublisher(collection.countDocuments(filter));
     }
 

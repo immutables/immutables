@@ -129,22 +129,26 @@ public class GeodeBackend implements Backend {
         throw new UnsupportedOperationException("Aggregations / Group By and count(*) are not yet supported");
       }
 
+      // wherever to rewrite query as "select count(*) from (select distinct ...)"
+      boolean addOuterCountQuery = query.count() && query.distinct() && query.hasProjections();
+
       final StringBuilder oql = new StringBuilder("SELECT");
       if (query.distinct()) {
         oql.append(" DISTINCT ");
       }
 
-      if (!query.hasProjections()) {
-        oql.append(query.count() ? " COUNT(*) " : " * ");
-      } else {
+      if (query.hasProjections()) {
         // explicitly add list of projections
         List<String> paths = query.projections().stream()
                 .map(Session::toProjection)
                 .collect(Collectors.toList());
-        String projections = query.count() ? " COUNT(*) " : String.join(", ", paths);
+        String projections = query.count() && !addOuterCountQuery ? " COUNT(*) " : String.join(", ", paths);
         oql.append(" ");
         oql.append(projections);
         oql.append(" ");
+      } else {
+        // no projections
+        oql.append(query.count() && !addOuterCountQuery ? " COUNT(*) " : " * ");
       }
 
       oql.append(" FROM ").append(region.getFullPath());
@@ -171,6 +175,13 @@ public class GeodeBackend implements Backend {
 
       query.limit().ifPresent(limit -> oql.append(" LIMIT ").append(limit));
       query.offset().ifPresent(offset -> oql.append(" OFFSET ").append(offset));
+
+      if (addOuterCountQuery) {
+        // rewrite query as "SELECT COUNT(*) FROM ($oql)"
+        // Example: select count(*) from (select distinct a, b, c from /region)
+        oql.insert(0, "SELECT COUNT(*) FROM (");
+        oql.append(")");
+      }
       return new OqlWithVariables(variables, oql.toString());
     }
 

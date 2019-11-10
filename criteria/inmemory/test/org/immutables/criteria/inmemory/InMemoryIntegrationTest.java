@@ -22,6 +22,7 @@ import org.immutables.criteria.typemodel.BooleanLogicTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
+import org.immutables.criteria.typemodel.DistinctLimitCountTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
 import org.immutables.criteria.typemodel.InstantTemplate;
@@ -131,6 +132,13 @@ class InMemoryIntegrationTest {
   @Nested
   class Count extends CountTemplate {
     private Count() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class DistinctLimitCount extends DistinctLimitCountTemplate {
+    private DistinctLimitCount() {
       super(backend);
     }
   }

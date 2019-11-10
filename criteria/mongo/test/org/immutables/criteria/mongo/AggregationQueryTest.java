@@ -20,6 +20,7 @@ import com.mongodb.MongoClientSettings;
 import org.bson.BsonDocument;
 import org.bson.json.JsonWriterSettings;
 import org.immutables.criteria.expression.Collation;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.personmodel.Person;
@@ -65,6 +66,60 @@ class AggregationQueryTest {
             "{$sort: {expr0: 1}}",
             "{$skip: 1}",
             "{$limit: 2}");
+  }
+
+  /**
+   * Testing single field: {@code select distinct nickName from ...}
+   */
+  @Test
+  void distinct1() {
+    ImmutableQuery query = Query.of(Person.class)
+            .addProjections(Matchers.toExpression(person.nickName))
+            .withDistinct(true);
+
+    assertAgg(query, "{$project: {expr0: '$nickName'}}",
+            "{$group: {_id: '$expr0'}}",
+            "{$project: {expr0: '$_id'}}");
+
+    assertAgg(query.withLimit(1), "{$project: {expr0: '$nickName'}}",
+            "{$group: {_id: '$expr0'}}",
+            "{$project: {expr0: '$_id'}}",
+            "{$limit: 1}"
+            );
+
+    assertAgg(query.withLimit(1).withCount(true), "{$project: {expr0: '$nickName'}}",
+            "{$group: {_id: '$expr0'}}",
+            "{$project: {expr0: '$_id'}}",
+            "{$limit: 1}",
+            "{$count: 'count'}"
+            );
+  }
+
+  /**
+   * Testing two field (s): {@code select distinct a, b from ...}
+   */
+  @Test
+  void distinct2() {
+    ImmutableQuery query = Query.of(Person.class)
+            .addProjections(Matchers.toExpression(person.nickName))
+            .addProjections(Matchers.toExpression(person.age))
+            .withDistinct(true);
+
+    assertAgg(query, "{$project: {expr0: '$nickName', expr1: '$age'}}",
+            "{$group: {_id: {expr0: '$expr0', expr1: '$expr1'}}}",
+            "{$project: {expr0: '$_id.expr0', expr1: '$_id.expr1'}}");
+
+    assertAgg(query.withLimit(1), "{$project: {expr0: '$nickName', expr1: '$age'}}",
+            "{$group: {_id: {expr0: '$expr0', expr1: '$expr1'}}}",
+            "{$project: {expr0: '$_id.expr0', expr1: '$_id.expr1'}}",
+            "{$limit: 1}");
+
+    assertAgg(query.withLimit(1).withCount(true), "{$project: {expr0: '$nickName', expr1: '$age'}}",
+            "{$group: {_id: {expr0: '$expr0', expr1: '$expr1'}}}",
+            "{$project: {expr0: '$_id.expr0', expr1: '$_id.expr1'}}",
+            "{$limit: 1}",
+            "{$count: 'count'}"
+    );
   }
 
   @Disabled

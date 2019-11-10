@@ -27,6 +27,7 @@ import com.mongodb.client.model.BsonField;
 import com.mongodb.client.model.Sorts;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
+import org.bson.BsonValue;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.ExpressionNaming;
@@ -36,6 +37,7 @@ import org.immutables.criteria.expression.AggregationOperators;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
@@ -59,7 +61,7 @@ class AggregationQuery {
   private final CodecRegistry registry;
 
   AggregationQuery(Query query, PathNaming pathNaming) {
-    this.query = Objects.requireNonNull(query, "query");
+    this.query = maybeRewriteDistinctToGroupBy(query);
     this.pathNaming = Objects.requireNonNull(pathNaming, "naming");
 
     BiMap<Expression, String> biMap = HashBiMap.create();
@@ -74,6 +76,26 @@ class AggregationQuery {
     this.projectionNaming = ExpressionNaming.of(UniqueCachedNaming.of(query.projections()));
     this.naming = ImmutableBiMap.copyOf(biMap);
     this.registry = MongoClientSettings.getDefaultCodecRegistry();
+  }
+
+  /**
+   * Converts query of type {@code select distinct a, b, c from table} to {@code select a, b, c from table group by a, b, c}
+   * so same pipelines (like {@link Group}) can be (re-)used. Does nothing if this is not a {@code distinct} query.
+   * @param query query to be converted
+   * @return new version of the query with projections copied to {@code groupBy} list or unmodified query.
+   * @throws UnsupportedOperationException if query is "distinct" and {@code groupBy} is not empty
+   */
+  private static Query maybeRewriteDistinctToGroupBy(Query query) {
+    Objects.requireNonNull(query, "query");
+    if (!query.distinct()) {
+      return query;
+    }
+    if (query.distinct() && !query.groupBy().isEmpty()) {
+      throw new UnsupportedOperationException(String.format("Both DISTINCT and groupBy (%s) are present. Use either.", query.groupBy()));
+    }
+
+    // "select distinct a, b, c from table"  equivalent to "select a, b, c from table group by a, b, c"
+    return ImmutableQuery.builder().from(query).groupBy(query.projections()).build();
   }
 
   private static Path extractPath(Expression expression) {
@@ -98,12 +120,9 @@ class AggregationQuery {
 
   List<Bson> toPipeline() {
     final List<Bson> aggregates = new ArrayList<>();
-    final List<Pipeline> pipelines = new ArrayList<>(Arrays.asList(new MatchPipeline(), new NameAndExtractFields(), new Group(), new Sort(), new Skip(), new Limit()));
-    if (query.count()) {
-      pipelines.add(new Count());
-    }
+    final List<Pipeline> pipelines = new ArrayList<>(Arrays.asList(new MatchPipeline(), new NameAndExtractFields(),
+            new Group(), new Sort(), new Skip(), new Limit(), new CountAll()));
     pipelines.forEach(p -> p.process(aggregates::add));
-
     return Collections.unmodifiableList(aggregates);
   }
 
@@ -111,10 +130,16 @@ class AggregationQuery {
     void process(Consumer<Bson> consumer);
   }
 
-  private class Count implements Pipeline {
+  private class CountAll implements Pipeline {
     @Override
     public void process(Consumer<Bson> consumer) {
-      throw new UnsupportedOperationException("count(*) is not yet supported with aggregations");
+      if (!query.count()) {
+        // skip. Valid only for countAll
+        return;
+      }
+      BsonDocument bson = new BsonDocument();
+      bson.put("$count", new BsonString("count"));
+      consumer.accept(bson);
     }
   }
 
@@ -154,34 +179,35 @@ class AggregationQuery {
       final BsonDocument project = new BsonDocument();
 
       // $group
-      if (!query.groupBy().isEmpty()) {
-        query.groupBy().forEach(groupBy -> {
-          String alias = naming.get(extractPath(groupBy));
-          id.put(alias, new BsonString("$" + alias));
-        });
-      }
+      query.groupBy().forEach(groupBy -> {
+        String alias = naming.get(extractPath(groupBy));
+        id.put(alias, new BsonString("$" + alias));
+      });
 
       // $project part
-      if (query.hasProjections()) {
-        for (int i = 0; i < query.projections().size(); i++) {
-          Expression expr = query.projections().get(i);
-          final String alias = naming.get(extractPath(expr));
-          final String uniq = projectionNaming.name(expr);
-          if (query.groupBy().contains(expr)) {
-            project.put(alias, new BsonString(id.size() == 1 ? "$_id" : "$_id." + alias));
-          } else if (expr instanceof Call) {
-            // aggregation sum / count etc.
-            accumulators.add(accumulator(uniq, expr));
-            project.put(uniq, new BsonString("$" + uniq));
-          } else {
-            // simple projection
-            project.put(uniq, new BsonString("$" + uniq));
-          }
+      for (Expression expr: query.projections()) {
+        final String alias = naming.get(extractPath(expr));
+        final String uniq = projectionNaming.name(expr);
+        if (query.groupBy().contains(expr)) {
+          project.put(alias, new BsonString(id.size() == 1 ? "$_id" : "$_id." + alias));
+        } else if (expr instanceof Call) {
+          // actual aggregation sum / max / min count etc.
+          accumulators.add(accumulator(uniq, expr));
+          project.put(uniq, new BsonString("$" + uniq));
+        } else {
+          // simple projection
+          project.put(uniq, new BsonString("$" + uniq));
         }
       }
 
+      if (query.distinct() && !id.isEmpty()) {
+        BsonValue groupId = id.size() == 1 ? id.values().iterator().next() : id;
+        consumer.accept(Aggregates.group(groupId));
+      }
+
       if (!accumulators.isEmpty()) {
-        consumer.accept(Aggregates.group(id.size() == 1 ? id.values().iterator().next() : id, accumulators));
+        BsonValue groupId = id.size() == 1 ? id.values().iterator().next() : id;
+        consumer.accept(Aggregates.group(groupId, accumulators));
       }
 
       if (!project.isEmpty()) {

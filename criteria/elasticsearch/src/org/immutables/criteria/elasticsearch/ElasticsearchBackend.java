@@ -123,6 +123,10 @@ public class ElasticsearchBackend implements Backend {
     private Flowable<?> select(StandardOperations.Select op) {
       final Query query = op.query();
 
+      if (query.distinct()) {
+        return Flowable.error(new UnsupportedOperationException("DISTINCT not yet supported by " + ElasticsearchBackend.class.getSimpleName()));
+      }
+
       if (query.count()) {
         return new CountCall(op, this).call().toFlowable();
       }
