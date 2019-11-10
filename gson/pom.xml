@@ -28,10 +28,6 @@
     streaming parsing of Gson, while using all of gson binding infrastructure.
   </description>
 
-  <properties>
-    <latest.jackson.databind.version>2.10.0</latest.jackson.databind.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <!-- Required Gson dependency -->
