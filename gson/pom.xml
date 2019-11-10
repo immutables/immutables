@@ -71,7 +71,7 @@
       <!-- Optional. Jackson binding have utility used when using polymorhic marshaling with jackson-core implementation -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
+      <version>${jackson-databind.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
