@@ -17,15 +17,18 @@ package org.immutables.gson.stream;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.gson.stream.JsonWriter;
+
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.concurrent.Callable;
-import javax.annotation.concurrent.NotThreadSafe;
 
 import static java.lang.Math.floor;
 
 /**
- * {@link JsonWriter} impementation backed by Jackson's {@link JsonGenerator}.
+ * {@link JsonWriter} implementation backed by Jackson's {@link JsonGenerator}.
  * Provides measurable JSON writing improvements over Gson's native implementation.
  * Error reporting is might differ, however.
  */
@@ -147,9 +150,22 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
         throw new IllegalArgumentException("JSON forbids NaN and infinities: " + value);
       }
     }
-    if (floor(d) == d) {
-      int a = value.intValue();
-      generator.writeNumber(a);
+    if (value instanceof Integer) {
+      generator.writeNumber((Integer) value);
+    } else if (value instanceof Short) {
+      generator.writeNumber((Short) value);
+    } else if (value instanceof Long) {
+      generator.writeNumber((Long) value);
+    } else if (value instanceof Float) {
+      generator.writeNumber((Float) value);
+    } else if (value instanceof Double) {
+      generator.writeNumber((Double) value);
+    } else if (value instanceof BigInteger) {
+      generator.writeNumber((BigInteger) value);
+    } else if (value instanceof BigDecimal) {
+      generator.writeNumber((BigDecimal) value);
+    } else if (floor(d) == d) {
+      generator.writeNumber(value.intValue());
     } else {
       generator.writeNumber(d);
     }

@@ -32,7 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import static com.fasterxml.jackson.core.JsonToken.*;
 
 /**
- * {@link JsonReader} impementation backed by Jackson's {@link JsonParser}.
+ * {@link JsonReader} implementation backed by Jackson's {@link JsonParser}.
  * Provides measurable JSON parsing improvements over Gson's native implementation.
  * Error reporting might differ, however.
  */
