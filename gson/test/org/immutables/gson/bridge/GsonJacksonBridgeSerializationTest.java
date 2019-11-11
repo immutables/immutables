@@ -23,8 +23,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * Test the various Jackson serialization formats against the Gson/Jackson bridge.
@@ -72,176 +70,89 @@ public class GsonJacksonBridgeSerializationTest {
 
   @Test
   public void jsonFactoryTest() throws IOException {
-    TestObject testObject = createTestObject();
+    TestObject value = createTestObject();
     JsonFactory factory = new JsonFactory();
-    runTestOnFactory(
-            testObject
-            , TestObject.class
-            , out -> {
-              try {
-                return factory.createGenerator(out);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , os -> {
-              try {
-                return factory.createParser(os.toByteArray());
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , JsonParserReader::new);
+    Class<TestObject> clazz = TestObject.class;
+    ByteArrayOutputStream outputStream = testWriting(value, factory, clazz);
+    TestObject value2 = testReading(factory, clazz, outputStream);
+    Assert.assertEquals(value2.toString(), value.toString());
   }
 
   @Test
   public void xmlFactoryTest() throws IOException {
-    TestObject testObject = createTestObject();
+    TestObject value = createTestObject();
     XmlFactory factory = new XmlFactory();
     Class<TestObject> clazz = TestObject.class;
-    runTestOnFactory(
-            testObject
-            , clazz
-            , out -> {
-              try {
-                ToXmlGenerator generator = factory.createGenerator(out);
-                QName rootName = Optional.ofNullable(clazz.getAnnotation(JacksonXmlRootElement.class))
-                        .map(a -> QName.valueOf(a.localName()))
-                        .orElse(QName.valueOf(clazz.getName()));
-                generator.setNextName(rootName);
-                return generator;
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , os -> {
-              try {
-                return factory.createParser(os.toByteArray());
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , XmlParserReader::new);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ToXmlGenerator g = factory.createGenerator(outputStream);
+    g.setNextName(QName.valueOf(clazz.getAnnotation(JacksonXmlRootElement.class).localName()));
+    JsonGeneratorWriter generatorWriter = new JsonGeneratorWriter(g);
+    gson.toJson(value, clazz, generatorWriter);
+    generatorWriter.flush();
+    TestObject value2 = testXmlReading(factory, clazz, outputStream);
+    Assert.assertEquals(value2.toString(), value.toString());
   }
 
   @Test
   public void yamlFactoryTest() throws IOException {
-    TestObject testObject = createTestObject();
+    TestObject value = createTestObject();
     YAMLFactory factory = new YAMLFactory();
-    runTestOnFactory(
-            testObject
-            , TestObject.class
-            , out -> {
-              try {
-                return factory.createGenerator(out);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , os -> {
-              try {
-                return factory.createParser(os.toByteArray());
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , JsonParserReader::new);
+    Class<TestObject> clazz = TestObject.class;
+    ByteArrayOutputStream outputStream = testWriting(value, factory, clazz);
+    TestObject value2 = testReading(factory, clazz, outputStream);
+    Assert.assertEquals(value2.toString(), value.toString());
   }
 
   @Test
   public void smileFactoryTest() throws IOException {
-    TestObject testObject = createTestObject();
+    TestObject value = createTestObject();
     SmileFactory factory = new SmileFactory();
-    runTestOnFactory(
-            testObject
-            , TestObject.class
-            , out -> {
-              try {
-                return factory.createGenerator(out);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , os -> {
-              try {
-                return factory.createParser(os.toByteArray());
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , JsonParserReader::new);
+    Class<TestObject> clazz = TestObject.class;
+    ByteArrayOutputStream outputStream = testWriting(value, factory, clazz);
+    TestObject value2 = testReading(factory, clazz, outputStream);
+    Assert.assertEquals(value2.toString(), value.toString());
   }
 
   @Test
   public void propertiesFactoryTest() throws IOException {
-    TestObject testObject = ImmutableTestObject.copyOf(createTestObject())
+    TestObject value = ImmutableTestObject.copyOf(createTestObject())
             // excluding map here because when it is de-serialized, the order is changed and the unit test fails
-            .withMapOfStringToString(new HashMap<>());
+            .withMapOfStringToString(new HashMap<String, String>());
     JavaPropsFactory factory = new JavaPropsFactory();
-    runTestOnFactory(
-            testObject
-            , TestObject.class
-            , out -> {
-              try {
-                return factory.createGenerator(out);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , os -> {
-              try {
-                return factory.createParser(os.toByteArray());
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , XmlParserReader::new);
+    Class<TestObject> clazz = TestObject.class;
+    ByteArrayOutputStream outputStream = testWriting(value, factory, clazz);
+    TestObject value2 = testXmlReading(factory, clazz, outputStream);
+    Assert.assertEquals(value2.toString(), value.toString());
   }
 
   @Test
   public void cborFactoryTest() throws IOException {
-    TestObject testObject = createTestObject();
+    TestObject value = createTestObject();
     CBORFactory factory = new CBORFactory();
-    runTestOnFactory(
-            testObject
-            , TestObject.class
-            , out -> {
-              try {
-                return factory.createGenerator(out);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , os -> {
-              try {
-                return factory.createParser(os.toByteArray());
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            }
-            , JsonParserReader::new);
+    Class<TestObject> clazz = TestObject.class;
+    ByteArrayOutputStream outputStream = testWriting(value, factory, clazz);
+    TestObject value2 = testReading(factory, clazz, outputStream);
+    Assert.assertEquals(value2.toString(), value.toString());
   }
 
-  private <VALUE
-          , WRITER extends JsonGenerator
-          , READER extends JsonParser
-          > void runTestOnFactory(
-          VALUE value
-          , Class<VALUE> clazz
-          , Function<ByteArrayOutputStream, WRITER> writerProducer
-          , Function<ByteArrayOutputStream, READER> readerProducer
-          , Function<READER, JsonParserReader> bridgeReaderProducer
-  ) throws IOException {
+  private ByteArrayOutputStream testWriting(TestObject value, JsonFactory factory, Class<TestObject> clazz) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    WRITER g = writerProducer.apply(outputStream);
+    JsonGenerator g = factory.createGenerator(outputStream);
     JsonGeneratorWriter generatorWriter = new JsonGeneratorWriter(g);
     gson.toJson(value, clazz, generatorWriter);
     generatorWriter.flush();
+    return outputStream;
+  }
 
-    READER r = readerProducer.apply(outputStream);
-    JsonParserReader parserReader = bridgeReaderProducer.apply(r);
-    VALUE value2 = gson.fromJson(parserReader, clazz);
+  private TestObject testReading(JsonFactory factory, Class<TestObject> clazz, ByteArrayOutputStream outputStream) throws IOException {
+    JsonParser r = factory.createParser(outputStream.toByteArray());
+    JsonParserReader parserReader = new JsonParserReader(r);
+    return gson.fromJson(parserReader, clazz);
+  }
 
-    Assert.assertEquals(value2.toString(), value.toString());
+  private TestObject testXmlReading(JsonFactory factory, Class<TestObject> clazz, ByteArrayOutputStream outputStream) throws IOException {
+    JsonParser r = factory.createParser(outputStream.toByteArray());
+    JsonParserReader parserReader = new XmlParserReader(r);
+    return gson.fromJson(parserReader, clazz);
   }
 }

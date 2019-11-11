@@ -25,8 +25,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
-import static java.lang.Math.floor;
-
 /**
  * {@link JsonWriter} implementation backed by Jackson's {@link JsonGenerator}.
  * Provides measurable JSON writing improvements over Gson's native implementation.
@@ -151,21 +149,19 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
       }
     }
     if (value instanceof Integer) {
-      generator.writeNumber((Integer) value);
+      generator.writeNumber(value.intValue());
     } else if (value instanceof Short) {
-      generator.writeNumber((Short) value);
+      generator.writeNumber(value.shortValue());
     } else if (value instanceof Long) {
-      generator.writeNumber((Long) value);
+      generator.writeNumber(value.longValue());
     } else if (value instanceof Float) {
-      generator.writeNumber((Float) value);
+      generator.writeNumber(value.floatValue());
     } else if (value instanceof Double) {
-      generator.writeNumber((Double) value);
+      generator.writeNumber(value.doubleValue());
     } else if (value instanceof BigInteger) {
       generator.writeNumber((BigInteger) value);
     } else if (value instanceof BigDecimal) {
       generator.writeNumber((BigDecimal) value);
-    } else if (floor(d) == d) {
-      generator.writeNumber(value.intValue());
     } else {
       generator.writeNumber(d);
     }
