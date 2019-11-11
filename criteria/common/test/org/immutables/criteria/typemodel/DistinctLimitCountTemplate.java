@@ -119,6 +119,49 @@ public abstract class DistinctLimitCountTemplate {
             .distinct()
             .map((x, y) -> x + "-" +y)
             .fetch()).hasContentInAnyOrder("v1-n1", "v3-n3");
+  }
 
+  /**
+   * Queries similar to
+   * {@code select distinct foo from myTable order by foo desc limit 1}
+   * and variations.
+   */
+  @Test
+  void distinctOrderLimit() {
+    repository.insert(generator.get().withValue("v2"));
+    repository.insert(generator.get().withValue("v3"));
+    repository.insert(generator.get().withValue("v1"));
+    repository.insert(generator.get().withValue("v1"));
+    repository.insert(generator.get().withValue("v3"));
+
+    // descending
+    check(repository.findAll()
+            .orderBy(string.value.desc())
+            .select(string.value)
+            .distinct()
+            .limit(1)
+            .fetch()).isOf("v3");
+
+    check(repository.findAll()
+            .orderBy(string.value.desc())
+            .select(string.value)
+            .distinct()
+            .limit(2)
+            .fetch()).isOf("v3", "v2");
+
+    // ascending
+    check(repository.findAll()
+            .orderBy(string.value.asc())
+            .select(string.value)
+            .distinct()
+            .limit(1)
+            .fetch()).isOf("v1");
+
+    check(repository.findAll()
+            .orderBy(string.value.asc())
+            .select(string.value)
+            .distinct()
+            .limit(2)
+            .fetch()).isOf("v1", "v2");
   }
 }
