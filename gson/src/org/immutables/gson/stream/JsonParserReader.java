@@ -144,12 +144,7 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
   @Override
   public boolean nextBoolean() throws IOException {
     requirePeek();
-    boolean value;
-    try {
-      value = parser.getBooleanValue();
-    } catch (JsonParseException e) {
-      value = Boolean.parseBoolean(parser.getValueAsString());
-    }
+    boolean value = parser.getBooleanValue();
     clearPeek();
     return value;
   }

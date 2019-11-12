@@ -142,9 +142,8 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
     if (value == null) {
       return nullValue();
     }
-    double d = value.doubleValue();
     if (!isLenient()) {
-      if (Double.isNaN(d) || Double.isInfinite(d)) {
+      if (Double.isNaN(value.doubleValue()) || Double.isInfinite(value.doubleValue())) {
         throw new IllegalArgumentException("JSON forbids NaN and infinities: " + value);
       }
     }
@@ -163,7 +162,7 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
     } else if (value instanceof BigDecimal) {
       generator.writeNumber((BigDecimal) value);
     } else {
-      generator.writeNumber(d);
+      generator.writeNumber(value.doubleValue());
     }
     return this;
   }
