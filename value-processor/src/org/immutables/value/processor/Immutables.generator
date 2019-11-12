@@ -3151,7 +3151,6 @@ public int hashCode() {
 [computeHashCodeBody]
   [/if]
 }
-
   [if type.cacheHash and getters]
 
 private int [disambiguateAccessor type 'computeHashCode']() {
