@@ -65,7 +65,8 @@ class SyncSelect implements Callable<Iterable<Object>> {
   @Override
   public Iterable<Object> call() throws Exception {
 
-    OqlWithVariables oql = session.toOql(operation.query(), true);
+    Oql oql = session.oqlGenerator().generate(operation.query());
+
     if (GeodeBackend.logger.isLoggable(Level.FINE)) {
       GeodeBackend.logger.log(Level.FINE, "Querying Geode with {0}", oql);
     }

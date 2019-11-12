@@ -47,7 +47,7 @@ final class Geodes {
    *
    * @return predicate, empty string if no predicate
    */
-  static ExpressionConverter<OqlWithVariables> converter(boolean useBindVariables, PathNaming pathNaming) {
+  static ExpressionConverter<Oql> converter(boolean useBindVariables, PathNaming pathNaming) {
     return expression -> expression.accept(new GeodeQueryVisitor(useBindVariables, pathNaming));
   }
 

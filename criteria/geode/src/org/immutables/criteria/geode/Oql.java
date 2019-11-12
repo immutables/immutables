@@ -23,13 +23,12 @@ import java.util.Objects;
  * <a href="https://geode.apache.org/docs/guide/16/developing/querying_basics/query_basics.html">OQL</a>
  * with bind variables.
  */
-class OqlWithVariables {
+class Oql {
 
   private final List<Object> variables;
-
   private final String oql;
 
-  OqlWithVariables(List<Object> variables, String oql) {
+  Oql(List<Object> variables, String oql) {
     this.variables = Objects.requireNonNull(variables, "variables");
     this.oql = Objects.requireNonNull(oql, "oql");
   }

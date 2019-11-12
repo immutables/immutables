@@ -30,17 +30,10 @@ import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
-import org.immutables.criteria.expression.AggregationCall;
-import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Backend for <a href="https://geode.apache.org/">Apache Geode</a>
@@ -55,7 +48,7 @@ public class GeodeBackend implements Backend {
 
   public GeodeBackend(GeodeSetup setup) {
     this.setup = Objects.requireNonNull(setup, "setup");
-    this.pathNaming = PathNaming.defaultNaming();
+    this.pathNaming = ReservedWordNaming.of(PathNaming.defaultNaming());
   }
 
   @Override
@@ -115,7 +108,7 @@ public class GeodeBackend implements Backend {
     private <T> Publisher<WatchEvent<T>> watch(StandardOperations.Watch operation) {
       return Flowable.create(e -> {
         final FlowableEmitter<WatchEvent<T>> emitter = e.serialize();
-        final String oql = toOql(operation.query(), false).oql();
+        final String oql = oqlGenerator().withoutBindVariables().generate(operation.query()).oql();
         final CqAttributesFactory factory = new CqAttributesFactory();
         factory.addCqListener(new GeodeEventListener<>(oql, emitter));
         final CqQuery cqQuery = queryService.newCq(oql, factory.create());
@@ -124,74 +117,9 @@ public class GeodeBackend implements Backend {
       }, BackpressureStrategy.ERROR);
     }
 
-    OqlWithVariables toOql(Query query, boolean useBindVariables) {
-      if (query.count() && (query.hasAggregations() || !query.groupBy().isEmpty())) {
-        throw new UnsupportedOperationException("Aggregations / Group By and count(*) are not yet supported");
-      }
-
-      // wherever to rewrite query as "select count(*) from (select distinct ...)"
-      boolean addOuterCountQuery = query.count() && query.distinct() && query.hasProjections();
-
-      final StringBuilder oql = new StringBuilder("SELECT");
-      if (query.distinct()) {
-        oql.append(" DISTINCT ");
-      }
-
-      if (query.hasProjections()) {
-        // explicitly add list of projections
-        List<String> paths = query.projections().stream()
-                .map(Session::toProjection)
-                .collect(Collectors.toList());
-        String projections = query.count() && !addOuterCountQuery ? " COUNT(*) " : String.join(", ", paths);
-        oql.append(" ");
-        oql.append(projections);
-        oql.append(" ");
-      } else {
-        // no projections
-        oql.append(query.count() && !addOuterCountQuery ? " COUNT(*) " : " * ");
-      }
-
-      oql.append(" FROM ").append(region.getFullPath());
-      final List<Object> variables = new ArrayList<>();
-      if (query.filter().isPresent()) {
-        OqlWithVariables withVars = Geodes.converter(useBindVariables, pathNaming).convert(query.filter().get());
-        oql.append(" WHERE ").append(withVars.oql());
-        variables.addAll(withVars.variables());
-      }
-
-      if (!query.groupBy().isEmpty()) {
-        oql.append(" GROUP BY ");
-        oql.append(query.groupBy().stream().map(Session::toProjection).collect(Collectors.joining(", ")));
-      }
-
-      if (!query.collations().isEmpty()) {
-        oql.append(" ORDER BY ");
-        final String orderBy = query.collations().stream()
-                .map(c -> c.path().toStringPath() + (c.direction().isAscending() ? "" : " DESC"))
-                .collect(Collectors.joining(", "));
-
-        oql.append(orderBy);
-      }
-
-      query.limit().ifPresent(limit -> oql.append(" LIMIT ").append(limit));
-      query.offset().ifPresent(offset -> oql.append(" OFFSET ").append(offset));
-
-      if (addOuterCountQuery) {
-        // rewrite query as "SELECT COUNT(*) FROM ($oql)"
-        // Example: select count(*) from (select distinct a, b, c from /region)
-        oql.insert(0, "SELECT COUNT(*) FROM (");
-        oql.append(")");
-      }
-      return new OqlWithVariables(variables, oql.toString());
+    OqlGenerator oqlGenerator() {
+      return OqlGenerator.of(region.getFullPath(), pathNaming);
     }
 
-    private static String toProjection(Expression expression) {
-      if (expression instanceof AggregationCall) {
-        AggregationCall aggregation = (AggregationCall) expression;
-        return String.format("%s(%s)", aggregation.operator().name(), toProjection(aggregation.arguments().get(0)));
-      }
-
-      return ((Path) expression).toStringPath();
-    }
   }
 }

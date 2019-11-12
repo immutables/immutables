@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * Generates <a href="https://geode.apache.org/docs/guide/16/developing/querying_basics/query_basics.html">Geode OQL</a>
  * based on existing expression.
  */
-class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
+class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
 
   private final PathNaming pathNaming;
 
@@ -63,7 +63,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
   }
 
   @Override
-  public OqlWithVariables visit(Call call) {
+  public Oql visit(Call call) {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
@@ -82,8 +82,8 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
     if (op == Operators.AND || op == Operators.OR) {
       Preconditions.checkArgument(!args.isEmpty(), "Size should be >=1 for %s but was %s", op, args.size());
       final String join = ") " + op.name() + " (";
-      final String newOql = "(" + args.stream().map(a -> a.accept(this)).map(OqlWithVariables::oql).collect(Collectors.joining(join)) + ")";
-      return new OqlWithVariables(variables, newOql);
+      final String newOql = "(" + args.stream().map(a -> a.accept(this)).map(Oql::oql).collect(Collectors.joining(join)) + ")";
+      return new Oql(variables, newOql);
     }
 
     if (op == OptionalOperators.IS_PRESENT || op == OptionalOperators.IS_ABSENT || op == Operators.NOT) {
@@ -96,7 +96,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
   /**
    * Operator with single operator: {@code NOT}, {@code IS_PRESENT}
    */
-  private OqlWithVariables unaryOperator(Call call) {
+  private Oql unaryOperator(Call call) {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
@@ -118,7 +118,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
   /**
    * Used for operators with two arguments like {@code =}, {@code IN} etc.
    */
-  private OqlWithVariables binaryOperator(Call call) {
+  private Oql binaryOperator(Call call) {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
     Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s on call %s", op, args.size(), call);
@@ -161,8 +161,8 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
   /**
    * Return new query but with same variables
    */
-  private OqlWithVariables oql(String oql) {
-    return new OqlWithVariables(variables, oql);
+  private Oql oql(String oql) {
+    return new Oql(variables, oql);
   }
 
   private static String toString(Object value) {
