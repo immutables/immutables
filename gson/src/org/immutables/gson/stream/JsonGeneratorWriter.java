@@ -142,11 +142,6 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
     if (value == null) {
       return nullValue();
     }
-    if (!isLenient()) {
-      if (Double.isNaN(value.doubleValue()) || Double.isInfinite(value.doubleValue())) {
-        throw new IllegalArgumentException("JSON forbids NaN and infinities: " + value);
-      }
-    }
     if (value instanceof Integer) {
       generator.writeNumber(value.intValue());
     } else if (value instanceof Short) {
@@ -154,17 +149,33 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
     } else if (value instanceof Long) {
       generator.writeNumber(value.longValue());
     } else if (value instanceof Float) {
-      generator.writeNumber(value.floatValue());
-    } else if (value instanceof Double) {
-      generator.writeNumber(value.doubleValue());
+      float f = value.floatValue();
+      checkStrictNumber(f);
+      generator.writeNumber(f);
     } else if (value instanceof BigInteger) {
       generator.writeNumber((BigInteger) value);
     } else if (value instanceof BigDecimal) {
-      generator.writeNumber((BigDecimal) value);
+      BigDecimal bd = (BigDecimal) value;
+      checkStrictNumber(bd);
+      generator.writeNumber(bd);
     } else {
-      generator.writeNumber(value.doubleValue());
+      double d = value.doubleValue();
+      checkStrictNumber(d);
+      generator.writeNumber(d);
     }
     return this;
+  }
+
+  private void checkStrictNumber(Number number) {
+    if (!isLenient()) {
+      checkStrictNumber(number.doubleValue());
+    }
+  }
+
+  private void checkStrictNumber(double number) {
+    if (!isLenient() && (Double.isInfinite(number) || Double.isNaN(number))) {
+      throw new IllegalArgumentException("JSON forbids NaN and infinities: " + number);
+    }
   }
 
   @Override
