@@ -17,13 +17,16 @@ package org.immutables.gson.stream;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.gson.stream.JsonWriter;
+
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.concurrent.Callable;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * {@link JsonWriter} impementation backed by Jackson's {@link JsonGenerator}.
+ * {@link JsonWriter} implementation backed by Jackson's {@link JsonGenerator}.
  * Provides measurable JSON writing improvements over Gson's native implementation.
  * Error reporting is might differ, however.
  */
@@ -139,14 +142,40 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
     if (value == null) {
       return nullValue();
     }
-    double d = value.doubleValue();
-    if (!isLenient()) {
-      if (Double.isNaN(d) || Double.isInfinite(d)) {
-        throw new IllegalArgumentException("JSON forbids NaN and infinities: " + value);
-      }
+    if (value instanceof Integer) {
+      generator.writeNumber(value.intValue());
+    } else if (value instanceof Short) {
+      generator.writeNumber(value.shortValue());
+    } else if (value instanceof Long) {
+      generator.writeNumber(value.longValue());
+    } else if (value instanceof Float) {
+      float f = value.floatValue();
+      checkStrictNumber(f);
+      generator.writeNumber(f);
+    } else if (value instanceof BigInteger) {
+      generator.writeNumber((BigInteger) value);
+    } else if (value instanceof BigDecimal) {
+      BigDecimal bd = (BigDecimal) value;
+      checkStrictNumber(bd);
+      generator.writeNumber(bd);
+    } else {
+      double d = value.doubleValue();
+      checkStrictNumber(d);
+      generator.writeNumber(d);
     }
-    generator.writeNumber(d);
     return this;
+  }
+
+  private void checkStrictNumber(Number number) {
+    if (!isLenient()) {
+      checkStrictNumber(number.doubleValue());
+    }
+  }
+
+  private void checkStrictNumber(double number) {
+    if (!isLenient() && (Double.isInfinite(number) || Double.isNaN(number))) {
+      throw new IllegalArgumentException("JSON forbids NaN and infinities: " + number);
+    }
   }
 
   @Override
