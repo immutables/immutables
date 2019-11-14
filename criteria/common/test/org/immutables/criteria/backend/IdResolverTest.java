@@ -18,8 +18,11 @@ package org.immutables.criteria.backend;
 
 import org.immutables.criteria.javabean.JavaBean1;
 import org.immutables.criteria.personmodel.Person;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 
@@ -48,5 +51,29 @@ class IdResolverTest {
 
     Method method = JavaBean1.class.getDeclaredMethod("getInt1");
     check(!resolver.asPredicate().test(method));
+  }
+
+  /**
+   * Check that annotation name is exposed in error message
+   */
+  @Test
+  void fromAnnotation() {
+    IdResolver resolver = IdResolver.fromAnnotation(MyAnnotation.class);
+
+    Throwable ex = Assertions.assertThrows(IllegalArgumentException.class, () -> resolver.resolve(WithoutAnnotation.class));
+    check(ex.getMessage()).contains(MyAnnotation.class.getSimpleName());
+    check(resolver.resolve(WithAnnotation.class).getName()).is("id123");
+  }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface MyAnnotation {}
+
+  static class WithAnnotation {
+    @MyAnnotation
+    private String id123;
+  }
+
+  static class WithoutAnnotation {
+    private String id123;
   }
 }
