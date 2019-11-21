@@ -178,9 +178,9 @@ final class AccessorAttributesCollector {
         if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
           report(originalType)
               .warning(About.INCOMPAT,
-                  "Type inherits overriden 'equals' method but have some non-inherited attributes."
+                  "Type inherits overridden 'equals' method but have some non-inherited attributes."
                   + " Please override 'equals' with abstract method to have it generate. Otherwise override"
-                  + " with calling super implemtation to use custom implementation");
+                  + " with calling super implementation to use custom implementation");
         }
       }
       return;
@@ -198,7 +198,7 @@ final class AccessorAttributesCollector {
               .warning(About.INCOMPAT,
                   "Type inherits non-default 'hashCode' method but have some non-inherited attributes."
                   + " Please override 'hashCode' with abstract method to have it generated. Otherwise override"
-                  + " with calling super implemtation to use custom implementation");
+                  + " with calling super implementation to use custom implementation");
         }
       }
       return;
@@ -239,7 +239,14 @@ final class AccessorAttributesCollector {
   private void processGenerationCandidateMethod(ExecutableElement attributeMethodCandidate, TypeElement originalType) {
     Name name = attributeMethodCandidate.getSimpleName();
 
-    if (!attributeMethodCandidate.getTypeParameters().isEmpty()) {
+    boolean isAbstract = isAbstract(attributeMethodCandidate);
+    boolean defaultAnnotationPresent = DefaultMirror.isPresent(attributeMethodCandidate);
+    boolean derivedAnnotationPresent = DerivedMirror.isPresent(attributeMethodCandidate);
+    boolean lazyAnnotationPresent = LazyMirror.isPresent(attributeMethodCandidate);
+
+    if (!attributeMethodCandidate.getTypeParameters().isEmpty() &&
+        (isAbstract ||
+         defaultAnnotationPresent || derivedAnnotationPresent || lazyAnnotationPresent)) {
       report(attributeMethodCandidate)
           .error("Method '%s' cannot have own generic type parameters."
               + " Attribute accessors can only use enclosing type's type variables", name);
@@ -282,9 +289,6 @@ final class AccessorAttributesCollector {
       attribute.containingType = type;
 
       boolean isFinal = isFinal(attributeMethodCandidate);
-      boolean isAbstract = isAbstract(attributeMethodCandidate);
-      boolean defaultAnnotationPresent = DefaultMirror.isPresent(attributeMethodCandidate);
-      boolean derivedAnnotationPresent = DerivedMirror.isPresent(attributeMethodCandidate);
 
       if (isAbstract) {
         attribute.isGenerateAbstract = true;
@@ -325,7 +329,7 @@ final class AccessorAttributesCollector {
         attribute.isGenerateDefault = true;
       } else if ((defaultAnnotationPresent || derivedAnnotationPresent) && isFinal) {
         report(attributeMethodCandidate)
-            .error("Annotated attribute '%s' will be overriden and cannot be final", name);
+            .error("Annotated attribute '%s' will be overridden and cannot be final", name);
       } else if (defaultAnnotationPresent) {
         attribute.isGenerateDefault = true;
 
@@ -342,7 +346,7 @@ final class AccessorAttributesCollector {
         attribute.isGenerateDefault = attribute.isInterfaceDefaultMethod();
       }
 
-      if (LazyMirror.isPresent(attributeMethodCandidate)) {
+      if (lazyAnnotationPresent) {
         if (isAbstract || isFinal) {
           report(attributeMethodCandidate)
               .error("@Value.Lazy attribute '%s' must be non abstract and non-final", name);
