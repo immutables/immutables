@@ -20,6 +20,7 @@
 [output.java type.package type.typeImmutable.simple type.element]
 [generateImmutable type true]
 [/output.java]
+[generateFieldsFile type]
       [if type.generateWithInterface]
 [output.java type.package type.typeWith.simple type.element]
 [generateWithInterface type true]
@@ -37,8 +38,32 @@
 [output.java type.package type.typeEnclosing.simple type.element]
 [generateEnclosing type]
 [/output.java]
+[generateFieldsFile type]
     [/if]
   [/for]
+[/template]
+
+[template generateFieldsFile Type type]
+[output.java type.package (type.name '_Fields') type.element]
+[type.sourceHeader]
+[generateFields type]
+[/output.java]
+[/template]
+
+[template generateFields Type type]
+[if type.package]
+package [type.package];
+[/if]
+
+[for starImport in type.requiredSourceStarImports]
+import [starImport];
+[/for]
+
+final class [type.name]_Fields[type.generics] {
+  [for a in type.allMarshalingAttributes]
+    public [a.type] [a.name];
+  [/for]
+}
 [/template]
 
 [template annotationsWhenTopLevel Type type Boolean is]
