@@ -22,9 +22,11 @@ import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Expression;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.Callable;
 
+/**
+ * Responsible for delete operations
+ */
 class SyncDelete implements Callable<WriteResult> {
 
   private final GeodeBackend.Session session;
@@ -59,15 +61,16 @@ class SyncDelete implements Callable<WriteResult> {
     // delete by query. Perform separate query to get list of IDs
     String query = String.format("select distinct e.key from %s.entries e where %s", region.getFullPath(), oql.oql());
     Collection<?> keys = (Collection<?>) session.queryService.newQuery(query).execute(oql.variables().toArray(new Object[0]));
-    region.removeAll(keys);
+    deleteByKeys(keys);
     return WriteResult.empty().withDeletedCount(keys.size());
   }
 
   /**
    * Used for special-case delete by key operation
    * @param keys list of keys to delete
+   * @see Region#removeAll(Collection)
    */
-  private WriteResult deleteByKeys(List<?> keys) {
+  private WriteResult deleteByKeys(Collection<?> keys) {
     if (keys.isEmpty()) {
       return WriteResult.empty();
     }
@@ -76,7 +79,7 @@ class SyncDelete implements Callable<WriteResult> {
     // Not using removeAll() because one can know if element was deleted based on return of remove()
     // this return is used for WriteResult statistics
     if (keys.size() == 1) {
-      boolean removed = region.remove(keys.get(0)) != null;
+      boolean removed = region.remove(keys.iterator().next()) != null;
       return WriteResult.empty().withDeletedCount(removed ? 1 :0);
     }
 
