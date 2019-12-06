@@ -106,11 +106,12 @@ final class Geodes {
 
 
   /**
-   * Geode (currently) doesn't support delete by query syntax ({@code DELETE ... WHERE ...}) and elements have to be
-   * removed explicitly by key (using {@link Map#remove(Object)} or {@link Region#removeAll} API)
+   * <p>Tries to detect if current criteria is based only on keys (IDs) only and extracts
+   * them from filter expression.
    *
-   * <p>Tries to detect if current criteria is based only on keys (entity ID) and extracts them from expression (if it is only
-   * expression based on keys).
+   * <p><strong>Usage example</strong> Geode (currently) doesn't support delete by query syntax ({@code DELETE ... WHERE ...}) and elements have to be
+   * removed explicitly by key (using {@link Map#remove(Object)} or {@link Region#removeAll} API). With this method
+   * one can extract keys from expression and use delete by key API.
    *
    * <p>Example:
    * <pre>
@@ -124,8 +125,9 @@ final class Geodes {
    *
    * @param expr filter applied on entries for deletion
    * @see Region#removeAll(Collection)
+   * @return List of keys present in the expression, empty optional otherwise
    */
-  static Optional<List<?>> canDeleteByKey(Expression expr, IdResolver idResolver) {
+  static Optional<List<?>> maybeKeyOnlyLookup(Expression expr, IdResolver idResolver) {
     if (!(expr instanceof Call)) {
       return Optional.empty();
     }

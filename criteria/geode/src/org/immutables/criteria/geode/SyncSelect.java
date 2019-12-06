@@ -27,6 +27,8 @@ import org.immutables.criteria.expression.Query;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -65,26 +67,45 @@ class SyncSelect implements Callable<Iterable<Object>> {
   @Override
   public Iterable<Object> call() throws Exception {
 
-    Oql oql = session.oqlGenerator().generate(operation.query());
+    Query query = operation.query();
+    Oql oql = session.oqlGenerator().generate(query);
 
     if (GeodeBackend.logger.isLoggable(Level.FINE)) {
       GeodeBackend.logger.log(Level.FINE, "Querying Geode with {0}", oql);
     }
 
+    // fast-path for "region.getAll" use-case. ie get values for list of keys
+    // assumes no projections / aggregations / sort / count etc.
+    // plain get by key lookup
+    boolean maybeGetByKey = query.filter().isPresent()
+            && !query.hasAggregations()
+            && !query.hasProjections()
+            && !query.count()
+            && query.collations().isEmpty();
+
+    if (maybeGetByKey) {
+      Optional<List<?>> ids = Geodes.maybeKeyOnlyLookup(query.filter().get(), session.idResolver);
+      if (ids.isPresent()) {
+        return session.region.getAll(ids.get())
+                .values().stream()
+                .filter(Objects::nonNull) // skip missing keys (null values)
+                .collect(Collectors.toList());
+      }
+    }
+
     // for projections use tuple function
     Function<Object, Object> tupleFn;
-    if (operation.query().count()) {
+    if (query.count()) {
       // geode will return integer for count(*)
       tupleFn = x -> Geodes.convert(x, Long.class);
-    } else if (operation.query().hasProjections()) {
-      tupleFn =  x -> Geodes.castNumbers(toTuple(operation.query(), x));
+    } else if (query.hasProjections()) {
+      tupleFn =  x -> Geodes.castNumbers(toTuple(query, x));
     } else {
       tupleFn = Function.identity();
     }
 
     // convert existing collections to JDK-only implementations (eg. ImmutableList -> ArrayList)
     Object[] variables = oql.variables().stream().map(BIND_VARIABLE_CONVERTER).toArray(Object[]::new);
-    @SuppressWarnings("unchecked")
     Iterable<Object> result = (Iterable<Object>) session.queryService.newQuery(oql.oql()).execute(variables);
     // lazy transform
     return Iterables.transform(result, tupleFn::apply);

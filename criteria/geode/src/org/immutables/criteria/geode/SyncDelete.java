@@ -48,7 +48,7 @@ class SyncDelete implements Callable<WriteResult> {
 
     Expression filter = operation.query().filter().orElseThrow(() -> new IllegalStateException("For " + operation));
 
-    Optional<List<?>> ids = Geodes.canDeleteByKey(filter, session.idResolver);
+    Optional<List<?>> ids = Geodes.maybeKeyOnlyLookup(filter, session.idResolver);
     // special case when expression contains only ID / key attribute
     if (ids.isPresent()) {
       return deleteByKeys(ids.get());
