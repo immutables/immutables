@@ -32,6 +32,7 @@ import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
 import org.reactivestreams.Publisher;
 
+import java.lang.reflect.Member;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -63,6 +64,7 @@ public class GeodeBackend implements Backend {
     final Region<Object, Object> region;
     final IdExtractor idExtractor;
     final IdResolver idResolver;
+    final Member idProperty;
     final QueryService queryService;
     final PathNaming pathNaming;
 
@@ -73,6 +75,7 @@ public class GeodeBackend implements Backend {
       Region<Object, Object> region = (Region<Object, Object>) setup.regionResolver().resolve(entityType);
       this.region = region;
       this.idResolver = setup.idResolver();
+      this.idProperty = setup.idResolver().resolve(entityType);
       this.idExtractor = IdExtractor.fromResolver(idResolver);
       this.queryService = setup.queryServiceResolver().resolve(region);
       this.pathNaming = backend.pathNaming;

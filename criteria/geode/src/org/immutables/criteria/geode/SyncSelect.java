@@ -28,7 +28,6 @@ import org.immutables.criteria.expression.Query;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -77,16 +76,16 @@ class SyncSelect implements Callable<Iterable<Object>> {
     // fast-path for "region.getAll" use-case. ie get values for list of keys
     // assumes no projections / aggregations / sort / count etc.
     // plain get by key lookup
-    boolean maybeGetByKey = query.filter().isPresent()
+    boolean maybeGetById = query.filter().isPresent()
             && !query.hasAggregations()
             && !query.hasProjections()
             && !query.count()
             && query.collations().isEmpty();
 
-    if (maybeGetByKey) {
-      Optional<List<?>> ids = Geodes.maybeKeyOnlyLookup(query.filter().get(), session.idResolver);
-      if (ids.isPresent()) {
-        return session.region.getAll(ids.get())
+    if (maybeGetById) {
+      IdOnlyFilter idOnlyFilter = new IdOnlyFilter(query.filter().get(), session.idProperty);
+      if (idOnlyFilter.hasOnlyIds()) {
+        return session.region.getAll(idOnlyFilter.toList())
                 .values().stream()
                 .filter(Objects::nonNull) // skip missing keys (null values)
                 .collect(Collectors.toList());

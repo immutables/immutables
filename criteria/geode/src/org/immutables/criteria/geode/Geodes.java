@@ -16,26 +16,13 @@
 
 package org.immutables.criteria.geode;
 
-import com.google.common.base.Preconditions;
-import org.apache.geode.cache.Region;
-import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
-import org.immutables.criteria.expression.Call;
-import org.immutables.criteria.expression.Constant;
-import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionConverter;
-import org.immutables.criteria.expression.Operators;
-import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Visitors;
 
-import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Util functions for Geode backend
@@ -102,59 +89,6 @@ final class Geodes {
     // don't know what to do with this value
     // return AS IS
     return value;
-  }
-
-
-  /**
-   * <p>Tries to detect if current criteria is based only on keys (IDs) only and extracts
-   * them from filter expression.
-   *
-   * <p><strong>Usage example</strong> Geode (currently) doesn't support delete by query syntax ({@code DELETE ... WHERE ...}) and elements have to be
-   * removed explicitly by key (using {@link Map#remove(Object)} or {@link Region#removeAll} API). With this method
-   * one can extract keys from expression and use delete by key API.
-   *
-   * <p>Example:
-   * <pre>
-   *  {@code
-   *     key = 123
-   *     key in [1, 2, 3]
-   *     key not in [1, 2, 3] (invalid since keys are unknown)
-   *     key != 1 (invalid since keys are unknown)
-   *  }
-   * </pre>
-   *
-   * @param expr filter applied on entries for deletion
-   * @see Region#removeAll(Collection)
-   * @return List of keys present in the expression, empty optional otherwise
-   */
-  static Optional<List<?>> maybeKeyOnlyLookup(Expression expr, IdResolver idResolver) {
-    if (!(expr instanceof Call)) {
-      return Optional.empty();
-    }
-
-    final Call predicate = (Call) expr;
-    if (!(predicate.operator() == Operators.EQUAL || predicate.operator() == Operators.IN)) {
-      return Optional.empty();
-    }
-
-    final List<Expression> args = predicate.arguments();
-    Preconditions.checkArgument(args.size() == 2, "Expected size 2 but got %s for %s",
-            args.size(), predicate);
-
-
-    if (!(args.get(0) instanceof Path && args.get(1) instanceof Constant)) {
-      // second argument should be constant
-      return Optional.empty();
-    }
-
-    final Path path = Visitors.toPath(predicate.arguments().get(0));
-
-    if (!(path.members().size() == 1 && idResolver.asPredicate().test((Member) path.element()))) {
-      return Optional.empty();
-    }
-
-    final List<Object> values = Visitors.toConstant(predicate.arguments().get(1)).values();
-    return Optional.of(values);
   }
 
   private Geodes() {}

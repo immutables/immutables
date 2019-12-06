@@ -23,7 +23,6 @@ import org.immutables.criteria.expression.Expression;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 
 class SyncDelete implements Callable<WriteResult> {
@@ -48,10 +47,10 @@ class SyncDelete implements Callable<WriteResult> {
 
     Expression filter = operation.query().filter().orElseThrow(() -> new IllegalStateException("For " + operation));
 
-    Optional<List<?>> ids = Geodes.maybeKeyOnlyLookup(filter, session.idResolver);
+    IdOnlyFilter idOnly = new IdOnlyFilter(filter, session.idProperty);
     // special case when expression contains only ID / key attribute
-    if (ids.isPresent()) {
-      return deleteByKeys(ids.get());
+    if (idOnly.hasOnlyIds()) {
+      return deleteByKeys(idOnly.toList());
     }
 
     GeodeQueryVisitor visitor = new GeodeQueryVisitor(true, path -> String.format("e.value.%s", session.pathNaming.name(path)));
