@@ -17,11 +17,13 @@
 package org.immutables.criteria.elasticsearch;
 
 import org.immutables.criteria.backend.ContainerNaming;
-import org.immutables.criteria.backend.ContainerResolver;
 
-public interface IndexResolver extends ContainerResolver<String> {
+public interface IndexResolver {
 
-  @Override
+  /**
+   * Resolve elastic index name given a class
+   * @param entityType
+   */
   String resolve(Class<?> entityType);
 
   /**

@@ -19,11 +19,16 @@ package org.immutables.criteria.geode;
 import org.apache.geode.cache.GemFireCache;
 import org.apache.geode.cache.Region;
 import org.immutables.criteria.backend.ContainerNaming;
-import org.immutables.criteria.backend.ContainerResolver;
 
 import java.util.Objects;
 
-public interface RegionResolver extends ContainerResolver<Region<?, ?>> {
+public interface RegionResolver {
+
+  /**
+   * Given a class resolve associated geode {@link Region}
+   * @param entityType type
+   */
+  Region<?, ?> resolve(Class<?> entityType);
 
   /**
    * Resolve region using default {@link ContainerNaming#DEFAULT} naming convention.

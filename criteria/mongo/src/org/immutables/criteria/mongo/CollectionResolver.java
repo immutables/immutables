@@ -20,14 +20,21 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.criteria.backend.ContainerNaming;
-import org.immutables.criteria.backend.ContainerResolver;
 
 import java.util.Objects;
 
 /**
  * {@link MongoCollection} resolver for a particular class
  */
-public interface CollectionResolver extends ContainerResolver<MongoCollection<?>> {
+public interface CollectionResolver {
+
+  /**
+   * Given a class resolve associated collection with document class and
+   * {@link CodecRegistry} already set
+   *
+   * @param entityType type
+   */
+  MongoCollection<?> resolve(Class<?> entityType);
 
   static CollectionResolver defaultResolver(MongoDatabase database, CodecRegistry registry) {
     Objects.requireNonNull(database, "database");
