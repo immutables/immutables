@@ -18,16 +18,17 @@ package org.immutables.criteria.backend;
 
 import org.immutables.criteria.expression.Expression;
 
-public interface ExpressionNaming extends NamingStrategy<Expression> {
+import java.util.function.Function;
+
+public interface ExpressionNaming {
 
   /**
    * Give a name to a expression
    */
-  @Override
   String name(Expression expression);
 
-  static ExpressionNaming of(NamingStrategy<Expression> delegate) {
-    return delegate::name;
+  static ExpressionNaming from(Function<Expression, String> fn) {
+    return fn::apply;
   }
 
 }

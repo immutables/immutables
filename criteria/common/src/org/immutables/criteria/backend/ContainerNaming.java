@@ -22,9 +22,10 @@ import org.immutables.criteria.Criteria;
 import java.util.Objects;
 
 /**
- * Resolves container name given a class. Container in this context means table, collection, index etc.
+ * Resolves container name given a class. Container in this context means RDBMS table,
+ * mongo collection, ElasticSearch index etc.
  */
-public interface ContainerNaming extends NamingStrategy<Class<?>> {
+public interface ContainerNaming {
 
   /**
    * Resolve container name for a particular type. Container in this context means
@@ -33,7 +34,6 @@ public interface ContainerNaming extends NamingStrategy<Class<?>> {
    * @throws UnsupportedOperationException if name can't be derived
    * @return name of the container (never null)
    */
-  @Override
   String name(Class<?> type);
 
   /**

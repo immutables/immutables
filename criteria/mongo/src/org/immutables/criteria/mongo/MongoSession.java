@@ -126,7 +126,7 @@ class MongoSession implements Backend.Session {
     final boolean hasProjections = query.hasProjections();
 
     boolean useAggregationPipeline = query.hasAggregations() || query.distinct();
-    ExpressionNaming expressionNaming = useAggregationPipeline ? ExpressionNaming.of(UniqueCachedNaming.of(query.projections())) : expression -> pathNaming.name((Path) expression);
+    ExpressionNaming expressionNaming = useAggregationPipeline ? ExpressionNaming.from(UniqueCachedNaming.of(query.projections())) : expression -> pathNaming.name((Path) expression);
 
     MongoCollection<?> collection = this.collection;
     if (hasProjections) {

@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Gives an unique (generated) name to objects so they can be used as identifiers in queries.
@@ -32,7 +33,7 @@ import java.util.Objects;
  *
  * @param <T>
  */
-public class UniqueCachedNaming<T> implements NamingStrategy<T> {
+public class UniqueCachedNaming<T> implements Function<T, String> {
 
   private static final Suggester<?> PREFIX_SUGGESTER = (first, attempts, size) -> "expr" + size;
 
@@ -82,16 +83,16 @@ public class UniqueCachedNaming<T> implements NamingStrategy<T> {
     return converter;
   }
 
+  @Override
+  public String apply(T value) {
+    return asConverter().convert(value);
+  }
+
   /**
-   * Suggest a name for a value
+   * Suggest new string name for a value
    */
   private interface Suggester<T> {
     String suggest(T value, int attempts, int size);
-  }
-
-  @Override
-  public String name(T toName) {
-    return asConverter().convert(toName);
   }
 
   public static <T> UniqueCachedNaming<T> of(Iterable<T> iterable) {

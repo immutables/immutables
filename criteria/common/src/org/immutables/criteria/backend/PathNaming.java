@@ -23,7 +23,7 @@ import org.immutables.criteria.expression.Path;
  *
  * @see org.immutables.criteria.Criteria.Id
  */
-public interface PathNaming extends NamingStrategy<Path> {
+public interface PathNaming {
 
   /**
    * Return name of a field (aka {@link Path}) like {@code a.b.c} or {@code _id}.
@@ -31,7 +31,6 @@ public interface PathNaming extends NamingStrategy<Path> {
    * @param path path to be converted to string
    * @return path representation as string
    */
-  @Override
   String name(Path path);
 
   static PathNaming defaultNaming() {

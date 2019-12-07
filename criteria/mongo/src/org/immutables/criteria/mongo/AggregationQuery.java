@@ -70,10 +70,10 @@ class AggregationQuery {
             .map(AggregationQuery::extractPath).collect(Collectors.toList());
 
     @SuppressWarnings("unchecked")
-    ExpressionNaming naming = ExpressionNaming.of(UniqueCachedNaming.of(paths.iterator()));
+    ExpressionNaming naming = ExpressionNaming.from(UniqueCachedNaming.of(paths.iterator()));
     paths.forEach(p -> biMap.put(p, naming.name(p)));
 
-    this.projectionNaming = ExpressionNaming.of(UniqueCachedNaming.of(query.projections()));
+    this.projectionNaming = ExpressionNaming.from(UniqueCachedNaming.of(query.projections()));
     this.naming = ImmutableBiMap.copyOf(biMap);
     this.registry = MongoClientSettings.getDefaultCodecRegistry();
   }

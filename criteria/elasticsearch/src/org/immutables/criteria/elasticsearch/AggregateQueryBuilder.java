@@ -107,7 +107,7 @@ class AggregateQueryBuilder {
     ObjectNode parent = json.with(AGGREGATIONS);
     for (Expression expr: orderedGroupBy) {
       final String name = ((Path) expr).toStringPath();
-      final String aggName = naming.name(expr);
+      final String aggName = naming.apply(expr);
       final ObjectNode section = parent.with(aggName);
       final ObjectNode terms = section.with("terms");
       terms.put("field", name);
@@ -133,7 +133,7 @@ class AggregateQueryBuilder {
         ObjectNode agg = nodeFactory.objectNode();
         String field = ((Path) call.arguments().get(0)).toStringPath();
         agg.with(toElasticAggregate(call)).put("field", field);
-        parent.set(naming.name(call), agg);
+        parent.set(naming.apply(call), agg);
       }
     }
 
