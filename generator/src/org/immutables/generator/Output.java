@@ -323,7 +323,7 @@ public final class Output {
         } else {
           getMessager().printMessage(Kind.MANDATORY_WARNING,
               String.format(
-                  "Generated source file name colission. Attempt to overwrite already generated file: %s, %s."
+                  "Generated source file name collision. Attempt to overwrite already generated file: %s, %s."
                       + " If this happens when using @Value.Immutable on same-named nested classes in the same package,"
                       + " use can use @Value.Enclosing annotation to provide some sort of namespacing",
                   key,
