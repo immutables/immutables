@@ -57,7 +57,9 @@ import [starImport];
  [/if]
  */
 [atGenerated type]
-[if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
+[if type.generatedSuppressWarnings]
+@SuppressWarnings({[for k in type.generatedSuppressWarnings][if not for.first], [/if][literal k][/for]})
+[/if]
 [if type allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
