@@ -664,6 +664,12 @@ public @interface Value {
     String typeModifiable() default "Modifiable*";
 
     /**
+     * Inner builder class name which will be matched to be extend/super for generated Modifiable class.
+     * @return naming template
+     */
+    String typeInnerModifiable() default "Modifiable";
+
+    /**
      * Generated "with" interface name. Used to detect a demand and generate "with" interface.
      * @return naming template
      */

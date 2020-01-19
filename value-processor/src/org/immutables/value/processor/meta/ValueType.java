@@ -64,6 +64,7 @@ import org.immutables.value.processor.meta.AnnotationInjections.AnnotationInject
 import org.immutables.value.processor.meta.AnnotationInjections.InjectAnnotation.Where;
 import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
 import org.immutables.value.processor.meta.Constitution.InnerBuilderDefinition;
+import org.immutables.value.processor.meta.Constitution.InnerModifiableDefinition;
 import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
@@ -651,6 +652,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public InnerBuilderDefinition getInnerBuilder() {
     return constitution.innerBuilder();
+  }
+
+  public InnerModifiableDefinition getInnerModifiable() {
+    return constitution.innerModifiable();
   }
 
   public String getDocumentName() {

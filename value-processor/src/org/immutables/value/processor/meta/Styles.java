@@ -108,6 +108,7 @@ public final class Styles {
     Naming create = Naming.from(style.create());
     Naming toImmutable = Naming.from(style.toImmutable());
     Naming typeModifiable = Naming.from(style.typeModifiable());
+    Naming typeInnerModifiable = Naming.from(style.typeInnerModifiable());
 
     Naming[] attributeBuilder = Naming.fromAll(style.attributeBuilder());
     Naming getBuilder = Naming.from(style.getBuilder());

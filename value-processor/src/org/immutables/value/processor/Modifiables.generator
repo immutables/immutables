@@ -65,9 +65,17 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
      LongPositions positions = longsFor mandatories,
      LongPositions nondefaultsPositions = longsFor nondefaults]
 [type.typeImmutable.access][if not topLevel]static [/if][if type.names.create ne 'new']final [/if][output.linesShortable]class [type.names.typeModifiable][type.generics]
+  [if type.innerModifiable.isSuper]
+    [if type.innerModifiable.isInterface]
+    extends [type.typeAbstract] implements [type.typeAbstract.relativeRaw].[type.innerModifiable.simpleName][type.innerModifiable.generics.args][if type.serial.shouldImplement], java.io.Serializable[/if] {
+    [else]
+    extends [type.typeAbstract.relativeRaw].[type.innerModifiable.simpleName][type.innerModifiable.generics.args][if type.serial.shouldImplement] implements java.io.Serializable[/if] {
+    [/if]
+  [else]
     [if type.implementing]implements[else]extends[/if] [type.typeAbstract][if type.serial.shouldImplement][if type.implementing],
         [else]
-    implements [/if]java.io.Serializable[/if] {[/output.linesShortable]
+    implements [/if]java.io.Serializable[/if] {
+  [/if][/output.linesShortable]
 [if type.serial.enabled]
   [for serialVersion = type.serialVersionUID]
     [if serialVersion]

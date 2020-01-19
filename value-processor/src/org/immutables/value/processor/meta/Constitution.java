@@ -684,7 +684,73 @@ public abstract class Constitution {
     return new InnerBuilderDefinition();
   }
 
-  public final class InnerBuilderDefinition {
+  @Value.Lazy
+  public InnerModifiableDefinition innerModifiable() {
+    return new InnerModifiableDefinition();
+  }
+
+  public final class InnerBuilderDefinition extends InnerBaseClassDefinition {
+    public InnerBuilderDefinition() {
+      super(names().namings.typeInnerBuilder);
+    }
+
+    protected boolean isExtending(TypeElement element) {
+      if (element.getKind() == ElementKind.CLASS) {
+        String superclassString = SourceExtraction.getSuperclassString(element);
+        String rawSuperclass = SourceTypes.extract(superclassString).getKey();
+        // If we are extending yet to be generated builder, we detect it by having the same name
+        // as relative name of builder type
+        return rawSuperclass.endsWith(typeImplementationBuilder().relativeRaw());
+      }
+      return false;
+    }
+
+    protected void lateValidateExtending(TypeElement t) {
+      super.lateValidateExtending(t);
+
+      if (protoclass().styles().style().stagedBuilder()) {
+        protoclass()
+                .report()
+                .withElement(t)
+                .warning(About.INCOMPAT,
+                        "Extending %s shouldn't be used with stagedBuilder style attribute, they are incompartible:"
+                                + " Staged builder generate series of staged interfaces, but extending builder actually"
+                                + " extends implementation and do not provide type safety for setting first attribute,"
+                                + " as well as stagedBuilder forces generated builder interfaces to leak in code using the builder"
+                                + " and hence defeating the purpose of using extending builder.",
+                        t.getSimpleName());
+      }
+    }
+  }
+
+  public final class InnerModifiableDefinition extends InnerBaseClassDefinition {
+    public InnerModifiableDefinition() {
+      super(names().namings.typeInnerModifiable);
+    }
+
+    protected boolean isExtending(TypeElement t) {
+      return false;
+    }
+
+    protected void lateValidateSuper(TypeElement t) {
+      super.lateValidateSuper(t);
+
+      if (t.getKind() == ElementKind.CLASS) {
+        String superclassString = SourceExtraction.getSuperclassString(t);
+        String rawSuperclass = SourceTypes.extract(superclassString).getKey();
+        // We need to extend the base class
+        if (!rawSuperclass.equals(typeAbstract().toString())) {
+          protoclass()
+                  .report()
+                  .withElement(t)
+                  .error("%s needs to extend the base class",
+                          t.getSimpleName());
+        }
+      }
+    }
+  }
+
+  public abstract class InnerBaseClassDefinition {
     public final boolean isAccessibleFields;
     public final boolean isPresent;
     public final boolean isExtending;
@@ -693,9 +759,12 @@ public abstract class Constitution {
     public final Visibility visibility;
     public final @Nullable String simpleName;
     public final @Nullable Generics generics;
+    public final Naming naming;
 
-    InnerBuilderDefinition() {
-      @Nullable TypeElement builderElement = findBuilderElement();
+    InnerBaseClassDefinition(Naming naming) {
+      this.naming = naming;
+
+      @Nullable TypeElement baseElement = findBaseClassElement();
       // The following series of checks designed
       // to not validate inner builder if it's disabled,
       // but at the same time we need such validation
@@ -703,32 +772,32 @@ public abstract class Constitution {
       // on demand even if builder feature is disabled
       boolean extending = false;
 
-      if (builderElement != null) {
-        extending = isExtending(builderElement);
+      if (baseElement != null) {
+        extending = isExtending(baseElement);
       }
 
-      if (builderElement != null && !protoclass().features().builder() && !extending) {
-        builderElement = null;
+      if (baseElement != null && !protoclass().features().builder() && !extending) {
+        baseElement = null;
       }
 
-      if (builderElement != null && !isValidInnerBuilder(builderElement)) {
-        builderElement = null;
+      if (baseElement != null && !isValidInnerBaseClass(baseElement)) {
+        baseElement = null;
       }
 
-      if (builderElement != null) {
-        this.isAccessibleFields = AccessibleFieldsMirror.find(builderElement).isPresent();
+      if (baseElement != null) {
+        this.isAccessibleFields = AccessibleFieldsMirror.find(baseElement).isPresent();
         this.isPresent = true;
-        this.isInterface = builderElement.getKind() == ElementKind.INTERFACE;
+        this.isInterface = baseElement.getKind() == ElementKind.INTERFACE;
         this.isExtending = extending;
         this.isSuper = !extending;
-        this.simpleName = builderElement.getSimpleName().toString();
-        this.visibility = Visibility.of(builderElement);
-        this.generics = new Generics(protoclass(), builderElement);
+        this.simpleName = baseElement.getSimpleName().toString();
+        this.visibility = Visibility.of(baseElement);
+        this.generics = new Generics(protoclass(), baseElement);
         if (isExtending) {
-          lateValidateExtending(builderElement);
+          lateValidateExtending(baseElement);
         }
         if (isSuper) {
-          lateValidateSuper(builderElement);
+          lateValidateSuper(baseElement);
         }
       } else {
         this.isAccessibleFields = false;
@@ -742,7 +811,7 @@ public abstract class Constitution {
       }
     }
 
-    private void lateValidateSuper(TypeElement t) {
+    protected void lateValidateSuper(TypeElement t) {
       List<String> undeclaredParams = Lists.newArrayList();
       for (String v : this.generics.vars()) {
         if (!generics().hasParameter(v)) {
@@ -762,7 +831,7 @@ public abstract class Constitution {
       }
     }
 
-    private void lateValidateExtending(TypeElement t) {
+    protected void lateValidateExtending(TypeElement t) {
       if (t.getModifiers().contains(Modifier.ABSTRACT)) {
         protoclass()
             .report()
@@ -779,34 +848,12 @@ public abstract class Constitution {
                 t.getSimpleName(),
                 generics().def());
       }
-
-      if (protoclass().styles().style().stagedBuilder()) {
-        protoclass()
-            .report()
-            .withElement(t)
-            .warning(About.INCOMPAT,
-                "Extending %s shouldn't be used with stagedBuilder style attribute, they are incompartible:"
-                + " Staged builder generate series of staged interfaces, but extending builder actually"
-                + " extends implementation and do not provide type safety for setting first attribute,"
-                + " as well as stagedBuilder forces generated builder interfaces to leak in code using the builder"
-                + " and hence defeating the purpose of using extending builder.",
-                t.getSimpleName());
-      }
     }
 
-    private boolean isExtending(TypeElement element) {
-      if (element.getKind() == ElementKind.CLASS) {
-        String superclassString = SourceExtraction.getSuperclassString(element);
-        String rawSuperclass = SourceTypes.extract(superclassString).getKey();
-        // If we are extending yet to be generated builder, we detect it by having the same name
-        // as relative name of builder type
-        return rawSuperclass.endsWith(typeImplementationBuilder().relativeRaw());
-      }
-      return false;
-    }
+    protected abstract boolean isExtending(TypeElement t);
 
     @Nullable
-    private TypeElement findBuilderElement() {
+    private TypeElement findBaseClassElement() {
       Protoclass protoclass = protoclass();
       if (!protoclass.kind().isValue()) {
         return null;
@@ -815,9 +862,9 @@ public abstract class Constitution {
         ElementKind kind = t.getKind();
         if (kind.isClass() || kind.isInterface()) {
           String simpleName = t.getSimpleName().toString();
-          Naming typeInnerBuilderNaming = names().namings.typeInnerBuilder;
+          Naming typeInnerClassNaming = naming;
 
-          if (!typeInnerBuilderNaming.detect(simpleName).isEmpty()) {
+          if (!typeInnerClassNaming.detect(simpleName).isEmpty()) {
             return (TypeElement) t;
           }
         }
@@ -825,7 +872,7 @@ public abstract class Constitution {
       return null;
     }
 
-    private boolean isValidInnerBuilder(Element t) {
+    private boolean isValidInnerBaseClass(Element t) {
       ElementKind kind = t.getKind();
       if (kind != ElementKind.CLASS
           && kind != ElementKind.INTERFACE) {
