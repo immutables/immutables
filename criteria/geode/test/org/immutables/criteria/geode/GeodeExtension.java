@@ -15,28 +15,25 @@
  */
 package org.immutables.criteria.geode;
 
-import com.google.common.base.Preconditions;
-import org.apache.geode.cache.Cache;
-import org.apache.geode.cache.CacheFactory;
-import org.apache.geode.cache.Region;
-import org.apache.geode.distributed.AbstractLauncher;
-import org.apache.geode.distributed.ServerLauncher;
-import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
-import org.junit.jupiter.api.extension.ParameterResolver;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.CacheFactory;
+import org.apache.geode.cache.Region;
+import org.apache.geode.distributed.AbstractLauncher;
+import org.apache.geode.distributed.ServerLauncher;
+import org.junit.jupiter.api.extension.*;
+
+import com.google.common.base.Preconditions;
+
 /**
  * Manages embedded Geode instance using native {@link ServerLauncher}.
  */
-class GeodeExtension implements ParameterResolver, AfterEachCallback {
+public class GeodeExtension implements ParameterResolver, AfterEachCallback {
 
   private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(GeodeExtension.class);
 

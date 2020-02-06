@@ -34,6 +34,11 @@ public class WithSessionCallback implements Backend {
   }
 
   @Override
+  public String name() {
+    return backend.name();
+  }
+
+  @Override
   public Session open(Class<?> entityType) {
     creator.accept(entityType);
     return backend.open(entityType);

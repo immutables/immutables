@@ -25,6 +25,15 @@ import org.reactivestreams.Publisher;
 public interface Backend {
 
   /**
+   * Returns the name of the Backend
+   *
+   * @return name
+   */
+  default String name() {
+    return getClass().getSimpleName();
+  }
+
+  /**
    * Open a session (or reuse existing one) with a given context
    *
    * @param entityType entity entityType for which to open a session

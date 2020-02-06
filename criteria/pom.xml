@@ -42,6 +42,7 @@
         <module>elasticsearch</module>
         <module>geode</module>
         <module>geode-common</module>
+        <module>micrometer</module>
         <module>sql</module>
         <module>rxjava2</module>
         <module>reactor</module>
