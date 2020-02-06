@@ -16,16 +16,13 @@
 
 package org.immutables.criteria.geode;
 
-import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.expression.AggregationCall;
-import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Query;
-import org.immutables.value.Value;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.expression.*;
+import org.immutables.value.Value;
 
 /**
  * Generates geode specific query (OQL) out of {@link Query} and some strategies like {@link PathNaming}
@@ -37,23 +34,23 @@ abstract class OqlGenerator {
 
   abstract String regionName();
 
-  static OqlGenerator of(String regionName, PathNaming pathNaming) {
+  public static OqlGenerator of(String regionName, PathNaming pathNaming) {
     return ImmutableOqlGenerator.builder().regionName(regionName).pathNaming(pathNaming).build();
   }
 
   @Value.Default
-  boolean useBindVariables() {
+  public boolean useBindVariables() {
     return true;
   }
 
   /**
    * Don't generate queries with bind variables, use literals instead (careful with OQL injection)
    */
-  OqlGenerator withoutBindVariables() {
+  public OqlGenerator withoutBindVariables() {
     return ImmutableOqlGenerator.copyOf(this).withUseBindVariables(false);
   }
 
-  Oql generate(Query query) {
+  public Oql generate(Query query) {
     if (query.count() && (query.hasAggregations() || !query.groupBy().isEmpty())) {
       throw new UnsupportedOperationException("Aggregations / Group By and count(*) are not yet supported");
     }
@@ -63,7 +60,7 @@ abstract class OqlGenerator {
 
     final StringBuilder oql = new StringBuilder("SELECT");
     if (query.distinct()) {
-      oql.append(" DISTINCT ");
+      oql.append(" DISTINCT");
     }
 
     if (query.hasProjections()) {
@@ -74,13 +71,12 @@ abstract class OqlGenerator {
       String projections = query.count() && !addOuterCountQuery ? " COUNT(*) " : String.join(", ", paths);
       oql.append(" ");
       oql.append(projections);
-      oql.append(" ");
     } else {
       // no projections
-      oql.append(query.count() && !addOuterCountQuery ? " COUNT(*) " : " * ");
+      oql.append(query.count() && !addOuterCountQuery ? " COUNT(*)" : " *");
     }
 
-    oql.append("FROM ").append(regionName());
+    oql.append(" FROM ").append(regionName());
     final List<Object> variables = new ArrayList<>();
     if (query.filter().isPresent()) {
       Oql withVars = Geodes.converter(useBindVariables(), pathNaming()).convert(query.filter().get());
@@ -95,8 +91,14 @@ abstract class OqlGenerator {
 
     if (!query.collations().isEmpty()) {
       oql.append(" ORDER BY ");
+      final boolean isMultiDirection = query.collations().stream().map(Collation::direction).distinct().count() > 1;
+      final String ascending = isMultiDirection ? " ASC" : "";
+
       final String orderBy = query.collations().stream()
-              .map(c -> pathNaming().name(c.path()) + (c.direction().isAscending() ? "" : " DESC"))
+              .map(c -> {
+                final String direction = c.direction().isAscending() ? ascending : " DESC";
+                return pathNaming().name(c.path()) + direction;
+              })
               .collect(Collectors.joining(", "));
 
       oql.append(orderBy);

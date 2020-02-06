@@ -16,9 +16,9 @@
 
 package org.immutables.criteria.geode;
 
-import org.junit.jupiter.api.Test;
-
 import static org.immutables.check.Checkers.check;
+
+import org.junit.jupiter.api.Test;
 
 class GeodesTest {
 

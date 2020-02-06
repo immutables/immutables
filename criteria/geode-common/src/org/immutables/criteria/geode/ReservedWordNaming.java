@@ -16,14 +16,15 @@
 
 package org.immutables.criteria.geode;
 
-import com.google.common.collect.ImmutableSet;
-import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.expression.Path;
-
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.expression.Path;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Decorates existing {@link PathNaming} by escaping geode reserved words within double quotes {@code "type"}.

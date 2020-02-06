@@ -35,6 +35,12 @@
         </dependency>
         <dependency>
             <groupId>org.immutables</groupId>
+            <artifactId>criteria-geode-common</artifactId>
+            <type>jar</type>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.immutables</groupId>
             <artifactId>value</artifactId>
             <version>${project.version}</version>
             <optional>true</optional>

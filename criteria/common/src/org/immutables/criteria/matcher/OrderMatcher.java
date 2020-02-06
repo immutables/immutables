@@ -27,14 +27,14 @@ public interface OrderMatcher extends Matcher {
   /**
    * Sort current expression in <i>ascending</i> order.
    */
-  default Ordering asc() {
+  default Collation asc() {
     return Collation.of(Matchers.extract(this).path(), Ordering.Direction.ASCENDING);
   }
 
   /**
    * Sort current expression in <i>descending</i> order.
    */
-  default Ordering desc() {
+  default Collation desc() {
     return Collation.of(Matchers.extract(this).path(), Ordering.Direction.DESCENDING);
   }
 

@@ -16,26 +16,17 @@
 
 package org.immutables.criteria.geode;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
-import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.expression.AbstractExpressionVisitor;
-import org.immutables.criteria.expression.Call;
-import org.immutables.criteria.expression.ComparableOperators;
-import org.immutables.criteria.expression.Constant;
-import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Operator;
-import org.immutables.criteria.expression.Operators;
-import org.immutables.criteria.expression.OptionalOperators;
-import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Visitors;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.expression.*;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Generates <a href="https://geode.apache.org/docs/guide/16/developing/querying_basics/query_basics.html">Geode OQL</a>
@@ -126,7 +117,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       operator = op == Operators.EQUAL ? "=" : "!=";
     } else if (op == Operators.IN || op == Operators.NOT_IN) {
-      operator = op == Operators.IN ? "in" : "not in";
+      operator = op == Operators.IN ? "IN" : "NOT IN";
     } else if (op == ComparableOperators.GREATER_THAN) {
       operator = ">";
     } else if (op == ComparableOperators.GREATER_THAN_OR_EQUAL) {

@@ -41,6 +41,7 @@
         <module>mongo</module>
         <module>elasticsearch</module>
         <module>geode</module>
+        <module>geode-common</module>
         <module>sql</module>
         <module>rxjava2</module>
         <module>reactor</module>

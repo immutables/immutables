@@ -16,13 +16,13 @@
 
 package org.immutables.criteria.geode;
 
-import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.backend.ProjectedTuple;
-import org.immutables.criteria.expression.ExpressionConverter;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.backend.ProjectedTuple;
+import org.immutables.criteria.expression.ExpressionConverter;
 
 /**
  * Util functions for Geode backend
