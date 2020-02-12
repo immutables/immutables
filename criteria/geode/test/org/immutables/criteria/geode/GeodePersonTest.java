@@ -16,6 +16,9 @@
 
 package org.immutables.criteria.geode;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
@@ -25,9 +28,6 @@ import org.immutables.criteria.personmodel.PersonGenerator;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.EnumSet;
-import java.util.Set;
 
 @ExtendWith(GeodeExtension.class)
 public class GeodePersonTest extends AbstractPersonTest  {
@@ -41,7 +41,10 @@ public class GeodePersonTest extends AbstractPersonTest  {
 
   @Override
   protected Set<Feature> features() {
-    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.ORDER_BY, Feature.QUERY_WITH_PROJECTION);
+    return EnumSet.of(
+            Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.ORDER_BY, Feature.QUERY_WITH_PROJECTION,
+            Feature.ITERABLE_SIZE, Feature.ITERABLE_CONTAINS
+    );
   }
 
   @Override

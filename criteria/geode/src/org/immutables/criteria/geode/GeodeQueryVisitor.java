@@ -18,6 +18,8 @@ package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.primitives.Primitives;
+
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
@@ -25,6 +27,7 @@ import org.immutables.criteria.expression.ComparableOperators;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
+import org.immutables.criteria.expression.IterableOperators;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.OptionalOperators;
@@ -67,16 +70,10 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
-    if (op == Operators.NOT_IN) {
+    if (op == Operators.NOT_IN || op == IterableOperators.NOT_EMPTY) {
       // geode doesn't understand syntax foo not in [1, 2, 3]
       // convert "foo not in [1, 2, 3]" into "not foo in [1, 2, 3]"
-      return visit(Expressions.not(Expressions.call(Operators.IN, call.arguments())));
-    }
-
-    if (op == Operators.EQUAL || op == Operators.NOT_EQUAL ||
-            op == Operators.IN || ComparableOperators.isComparable(op)) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      return binaryOperator(call);
+      return visit(Expressions.not(Expressions.call(getInverseOp(op), call.arguments())));
     }
 
     if (op == Operators.AND || op == Operators.OR) {
@@ -86,11 +83,25 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
       return new Oql(variables, newOql);
     }
 
-    if (op == OptionalOperators.IS_PRESENT || op == OptionalOperators.IS_ABSENT || op == Operators.NOT) {
+    if (op.arity() == Operator.Arity.BINARY) {
+      return binaryOperator(call);
+    }
+
+    if (op.arity() == Operator.Arity.UNARY) {
       return unaryOperator(call);
     }
 
     throw new UnsupportedOperationException("Don't know how to handle " + call);
+  }
+
+  private static Operator getInverseOp(Operator op) {
+    if (op == Operators.NOT_IN) {
+      return Operators.IN;
+    } else if (op == IterableOperators.NOT_EMPTY) {
+      return IterableOperators.IS_EMPTY;
+    } else {
+      throw new IllegalArgumentException("Don't know inverse operator of " + op);
+    }
   }
 
   /**
@@ -103,13 +114,15 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     Preconditions.checkArgument(args.size() == 1,
             "Size should be == 1 for unary operator %s but was %s", op, args.size());
 
-    if (op == OptionalOperators.IS_PRESENT || op == OptionalOperators.IS_ABSENT) {
-      Preconditions.checkArgument(args.size() == 1, "Size should be == 1 for %s but was %s", op, args.size());
+    if (op instanceof OptionalOperators) {
       final Path path = Visitors.toPath(args.get(0));
       final String isNull = op == OptionalOperators.IS_PRESENT ? "!= null" : "= null";
       return oql(pathNaming.name(path) + " " + isNull);
     } else if (op == Operators.NOT) {
       return oql("NOT (" + args.get(0).accept(this).oql() + ")");
+    }  else if (op == IterableOperators.IS_EMPTY) {
+      final Path path = Visitors.toPath(args.get(0));
+      return oql(pathNaming.name(path) + "." + toMethod(op));
     }
 
     throw new UnsupportedOperationException("Unknown unary operator " + call);
@@ -122,6 +135,19 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
     Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s on call %s", op, args.size(), call);
+
+    final String namedPath = getNamedPath(call);
+
+    final Object variable = getVariable(call);
+
+    if (op == IterableOperators.CONTAINS) {
+      Preconditions.checkArgument(
+              useBindVariables || isStringOrPrimitive(variable),
+              "String or Primitive types only supported for contains operator but was " + variable.getClass()
+      );
+      return oql(String.format("%s.contains(%s)", namedPath, addAndGetBoundVariable(variable)));
+    }
+
     final String operator;
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       operator = op == Operators.EQUAL ? "=" : "!=";
@@ -135,11 +161,35 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
       operator = "<";
     } else if (op == ComparableOperators.LESS_THAN_OR_EQUAL) {
       operator = "<=";
+    } else if (op == IterableOperators.HAS_SIZE) {
+      operator = "=";
     } else {
       throw new IllegalArgumentException("Unknown binary operator " + call);
     }
 
+    return oql(String.format("%s %s %s", namedPath, operator, addAndGetBoundVariable(variable)));
+  }
+
+  private static boolean isStringOrPrimitive(Object variable) {
+    return variable instanceof CharSequence || Primitives.isWrapperType(Primitives.wrap(variable.getClass()));
+  }
+
+  private String getNamedPath(Call call) {
+    final Operator op = call.operator();
+    final List<Expression> args = call.arguments();
+
     final Path path = Visitors.toPath(args.get(0));
+    String namedPath = pathNaming.name(path);
+    if (op == IterableOperators.HAS_SIZE) {
+      namedPath += ".size";
+    }
+    return namedPath;
+  }
+
+  private static Object getVariable(Call call) {
+    final Operator op = call.operator();
+    final List<Expression> args = call.arguments();
+
     final Constant constant = Visitors.toConstant(args.get(1));
 
     final Object variable;
@@ -148,14 +198,19 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     } else {
       variable = constant.value();
     }
+    return variable;
+  }
 
+  private String addAndGetBoundVariable(Object variable) {
+    String variableAsString;
     if (useBindVariables) {
       variables.add(variable);
       // bind variables in Geode start at index 1: $1, $2, $3 etc.
-      return oql(String.format("%s %s $%d", pathNaming.name(path), operator, variables.size()));
+      variableAsString = "$" + String.valueOf(variables.size());
+    } else {
+      variableAsString = toString(variable);
     }
-
-    return oql(String.format("%s %s %s", pathNaming.name(path), operator, toString(variable)));
+    return variableAsString;
   }
 
   /**
@@ -163,6 +218,13 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
    */
   private Oql oql(String oql) {
     return new Oql(variables, oql);
+  }
+
+  private static String toMethod(Operator op) {
+    if (op == IterableOperators.IS_EMPTY) {
+      return "isEmpty";
+    }
+    throw new UnsupportedOperationException("Don't know how to handle Operator " + op);
   }
 
   private static String toString(Object value) {
