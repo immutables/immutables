@@ -18,19 +18,17 @@ package org.immutables.criteria.geode;
 
 import org.immutables.criteria.Criteria;
 import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.expression.Collation;
-import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Operators;
-import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.matcher.Matchers;
-import org.immutables.criteria.typemodel.TypeHolder;
+import org.immutables.criteria.expression.*;
+import org.immutables.criteria.personmodel.Person;
 import org.immutables.value.Value;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
 import static org.immutables.check.Checkers.check;
+import static org.immutables.criteria.matcher.Matchers.toExpression;
+import static org.immutables.criteria.personmodel.PersonCriteria.person;
 
 /**
  * Check generated OQL out of {@link Query}
@@ -39,48 +37,88 @@ class OqlGeneratorTest {
 
   private final ReservedWordsCriteria reservedWords = ReservedWordsCriteria.reservedWords;
 
+  private OqlGenerator generator;
+
+  @BeforeEach
+  void setUp() {
+    generator = OqlGenerator.of("/myRegion", PathNaming.defaultNaming());
+  }
+
   @Test
   void basic() {
-    OqlGenerator generator = OqlGenerator.of("/myRegion", PathNaming.defaultNaming());
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class)).oql()).is("SELECT * FROM /myRegion");
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).withLimit(1)).oql()).is("SELECT * FROM /myRegion LIMIT 1");
+    final ImmutableQuery query = Query.of(Person.class);
+    check(generate(query)).is("SELECT * FROM /myRegion");
+    check(generate(query.withDistinct(true))).is("SELECT DISTINCT * FROM /myRegion");
 
-    Expression proj1 = Matchers.toExpression(reservedWords.value);
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).addProjections(proj1))
-            .oql()).is("SELECT value FROM /myRegion");
+    Expression proj1 = toExpression(reservedWords.value);
+    check(generate(Query.of(Person.class).addProjections(proj1)))
+            .is("SELECT value FROM /myRegion");
 
-    Expression proj2 = Matchers.toExpression(reservedWords.nullable);
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).addProjections(proj1, proj2))
-            .oql()).is("SELECT value, nullable FROM /myRegion");
+    Expression proj2 = toExpression(reservedWords.nullable);
+    check(generate(Query.of(Person.class).addProjections(proj1, proj2)))
+            .is("SELECT value, nullable FROM /myRegion");
+  }
+
+  @Test
+  void filter() {
+    check(generate(Query.of(Person.class).withFilter(toExpression(person.age.greaterThan(18)))))
+            .is("SELECT * FROM /myRegion WHERE age > $1");
+  }
+
+  @Test
+  void orderBy() {
+    final ImmutableQuery query = Query.of(Person.class);
+    check(generate(query.withCollations((Collation) person.fullName.asc())))
+            .is("SELECT * FROM /myRegion ORDER BY fullName");
+
+    check(generate(query.withCollations((Collation) person.age.desc(), (Collation) person.fullName.asc())))
+            .is("SELECT * FROM /myRegion ORDER BY age DESC, fullName");
+
+    check(generate(query.withCollations((Collation) person.fullName.desc()).withLimit(1).withOffset(10)))
+            .is("SELECT * FROM /myRegion ORDER BY fullName DESC LIMIT 1 OFFSET 10");
+  }
+
+  @Test
+  void projections() {
+    final ImmutableQuery query = Query.of(Person.class);
+    check(generate(query.addProjections(toExpression(person.fullName))))
+            .is("SELECT fullName FROM /myRegion");
+
+    check(generate(query.addProjections(
+            toExpression(person.fullName), toExpression(person.age)
+    ))).is("SELECT fullName, age FROM /myRegion");
   }
 
   @Test
   void countAll() {
-    OqlGenerator generator = OqlGenerator.of("/myRegion", PathNaming.defaultNaming());
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).withCount(true)).oql()).is("SELECT COUNT(*) FROM /myRegion");
+    check(generate(Query.of(Person.class).withCount(true)))
+            .is("SELECT COUNT(*) FROM /myRegion");
+
+    check(generate(Query.of(Person.class).withDistinct(true).withCount(true)))
+            .is("SELECT DISTINCT COUNT(*) FROM /myRegion");
   }
 
   @Test
   void pathNaming() {
     OqlGenerator generator = OqlGenerator.of("/myRegion", path -> path.toStringPath() + "1");
-    Expression type = Matchers.toExpression(reservedWords.type);
-    Expression value = Matchers.toExpression(reservedWords.value);
-    Expression select = Matchers.toExpression(reservedWords.select);
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).addProjections(type))
+    Expression type = toExpression(reservedWords.type);
+    Expression value = toExpression(reservedWords.value);
+    Expression select = toExpression(reservedWords.select);
+    check(generator.generate(Query.of(Person.class).addProjections(type))
             .oql()).is("SELECT type1 FROM /myRegion");
 
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).addProjections(type, value))
+    check(generator.generate(Query.of(Person.class).addProjections(type, value))
             .oql()).is("SELECT type1, value1 FROM /myRegion");
 
-    check(generator.withoutBindVariables().generate(Query.of(TypeHolder.StringHolder.class)
+    check(generator.withoutBindVariables().generate(Query.of(Person.class)
             .addProjections(type, value)
             .withFilter(Expressions.call(Operators.EQUAL, select, Expressions.constant(42))))
             .oql()).is("SELECT type1, value1 FROM /myRegion WHERE select1 = 42");
 
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).addProjections(type, value).addGroupBy(type))
+    check(generator.generate(Query.of(Person.class).addProjections(type, value).addGroupBy(type))
             .oql()).is("SELECT type1, value1 FROM /myRegion GROUP BY type1");
 
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class)
+    check(generator.generate(Query.of(Person.class)
             .addGroupBy(type)
             .addCollations(Collections.singleton(Collation.of(type)))
             .addProjections(type, value))
@@ -96,24 +134,28 @@ class OqlGeneratorTest {
   void reservedWords() {
     OqlGenerator generator = OqlGenerator.of("/myRegion", ReservedWordNaming.of(PathNaming.defaultNaming()));
 
-    Expression type = Matchers.toExpression(reservedWords.type);
-    Expression order = Matchers.toExpression(reservedWords.order);
-    Expression date = Matchers.toExpression(reservedWords.date);
-    Expression select = Matchers.toExpression(reservedWords.select);
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).addProjections(type))
+    Expression type = toExpression(reservedWords.type);
+    Expression order = toExpression(reservedWords.order);
+    Expression date = toExpression(reservedWords.date);
+    Expression select = toExpression(reservedWords.select);
+    check(generator.generate(Query.of(Person.class).addProjections(type))
             .oql()).is("SELECT \"type\" FROM /myRegion");
 
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).addProjections(type, order))
+    check(generator.generate(Query.of(Person.class).addProjections(type, order))
             .oql()).is("SELECT \"type\", \"order\" FROM /myRegion");
 
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class).addProjections(type, order, date))
+    check(generator.generate(Query.of(Person.class).addProjections(type, order, date))
             .oql()).is("SELECT \"type\", \"order\", \"date\" FROM /myRegion");
 
-    check(generator.generate(Query.of(TypeHolder.StringHolder.class)
+    check(generator.generate(Query.of(Person.class)
             .addGroupBy(type)
             .addCollations(Collections.singleton(Collation.of(type)))
             .addProjections(type, order, date, select))
             .oql()).is("SELECT \"type\", \"order\", \"date\", \"select\" FROM /myRegion GROUP BY \"type\" ORDER BY \"type\"");
+  }
+
+  private String generate(Query query) {
+    return generator.generate(query).oql();
   }
 
   /**
