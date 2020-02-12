@@ -54,18 +54,6 @@ class GeodeIntegrationTest {
       super(backend);
     }
 
-    @Disabled
-    @Override
-    protected void startsWith() {}
-
-    @Disabled
-    @Override
-    protected void endsWith() {}
-
-    @Disabled
-    @Override
-    protected void contains() {}
-
     @Disabled("optionals don't work well in Geode yet (pdx serialization)")
     @Override
     protected void optional() {}

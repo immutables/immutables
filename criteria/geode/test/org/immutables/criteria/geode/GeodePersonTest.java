@@ -43,7 +43,9 @@ public class GeodePersonTest extends AbstractPersonTest  {
   protected Set<Feature> features() {
     return EnumSet.of(
             Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.ORDER_BY, Feature.QUERY_WITH_PROJECTION,
-            Feature.ITERABLE_SIZE, Feature.ITERABLE_CONTAINS
+            Feature.ITERABLE_SIZE, Feature.ITERABLE_CONTAINS, Feature.STRING_PREFIX_SUFFIX
+            // todo: enable String length and Regex feautes once Pdx issue resolved
+            // Feature.STRING_LENGTH, Feature.REGEX
     );
   }
 

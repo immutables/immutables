@@ -41,6 +41,7 @@ public class MongoPersonTest extends AbstractPersonTest {
     return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT,
             Feature.QUERY_WITH_PROJECTION,
             Feature.QUERY_WITH_OFFSET, Feature.ORDER_BY, Feature.REGEX,
+            Feature.STRING_EMPTY,
             Feature.STRING_PREFIX_SUFFIX,
             Feature.ITERABLE_SIZE,
             Feature.ITERABLE_CONTAINS,
