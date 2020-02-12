@@ -5,7 +5,9 @@ import static org.immutables.criteria.matcher.Matchers.toExpression;
 import static org.immutables.criteria.personmodel.PersonCriteria.person;
 
 import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.personmodel.ImmutablePet;
 import org.immutables.criteria.personmodel.PersonCriteria;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class GeodeQueryVisitorTest {
@@ -71,6 +73,30 @@ class GeodeQueryVisitorTest {
         check(toOqlWithBindParams(person.age.in(18, 19, 20, 21))).is("age IN $1");
 
         check(toOqlWithBindParams(person.age.notIn(18, 19, 20, 21))).is("NOT (age IN $1)");
+    }
+
+    @Test
+    void filterCollection() {
+        check(toOql(person.interests.isEmpty())).is("interests.isEmpty");
+        check(toOql(person.interests.notEmpty())).is("NOT (interests.isEmpty)");
+        check(toOql(person.interests.hasSize(1))).is("interests.size = 1");
+        check(toOql(person.interests.contains("OSS"))).is("interests.contains('OSS')");
+    }
+
+    @Test
+    void filterCollectionWithBindParams() {
+        check(toOqlWithBindParams(person.interests.isEmpty())).is("interests.isEmpty");
+        check(toOqlWithBindParams(person.interests.notEmpty())).is("NOT (interests.isEmpty)");
+        check(toOqlWithBindParams(person.interests.hasSize(1))).is("interests.size = $1");
+        check(toOqlWithBindParams(person.interests.contains("OSS"))).is("interests.contains($1)");
+    }
+
+    @Test
+    void filterCollectionDoesNotSupportComplexTypes() {
+        final ImmutablePet pet = ImmutablePet.builder().name("Rex").type(ImmutablePet.PetType.dog).build();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            toOql(person.pets.contains(pet));
+        });
     }
 
     @Test
