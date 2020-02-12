@@ -72,7 +72,7 @@ class OqlGeneratorTest {
             .is("SELECT * FROM /myRegion ORDER BY fullName");
 
     check(generate(query.withCollations((Collation) person.age.desc(), (Collation) person.fullName.asc())))
-            .is("SELECT * FROM /myRegion ORDER BY age DESC, fullName");
+            .is("SELECT * FROM /myRegion ORDER BY age DESC, fullName ASC");
 
     check(generate(query.withCollations((Collation) person.fullName.desc()).withLimit(1).withOffset(10)))
             .is("SELECT * FROM /myRegion ORDER BY fullName DESC LIMIT 1 OFFSET 10");

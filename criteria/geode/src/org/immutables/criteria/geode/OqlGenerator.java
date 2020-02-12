@@ -91,8 +91,10 @@ abstract class OqlGenerator {
 
     if (!query.collations().isEmpty()) {
       oql.append(" ORDER BY ");
+
+      final String ascending = isMultiDirectionCollation(query) ? " ASC" : "";
       final String orderBy = query.collations().stream()
-              .map(c -> pathNaming().name(c.path()) + (c.direction().isAscending() ? "" : " DESC"))
+              .map(c -> pathNaming().name(c.path()) + (c.direction().isAscending() ? ascending : " DESC"))
               .collect(Collectors.joining(", "));
 
       oql.append(orderBy);
@@ -109,6 +111,15 @@ abstract class OqlGenerator {
     }
 
     return new Oql(variables, oql.toString());
+  }
+
+  private static boolean isMultiDirectionCollation(Query query) {
+    final long directionCount = query.collations().stream()
+            .map(Collation::direction)
+            .distinct()
+            .limit(Ordering.Direction.values().length)
+            .count();
+    return directionCount > 1;
   }
 
   private String toProjection(Expression expression) {
