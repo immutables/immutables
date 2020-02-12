@@ -126,7 +126,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       operator = op == Operators.EQUAL ? "=" : "!=";
     } else if (op == Operators.IN || op == Operators.NOT_IN) {
-      operator = op == Operators.IN ? "in" : "not in";
+      operator = op == Operators.IN ? "IN" : "NOT IN";
     } else if (op == ComparableOperators.GREATER_THAN) {
       operator = ">";
     } else if (op == ComparableOperators.GREATER_THAN_OR_EQUAL) {

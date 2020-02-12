@@ -17,10 +17,7 @@
 package org.immutables.criteria.geode;
 
 import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.expression.AggregationCall;
-import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.*;
 import org.immutables.value.Value;
 
 import java.util.ArrayList;
@@ -63,7 +60,7 @@ abstract class OqlGenerator {
 
     final StringBuilder oql = new StringBuilder("SELECT");
     if (query.distinct()) {
-      oql.append(" DISTINCT ");
+      oql.append(" DISTINCT");
     }
 
     if (query.hasProjections()) {
@@ -74,13 +71,12 @@ abstract class OqlGenerator {
       String projections = query.count() && !addOuterCountQuery ? " COUNT(*) " : String.join(", ", paths);
       oql.append(" ");
       oql.append(projections);
-      oql.append(" ");
     } else {
       // no projections
-      oql.append(query.count() && !addOuterCountQuery ? " COUNT(*) " : " * ");
+      oql.append(query.count() && !addOuterCountQuery ? " COUNT(*)" : " *");
     }
 
-    oql.append("FROM ").append(regionName());
+    oql.append(" FROM ").append(regionName());
     final List<Object> variables = new ArrayList<>();
     if (query.filter().isPresent()) {
       Oql withVars = Geodes.converter(useBindVariables(), pathNaming()).convert(query.filter().get());
