@@ -28,8 +28,12 @@ class AutocreateRegion implements Consumer<Class<?>> {
   private final ContainerNaming naming;
 
   AutocreateRegion(Cache cache) {
+    this(cache, ContainerNaming.DEFAULT);
+  }
+
+  AutocreateRegion(Cache cache, ContainerNaming containerNaming) {
     this.cache = cache;
-    this.naming = ContainerNaming.DEFAULT;
+    this.naming = containerNaming;
   }
 
   @Override

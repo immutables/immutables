@@ -4,6 +4,8 @@ import static org.immutables.check.Checkers.check;
 import static org.immutables.criteria.matcher.Matchers.toExpression;
 import static org.immutables.criteria.personmodel.PersonCriteria.person;
 
+import java.util.regex.Pattern;
+
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.personmodel.ImmutablePet;
 import org.immutables.criteria.personmodel.PersonCriteria;
@@ -97,6 +99,32 @@ class GeodeQueryVisitorTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> {
             toOql(person.pets.contains(pet));
         });
+    }
+
+    @Test
+    void filterString() {
+        check(toOql(person.fullName.isEmpty())).is("fullName = ''");
+        check(toOql(person.fullName.notEmpty())).is("fullName != ''");
+
+        check(toOql(person.fullName.hasLength(5))).is("fullName.length = 5");
+        check(toOql(person.fullName.contains("Blog"))).is("fullName LIKE '%Blog%'");
+        check(toOql(person.fullName.startsWith("Joe"))).is("fullName LIKE 'Joe%'");
+        check(toOql(person.fullName.endsWith("Bloggs"))).is("fullName LIKE '%Bloggs'");
+
+        check(toOql(person.fullName.matches(Pattern.compile("\\w+")))).is("fullName.matches('\\w+')");
+    }
+
+    @Test
+    void filterStringWithBindParams() {
+        check(toOqlWithBindParams(person.fullName.isEmpty())).is("fullName = $1");
+        check(toOqlWithBindParams(person.fullName.notEmpty())).is("fullName != $1");
+
+        check(toOqlWithBindParams(person.fullName.hasLength(5))).is("fullName.length = $1");
+        check(toOqlWithBindParams(person.fullName.contains("Blog"))).is("fullName LIKE $1");
+        check(toOqlWithBindParams(person.fullName.startsWith("Joe"))).is("fullName LIKE $1");
+        check(toOqlWithBindParams(person.fullName.endsWith("Bloggs"))).is("fullName LIKE $1");
+
+        check(toOqlWithBindParams(person.fullName.matches(Pattern.compile("\\w+")))).is("fullName.matches($1)");
     }
 
     @Test

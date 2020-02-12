@@ -58,7 +58,8 @@ public abstract class AbstractPersonTest {
     ORDER_BY,
     REGEX, // regular expression for match() operator
     // TODO re-use Operator interface as feature flag
-    STRING_PREFIX_SUFFIX, // startsWith / endsWith operators a are supported
+    STRING_EMPTY, // supports empty/non-empty string or null values
+    STRING_PREFIX_SUFFIX, // startsWith / endsWith operators are supported
     ITERABLE_SIZE, // supports filtering on iterables sizes
     ITERABLE_CONTAINS, // can search inside inner collections
     STRING_LENGTH
@@ -526,7 +527,7 @@ public abstract class AbstractPersonTest {
    */
   @Test
   public void stringEmptyNotEmpty() {
-    assumeFeature(Feature.STRING_PREFIX_SUFFIX);
+    assumeFeature(Feature.STRING_EMPTY);
     final PersonGenerator generator = new PersonGenerator();
     insert(generator.next().withFullName("John").withNickName(Optional.empty()));
     insert(generator.next().withFullName("Adam").withNickName(""));

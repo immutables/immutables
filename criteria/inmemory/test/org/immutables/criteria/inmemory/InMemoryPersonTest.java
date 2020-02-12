@@ -32,6 +32,7 @@ public class InMemoryPersonTest extends AbstractPersonTest  {
             Feature.ORDER_BY,
             Feature.QUERY_WITH_PROJECTION,
             Feature.QUERY_WITH_OFFSET, Feature.REGEX,
+            Feature.STRING_EMPTY,
             Feature.STRING_PREFIX_SUFFIX,
             Feature.ITERABLE_SIZE,
             Feature.ITERABLE_CONTAINS,

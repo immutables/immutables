@@ -32,12 +32,15 @@ import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.OptionalOperators;
 import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -146,6 +149,19 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
               "String or Primitive types only supported for contains operator but was " + variable.getClass()
       );
       return oql(String.format("%s.contains(%s)", namedPath, addAndGetBoundVariable(variable)));
+    } else if (op == StringOperators.MATCHES) {
+      return oql(String.format("%s.matches(%s)", namedPath, addAndGetBoundVariable(variable)));
+    } else if (op == StringOperators.CONTAINS || op == StringOperators.STARTS_WITH || op == StringOperators.ENDS_WITH) {
+      Preconditions.checkArgument(variable instanceof CharSequence, "Variable should be String but was " + variable);
+
+      final String value = Geodes.escapeOql((CharSequence) variable);
+      final String likePattern = getLikePattern(op, value);
+      if (useBindVariables) {
+        variables.add(likePattern);
+        return oql(String.format("%s LIKE $%d", namedPath, variables.size()));
+      } else {
+        return oql(String.format("%s LIKE '%s'", namedPath, likePattern));
+      }
     }
 
     final String operator;
@@ -161,7 +177,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
       operator = "<";
     } else if (op == ComparableOperators.LESS_THAN_OR_EQUAL) {
       operator = "<=";
-    } else if (op == IterableOperators.HAS_SIZE) {
+    } else if (op == IterableOperators.HAS_SIZE || op == StringOperators.HAS_LENGTH) {
       operator = "=";
     } else {
       throw new IllegalArgumentException("Unknown binary operator " + call);
@@ -174,6 +190,18 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     return variable instanceof CharSequence || Primitives.isWrapperType(Primitives.wrap(variable.getClass()));
   }
 
+  private static String getLikePattern(Operator op, String value) {
+    if (op == StringOperators.STARTS_WITH) {
+      return value + "%";
+    } else if (op == StringOperators.ENDS_WITH) {
+      return "%" + value;
+    } else if (op == StringOperators.CONTAINS) {
+      return "%" + value + "%";
+    } else {
+      throw new IllegalArgumentException("LIKE query used with invalid operator " + op);
+    }
+  }
+
   private String getNamedPath(Call call) {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
@@ -181,7 +209,9 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     final Path path = Visitors.toPath(args.get(0));
     String namedPath = pathNaming.name(path);
     if (op == IterableOperators.HAS_SIZE) {
-      namedPath += ".size";
+      return namedPath + ".size";
+    } else if (op == StringOperators.HAS_LENGTH) {
+      return namedPath + ".length";
     }
     return namedPath;
   }
@@ -192,25 +222,26 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
 
     final Constant constant = Visitors.toConstant(args.get(1));
 
-    final Object variable;
     if (op == Operators.IN || op == Operators.NOT_IN) {
-      variable = ImmutableSet.copyOf(constant.values());
+      return ImmutableSet.copyOf(constant.values());
     } else {
-      variable = constant.value();
+      return constant.value();
     }
-    return variable;
   }
 
   private String addAndGetBoundVariable(Object variable) {
-    String variableAsString;
+    return maybeAddAndGetBoundVariable(variable)
+            .orElseGet(() -> toString(variable));
+  }
+
+  private Optional<String> maybeAddAndGetBoundVariable(Object variable) {
     if (useBindVariables) {
       variables.add(variable);
-      // bind variables in Geode start at index 1: $1, $2, $3 etc.
-      variableAsString = "$" + String.valueOf(variables.size());
+
+      return Optional.of("$" + String.valueOf(variables.size()));
     } else {
-      variableAsString = toString(variable);
+      return Optional.empty();
     }
-    return variableAsString;
   }
 
   /**
@@ -230,6 +261,8 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
   private static String toString(Object value) {
     if (value instanceof CharSequence) {
       return "'" + Geodes.escapeOql((CharSequence) value) + "'";
+    } else if (value instanceof Pattern) {
+      return "'" + Geodes.escapeOql(((Pattern) value).pattern()) + "'";
     } else if (value instanceof Collection) {
       @SuppressWarnings("unchecked")
       final Collection<Object> coll = (Collection<Object>) value;
