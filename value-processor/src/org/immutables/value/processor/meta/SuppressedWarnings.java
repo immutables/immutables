@@ -27,6 +27,7 @@ final class SuppressedWarnings {
   private static final String GENERATED = "generated";
   private static final String RAWTYPES = "rawtypes";
   private static final String DEPRECATION = "deprecation";
+  private static final String REMOVAL = "removal";
   private static final String IMMUTABLES_FROM = "immutables:from";
   private static final String IMMUTABLES_SUBTYPE = "immutables:subtype";
   private static final String IMMUTABLES_UNTYPE = "immutables:untype";
@@ -137,6 +138,7 @@ final class SuppressedWarnings {
     }
     if (deprecated) {
       generatedSuppressions.add(DEPRECATION);
+      generatedSuppressions.add(REMOVAL);
     }
     return new SuppressedWarnings(
         all,
