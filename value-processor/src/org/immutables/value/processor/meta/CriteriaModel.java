@@ -200,7 +200,9 @@ public class CriteriaModel {
         newType = elements.getTypeElement(Long.class.getName()).asType();
       } else if ("java.util.OptionalDouble".equals(typeName)) {
         newType = elements.getTypeElement(Double.class.getName()).asType();
-      } else if ("java.util.Optional".equals(erasure.toString()) || "com.google.common.base.Optional".equals(erasure.toString())) {
+      } else if ("java.util.Optional".equals(typeName)
+          || "com.google.common.base.Optional".equals(typeName)
+          || "io.atlassian.fugue.Option".equals(typeName)) {
         newType = MoreTypes.asDeclared(type).getTypeArguments().get(0);
       } else {
         throw new IllegalArgumentException(String.format("%s is not an optional type", type));
@@ -218,8 +220,14 @@ public class CriteriaModel {
     }
 
     public boolean isOptional() {
-      final List<String> names = Arrays.asList("java.util.Optional", "java.util.OptionalInt",
-              "java.util.OptionalDouble", "java.util.OptionalLong", Optional.class.getName());
+      final List<String> names =
+          Arrays.asList(
+              "java.util.Optional",
+              "java.util.OptionalInt",
+              "java.util.OptionalDouble",
+              "java.util.OptionalLong",
+              Optional.class.getName(),
+              "io.atlassian.fugue.Option");
 
       for (String name : names) {
         final Element element = elements.getTypeElement(name);

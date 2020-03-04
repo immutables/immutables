@@ -184,6 +184,8 @@ public class CriteriaModelProcessorTest {
     checkCreator("string").not().contains("ModelCriteria.creator()");
     assertAttribute("nullableString", "org.immutables.criteria.matcher.OptionalStringMatcher.Template<R, java.lang.String>");
     assertAttribute("optionalString", "org.immutables.criteria.matcher.OptionalStringMatcher.Template<R,java.util.Optional<java.lang.String>>");
+    assertAttribute("guavaOptionalString", "org.immutables.criteria.matcher.OptionalStringMatcher.Template<R,com.google.common.base.Optional<java.lang.String>>");
+    assertAttribute("fugue3OptionalString", "org.immutables.criteria.matcher.OptionalStringMatcher.Template<R,io.atlassian.fugue.Option<java.lang.String>>");
     assertAttribute("stringList", "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.StringMatcher.Template<R>,java.lang.String,java.util.List<java.lang.String>>");
     checkCreator("stringList").contains("IterableMatcher.creator()");
     checkCreator("arrayList").contains("IterableMatcher.creator()");
@@ -265,6 +267,8 @@ public class CriteriaModelProcessorTest {
   interface Model {
     String string();
     Optional<String> optionalString();
+    com.google.common.base.Optional<String> guavaOptionalString();
+    io.atlassian.fugue.Option<String> fugue3OptionalString();
     @Nullable String nullableString();
     List<String> stringList();
     String[] arrayList();
