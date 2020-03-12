@@ -24,6 +24,8 @@ import org.immutables.criteria.personmodel.CriteriaChecker;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -237,6 +239,30 @@ public abstract class StringTemplate {
     Assertions.assertThrows(NonUniqueResultException.class, () -> repository.find(string.value.is("v1")).oneOrNone());
     check(repository.find(string.value.is("v2")).oneOrNone().get().value()).is("v2");
     check(!repository.find(string.value.is("v3")).oneOrNone().isPresent());
+  }
+
+  /**
+   * Projection on a list type (eg. {@code List<String>})
+   */
+  @Test
+  protected void projectionOnIterable() {
+    repository.insert(generator.get().withId("id1").withList()); // empty
+    repository.insert(generator.get().withId("id2").withList("a2")); // one element
+    repository.insert(generator.get().withId("id3").withList("a3", "b3"));
+
+    // select all
+    check(repository.findAll().select(string.list).fetch())
+            .hasContentInAnyOrder(Collections.emptyList(), Collections.singletonList("a2"), Arrays.asList("a3", "b3"));
+
+    // select by ID
+    check(repository.find(string.id.is("id1")).select(string.list).one())
+            .isEmpty();
+
+    check(repository.find(string.id.is("id2")).select(string.list).one())
+            .hasAll("a2");
+
+    check(repository.find(string.id.is("id3")).select(string.list).one())
+            .hasAll("a3", "b3");
   }
 
   /**

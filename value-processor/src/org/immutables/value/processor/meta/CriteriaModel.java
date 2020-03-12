@@ -325,7 +325,7 @@ public class CriteriaModel {
     } else if (introspected.isString()) {
       name = "org.immutables.criteria.matcher.StringMatcher.Template";
     } else if (introspected.isIterable() || introspected.isArray()) {
-      name = "org.immutables.criteria.matcher.IterableMatcher";
+      name = "org.immutables.criteria.matcher.IterableMatcher.Template";
     } else if (introspected.isComparable()) {
       name = "org.immutables.criteria.matcher.ComparableMatcher.Template";
     } else {
@@ -471,19 +471,19 @@ public class CriteriaModel {
 
       final Type valueType;
       final Type.Variable arg1 = (Type.Variable) matcher.arguments.get(1);
+      // resolve P (which is projection type) for Optional
+      for (Type.Nonprimitive arg: matcher.arguments) {
+        if (arg instanceof Type.Variable && ((Type.Variable) arg).name.equals("P")) {
+          // resolve projection type (P) for .Template<R, P>.
+          // projection type is identical to attribute type
+          // Example .Template<R, Optional<Boolean>>
+          resolver = resolver.bind((Type.Variable) arg, factory.reference(type.toString()));
+        }
+      }
 
       if (introspected.useOptional()) {
         final IntrospectedType newType = introspected.optionalParameter();
         valueType = toType(newType.type());
-        // resolve P
-        for (Type.Nonprimitive arg: matcher.arguments) {
-          if (arg instanceof Type.Variable && ((Type.Variable) arg).name.equals("P")) {
-            // resolve projection type (P) for .Template<R, P>.
-            // projection type is identical to attribute type
-            // Example .Template<R, Optional<Boolean>>
-            resolver = resolver.bind((Type.Variable) arg, factory.reference(type.toString()));
-          }
-        }
         if (newType.hasOptionalMatcher()) {
           // don't recurse if optional matcher is present like OptionalComparableMatcher
           resolver = resolver.bind(arg1, (Type.Nonprimitive) valueType);
@@ -507,6 +507,18 @@ public class CriteriaModel {
       if (matcher.arguments.size() > 2 && ((Type.Variable) matcher.arguments.get(2)).name.equals("V")) {
         // parameter called V is usually value type
         resolver = resolver.bind((Type.Variable) matcher.arguments.get(2), (Type.Nonprimitive) valueType);
+      }
+
+      // resolve P (which is projection type) for Array / Iterable
+      if (introspected.isArray() || introspected.isIterable()) {
+        for (Type.Nonprimitive arg: matcher.arguments) {
+          if (arg instanceof Type.Variable && ((Type.Variable) arg).name.equals("P")) {
+            // resolve projection type (P) for .Template<R, P>.
+            // projection type is identical to attribute type
+            // Example .Template<R, Optional<Boolean>>
+            resolver = resolver.bind((Type.Variable) arg, factory.reference(type.toString()));
+          }
+        }
       }
 
       return (Type.Parameterized) matcher.accept(resolver);

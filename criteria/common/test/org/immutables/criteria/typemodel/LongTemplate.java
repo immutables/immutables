@@ -21,6 +21,8 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.personmodel.CriteriaChecker;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -107,6 +109,31 @@ public abstract class LongTemplate {
     check(repository.findAll().select(criteria.optional).fetch()).hasContentInAnyOrder(OptionalLong.empty(), OptionalLong.of(2));
     check(repository.findAll().select(criteria.optional2).fetch()).hasContentInAnyOrder(Optional.of(1L), Optional.empty());
   }
+
+  /**
+   * Projection on a list type (eg. {@code List<Long>})
+   */
+  @Test
+  protected void projectionOnIterable() {
+    repository.insert(generator.get().withId("id1").withList()); // empty
+    repository.insert(generator.get().withId("id2").withList(2)); // one element
+    repository.insert(generator.get().withId("id3").withList(3, 4));
+
+    // select all
+    check(repository.findAll().select(criteria.list).fetch())
+            .hasContentInAnyOrder(Collections.emptyList(), Collections.singletonList(2L), Arrays.asList(3L, 4L));
+
+    // select by ID
+    check(repository.find(criteria.id.is("id1")).select(criteria.list).one())
+            .isEmpty();
+
+    check(repository.find(criteria.id.is("id2")).select(criteria.list).one())
+            .hasAll(2L);
+
+    check(repository.find(criteria.id.is("id3")).select(criteria.list).one())
+            .hasAll(3L, 4L);
+  }
+
 
   private IterableChecker<List<String>, String> ids(LongHolderCriteria criteria) {
     return CriteriaChecker.<TypeHolder.LongHolder>ofReader(repository.find(criteria)).toList(TypeHolder.LongHolder::id);

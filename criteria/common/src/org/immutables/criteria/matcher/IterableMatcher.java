@@ -23,7 +23,7 @@ import org.immutables.criteria.expression.IterableOperators;
 import java.util.function.UnaryOperator;
 
 /**
- * Matcher on {@link Iterable} types. Has methods like {@code isEmpty()} / {@code isNotEmpty()}
+ * Matcher on {@link Iterable} types. Has methods like {@code isEmpty()} / {@code notEmpty()}
  * and others.
  */
 public interface IterableMatcher<R, S, V> extends Matcher {
@@ -52,7 +52,9 @@ public interface IterableMatcher<R, S, V> extends Matcher {
 
   }
 
-  interface Self<R, V> extends IterableMatcher<Self<R, V>, Self<R, V>, V>, Disjunction<Self<R, V>> {}
+  interface Self<R, V, P> extends Template<Self<R, V, P>, Self<R, V, P>, V, P>, Disjunction<Self<R, V, P>> {}
+
+  interface Template<R, S, V, P> extends IterableMatcher<R, S, V>, Projection<P>, NotMatcher<R, Self<R, V, P>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
@@ -64,6 +66,5 @@ public interface IterableMatcher<R, S, V> extends Matcher {
 
     return ctx -> (R) new Local(ctx);
   }
-
 
 }

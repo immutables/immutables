@@ -92,7 +92,7 @@ public class CriteriaModelProcessorTest {
   @Test
   public void array() {
     assertAttribute("arrayDouble",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.DoubleMatcher.Template<R>,java.lang.Double>");
+            "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.DoubleMatcher.Template<R>,java.lang.Double,double[]>");
 
   }
 
@@ -100,10 +100,12 @@ public class CriteriaModelProcessorTest {
   public void wierd() {
     assertAttribute("weird1",
             "org.immutables.criteria.matcher.OptionalMatcher.Template<R,org.immutables.criteria.matcher.OptionalStringMatcher.Template<R,java.util.Optional<java.lang.String>>,java.util.Optional<java.util.Optional<java.lang.String>>>");
+    // Optional<List<String>> weird2();
     assertAttribute("weird2",
-            "org.immutables.criteria.matcher.OptionalMatcher.Template<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.StringMatcher.Template<R>,java.lang.String>,java.util.Optional<java.util.List<java.lang.String>>>");
+            "org.immutables.criteria.matcher.OptionalMatcher.Template<R,org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.StringMatcher.Template<R>,java.lang.String,java.util.List<java.lang.String>>,java.util.Optional<java.util.List<java.lang.String>>>");
+    // List<Optional<String>> weird3();
     assertAttribute("weird3",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.OptionalStringMatcher.Template<R,java.util.Optional<java.lang.String>>,java.util.Optional<java.lang.String>>");
+            "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.OptionalStringMatcher.Template<R,java.util.Optional<java.lang.String>>,java.util.Optional<java.lang.String>,java.util.List<java.util.Optional<java.lang.String>>>");
     assertAttribute("weird4",
             "org.immutables.criteria.matcher.OptionalMatcher.Template<R,org.immutables.criteria.matcher.OptionalIntegerMatcher.Template<R,java.util.OptionalInt>,java.util.Optional<java.util.OptionalInt>>");
   }
@@ -137,9 +139,9 @@ public class CriteriaModelProcessorTest {
     assertAttribute("integer",
             "org.immutables.criteria.matcher.IntegerMatcher.Template<R>");
     assertAttribute("arrayInteger",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IntegerMatcher.Template<R>,java.lang.Integer>");
+            "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.IntegerMatcher.Template<R>,java.lang.Integer, int[]>");
     assertAttribute("arrayArrayInteger",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IntegerMatcher.Template<R>,java.lang.Integer>,java.lang.Integer[]>");
+            "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.IntegerMatcher.Template<R>,java.lang.Integer, int[]>,java.lang.Integer[], int[][]>");
     assertAttribute("optionalInteger",
             "org.immutables.criteria.matcher.OptionalIntegerMatcher.Template<R,java.util.OptionalInt>");
     assertAttribute("optionalInteger2",
@@ -151,8 +153,8 @@ public class CriteriaModelProcessorTest {
   @Test
   public void bigInteger() {
     assertAttribute("bigInteger", "org.immutables.criteria.matcher.BigIntegerMatcher.Template<R>");
-    assertAttribute("arrayBigInteger", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.BigIntegerMatcher.Template<R>,java.math.BigInteger>");
-    assertAttribute("listBigInteger", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.BigIntegerMatcher.Template<R>,java.math.BigInteger>");
+    assertAttribute("arrayBigInteger", "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.BigIntegerMatcher.Template<R>,java.math.BigInteger,java.math.BigInteger[]>");
+    assertAttribute("listBigInteger", "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.BigIntegerMatcher.Template<R>,java.math.BigInteger,java.util.List<java.math.BigInteger>>");
     assertAttribute("optionalBigInteger", "org.immutables.criteria.matcher.OptionalBigIntegerMatcher.Template<R,java.util.Optional<java.math.BigInteger>>");
     assertAttribute("nullableBigInteger", "org.immutables.criteria.matcher.OptionalBigIntegerMatcher.Template<R,java.math.BigInteger>");
   }
@@ -160,8 +162,8 @@ public class CriteriaModelProcessorTest {
   @Test
   public void bigDecimal() {
     assertAttribute("bigDecimal", "org.immutables.criteria.matcher.BigDecimalMatcher.Template<R>");
-    assertAttribute("arrayBigDecimal", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.BigDecimalMatcher.Template<R>,java.math.BigDecimal>");
-    assertAttribute("listBigDecimal", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.BigDecimalMatcher.Template<R>,java.math.BigDecimal>");
+    assertAttribute("arrayBigDecimal", "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.BigDecimalMatcher.Template<R>,java.math.BigDecimal,java.math.BigDecimal[]>");
+    assertAttribute("listBigDecimal", "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.BigDecimalMatcher.Template<R>,java.math.BigDecimal,java.util.List<java.math.BigDecimal>>");
     assertAttribute("optionalBigDecimal", "org.immutables.criteria.matcher.OptionalBigDecimalMatcher.Template<R,java.util.Optional<java.math.BigDecimal>>");
     assertAttribute("nullableBigDecimal", "org.immutables.criteria.matcher.OptionalBigDecimalMatcher.Template<R,java.math.BigDecimal>");
   }
@@ -182,7 +184,7 @@ public class CriteriaModelProcessorTest {
     checkCreator("string").not().contains("ModelCriteria.creator()");
     assertAttribute("nullableString", "org.immutables.criteria.matcher.OptionalStringMatcher.Template<R, java.lang.String>");
     assertAttribute("optionalString", "org.immutables.criteria.matcher.OptionalStringMatcher.Template<R,java.util.Optional<java.lang.String>>");
-    assertAttribute("stringList", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.StringMatcher.Template<R>,java.lang.String>");
+    assertAttribute("stringList", "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.StringMatcher.Template<R>,java.lang.String,java.util.List<java.lang.String>>");
     checkCreator("stringList").contains("IterableMatcher.creator()");
     checkCreator("arrayList").contains("IterableMatcher.creator()");
 
@@ -216,19 +218,19 @@ public class CriteriaModelProcessorTest {
     checkCreator("optionalFoo").contains("OptionalMatcher.creator()");
 
     assertAttribute("listFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
+            "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo,java.util.List<org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>>");
 
     checkCreator("listFoo").contains("FooCriteria.creator()");
     checkCreator("listFoo").contains("IterableMatcher.creator()");
 
     assertAttribute("listListFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,java.util.List<org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>>");
+            "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo,java.util.List<org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>>,java.util.List<org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,java.util.List<java.util.List<org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>>>");
     assertAttribute("arrayFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
+            "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
     assertAttribute("arrayArrayFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
+            "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[],org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[][]>");
     assertAttribute("listArrayFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
+            "org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.matcher.IterableMatcher.Template<R,org.immutables.criteria.processor.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[],java.util.List<org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>>");
   }
 
   @Test
