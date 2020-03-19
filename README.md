@@ -5,7 +5,7 @@ Read full documentation at http://immutables.org
 ```java
 // Define abstract value type using interface, abstract class or annotation
 @Value.Immutable
-public interface ValueObject extend WithValueObject {
+public interface ValueObject extends WithValueObject {
   // extend not-yet-generated WithValueObject to inherit `with*` method signatures
   String getName();
   List<Integer> getCounts();
