@@ -156,6 +156,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract String typeInnerModifiable();
+
+  @Value.Parameter
+  @Override
   public abstract String typeWith();
 
   @Value.Parameter
@@ -419,6 +423,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.typeImmutableEnclosing(),
         input.typeImmutableNested(),
         input.typeModifiable(),
+        input.typeInnerModifiable(),
         input.typeWith(),
         input.packageGenerated(),
         ToImmutableInfo.FUNCTION.apply(input.defaults()),

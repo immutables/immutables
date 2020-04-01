@@ -149,6 +149,8 @@ public final class ValueMirrors {
 
     String typeModifiable() default "Modifiable*";
 
+    String typeInnerModifiable() default "Modifiable";
+
     String typeWith() default "With*";
 
     String packageGenerated() default "*";
