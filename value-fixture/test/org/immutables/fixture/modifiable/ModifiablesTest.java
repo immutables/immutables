@@ -323,4 +323,24 @@ public class ModifiablesTest {
     check(ModifiableDefaultMap.create().putAllMap(Collections.emptyMap()).mapIsSet());
     check(ModifiableDefaultMap.create().putAllMap(Collections.singletonMap("a", "b")).mapIsSet());
   }
+
+  @Test
+  public void modifiablesWithInnerSuperclass() {
+    ModifiableWithModifiableSuperclass m1 = ModifiableWithModifiableSuperclass.create();
+    m1.addPrices(1.00f);
+    m1.addPrices(2.00f);
+    m1.computePricesWithTaxRate(0.06f);
+    check(m1.getPrices()).isOf(1.00f, 2.00f);
+    check(m1.getPricesWithSalesTax()).isOf(1.06f, 2.12f);
+  }
+
+  @Test
+  public void modifiablesWithInnerInterface() {
+    ModifiableWithModifiableInterface m1 = ModifiableWithModifiableInterface.create();
+    m1.addPrices(1.00f);
+    m1.addPrices(2.00f);
+    m1.computePricesWithTaxRate(0.06f);
+    check(m1.getPrices()).isOf(1.00f, 2.00f);
+    check(m1.getPricesWithSalesTax()).isOf(1.06f, 2.12f);
+  }
 }
