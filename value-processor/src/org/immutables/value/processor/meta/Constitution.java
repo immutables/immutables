@@ -694,6 +694,12 @@ public abstract class Constitution {
       super(names().namings.typeInnerBuilder);
     }
 
+    @Override
+    protected boolean isApplicableTo(Protoclass p) {
+      return p.kind().isValue();
+    }
+
+    @Override
     protected boolean isExtending(TypeElement element) {
       if (element.getKind() == ElementKind.CLASS) {
         String superclassString = SourceExtraction.getSuperclassString(element);
@@ -705,6 +711,7 @@ public abstract class Constitution {
       return false;
     }
 
+    @Override
     protected void lateValidateExtending(TypeElement t) {
       super.lateValidateExtending(t);
 
@@ -728,10 +735,17 @@ public abstract class Constitution {
       super(names().namings.typeInnerModifiable);
     }
 
+    @Override
+    protected boolean isApplicableTo(Protoclass p) {
+      return p.kind().isModifiable();
+    }
+
+    @Override
     protected boolean isExtending(TypeElement t) {
       return false;
     }
 
+    @Override
     protected void lateValidateSuper(TypeElement t) {
       super.lateValidateSuper(t);
 
@@ -850,12 +864,20 @@ public abstract class Constitution {
       }
     }
 
+    /**
+     * Used to determine if the inner class we're looking for is revelant
+     * given the annotations on the prototype class.  For example, there's
+     * no point in doing anything with an Modifiable inner class if it's
+     * not setup with the Value.Modifiable annotation.
+     */
+    protected abstract boolean isApplicableTo(Protoclass p);
+
     protected abstract boolean isExtending(TypeElement t);
 
     @Nullable
     private TypeElement findBaseClassElement() {
       Protoclass protoclass = protoclass();
-      if (!protoclass.kind().isValue()) {
+      if (!isApplicableTo(protoclass)) {
         return null;
       }
       for (Element t : protoclass.sourceElement().getEnclosedElements()) {
