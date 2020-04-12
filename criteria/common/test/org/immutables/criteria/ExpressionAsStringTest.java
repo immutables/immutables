@@ -367,6 +367,33 @@ class ExpressionAsStringTest {
   }
 
   @Test
+  void between() {
+    assertExpressional(person.age.between(1, 2).or().age.is(3),
+            "call op=OR",
+            "  call op=AND",
+            "    call op=GREATER_THAN_OR_EQUAL path=age constant=1",
+            "    call op=LESS_THAN_OR_EQUAL path=age constant=2",
+            "  call op=EQUAL path=age constant=3"
+    );
+
+    assertExpressional(person.age.is(3).or().age.between(1, 2),
+            "call op=OR",
+            "  call op=EQUAL path=age constant=3",
+            "  call op=AND",
+            "    call op=GREATER_THAN_OR_EQUAL path=age constant=1",
+            "    call op=LESS_THAN_OR_EQUAL path=age constant=2"
+    );
+
+    assertExpressional(person.age.is(1).age.between(2, 3),
+            "call op=AND",
+            "  call op=EQUAL path=age constant=1",
+            "  call op=AND",
+            "    call op=GREATER_THAN_OR_EQUAL path=age constant=2",
+            "    call op=LESS_THAN_OR_EQUAL path=age constant=3"
+    );
+  }
+
+  @Test
   void inner() {
     assertExpressional(person.bestFriend.value().with(f -> f.hobby.is("hiking")),
             "call op=EQUAL path=bestFriend.hobby constant=hiking");
@@ -408,34 +435,6 @@ class ExpressionAsStringTest {
             "    call op=EQUAL path=bestFriend.hobby constant=ski",
             "  call op=EQUAL path=fullName constant=John"
     );
-  }
-
-  @Test
-  void between() {
-    assertExpressional(person.age.between(1, 2).or().age.is(3),
-            "call op=OR",
-            "  call op=AND",
-            "    call op=GREATER_THAN_OR_EQUAL path=age constant=1",
-            "    call op=LESS_THAN_OR_EQUAL path=age constant=2",
-            "  call op=EQUAL path=age constant=3"
-    );
-
-    assertExpressional(person.age.is(3).or().age.between(1, 2),
-            "call op=OR",
-            "  call op=EQUAL path=age constant=3",
-            "  call op=AND",
-            "    call op=GREATER_THAN_OR_EQUAL path=age constant=1",
-            "    call op=LESS_THAN_OR_EQUAL path=age constant=2"
-    );
-
-    assertExpressional(person.age.is(1).age.between(2, 3),
-            "call op=AND",
-            "  call op=EQUAL path=age constant=1",
-            "  call op=AND",
-            "    call op=GREATER_THAN_OR_EQUAL path=age constant=2",
-            "    call op=LESS_THAN_OR_EQUAL path=age constant=3"
-    );
-
   }
 
   private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {

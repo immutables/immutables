@@ -17,6 +17,7 @@
 package org.immutables.criteria.elasticsearch;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
@@ -29,6 +30,7 @@ import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -120,7 +122,7 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
     }
 
     if (op == Operators.IN || op == Operators.NOT_IN) {
-      final List<Object> values = Visitors.toConstant(arguments.get(1)).values();
+      final Collection<Object> values = ImmutableSet.copyOf(Visitors.toConstant(arguments.get(1)).values());
 
       QueryBuilders.QueryBuilder builder;
       if (idPredicate.test(path)) {

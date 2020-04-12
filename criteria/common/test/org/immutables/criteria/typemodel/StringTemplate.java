@@ -352,9 +352,6 @@ public abstract class StringTemplate {
     ids(string.value.is("<>|\\")).isOf("id4");
   }
 
-  /**
-   * Basic queries on key
-   */
   @Test
   void queryOnId() {
     repository.insert(generator.get().withId("id1"));
@@ -373,6 +370,36 @@ public abstract class StringTemplate {
     ids(string.id.notIn(Collections.singleton("id2"))).hasContentInAnyOrder("id1");
   }
 
+  /**
+   * Check upper/lower case functionality. Example {@code .toUpperCase().contains("AA") }
+   */
+  @Test
+  protected void upperLowerCase() {
+    repository.insert(generator.get().withId("id1").withValue(""));
+    repository.insert(generator.get().withId("id2").withValue("a"));
+    repository.insert(generator.get().withId("id3").withValue("A"));
+    repository.insert(generator.get().withId("id4").withValue("bC"));
+
+    // empty
+    ids(string.value.toLowerCase().isEmpty()).isOf("id1");
+    ids(string.value.toUpperCase().isEmpty()).isOf("id1");
+    ids(string.value.toLowerCase().notEmpty()).not().isOf("id1");
+    ids(string.value.toUpperCase().notEmpty()).not().isOf("id1");
+
+    // single letter
+    ids(string.value.toLowerCase().is("a")).hasContentInAnyOrder("id2", "id3");
+    ids(string.value.toUpperCase().is("A")).hasContentInAnyOrder("id2", "id3");
+    ids(string.value.toUpperCase().is("a")).isEmpty();
+    ids(string.value.toLowerCase().is("A")).isEmpty();
+
+    // two letters
+    ids(string.value.toUpperCase().is("BC")).isOf("id4");
+    ids(string.value.toLowerCase().is("bc")).isOf("id4");
+    ids(string.value.toLowerCase().is("BC")).isEmpty();
+    ids(string.value.toUpperCase().is("bc")).isEmpty();
+    ids(string.value.toUpperCase().is("bC")).isEmpty();
+    ids(string.value.toUpperCase().is("Bc")).isEmpty();
+  }
 
   /**
    * Return {@link TypeHolder.StringHolder#value()} after applying a criteria

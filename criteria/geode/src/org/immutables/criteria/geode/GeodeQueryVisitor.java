@@ -18,8 +18,6 @@ package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.primitives.Primitives;
-
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
@@ -36,10 +34,9 @@ import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -75,8 +72,8 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
 
     if (op == Operators.NOT_IN || op == IterableOperators.NOT_EMPTY) {
       // geode doesn't understand syntax foo not in [1, 2, 3]
-      // convert "foo not in [1, 2, 3]" into "not foo in [1, 2, 3]"
-      return visit(Expressions.not(Expressions.call(getInverseOp(op), call.arguments())));
+      // convert "foo not in [1, 2, 3]" into "not (foo in [1, 2, 3])"
+      return visit(Expressions.not(Expressions.call(inverseOp(op), call.arguments())));
     }
 
     if (op == Operators.AND || op == Operators.OR) {
@@ -97,7 +94,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     throw new UnsupportedOperationException("Don't know how to handle " + call);
   }
 
-  private static Operator getInverseOp(Operator op) {
+  private static Operator inverseOp(Operator op) {
     if (op == Operators.NOT_IN) {
       return Operators.IN;
     } else if (op == IterableOperators.NOT_EMPTY) {
@@ -117,15 +114,14 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     Preconditions.checkArgument(args.size() == 1,
             "Size should be == 1 for unary operator %s but was %s", op, args.size());
 
+    Expression arg0 = args.get(0);
     if (op instanceof OptionalOperators) {
-      final Path path = Visitors.toPath(args.get(0));
-      final String isNull = op == OptionalOperators.IS_PRESENT ? "!= null" : "= null";
-      return oql(pathNaming.name(path) + " " + isNull);
+      String isNull = op == OptionalOperators.IS_PRESENT ? "!= null" : "= null";
+      return oql(arg0.accept(this).oql() + " " + isNull);
     } else if (op == Operators.NOT) {
-      return oql("NOT (" + args.get(0).accept(this).oql() + ")");
-    }  else if (op == IterableOperators.IS_EMPTY) {
-      final Path path = Visitors.toPath(args.get(0));
-      return oql(pathNaming.name(path) + "." + toMethod(op));
+      return oql("NOT (" + arg0.accept(this).oql() + ")");
+    }  else if (op == IterableOperators.IS_EMPTY || op == StringOperators.TO_LOWER_CASE || op == StringOperators.TO_UPPER_CASE) {
+      return oql(arg0.accept(this).oql() + "." + toMethodName(op));
     }
 
     throw new UnsupportedOperationException("Unknown unary operator " + call);
@@ -139,35 +135,28 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     final List<Expression> args = call.arguments();
     Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s on call %s", op, args.size(), call);
 
-    final String namedPath = getNamedPath(call);
+    Expression left = args.get(0); // left node
+    Expression right = args.get(1); // right node
+    if (op == IterableOperators.CONTAINS || op == StringOperators.MATCHES
+            || op == StringOperators.CONTAINS || op == StringOperators.STARTS_WITH
+            || op == StringOperators.ENDS_WITH) {
+      return oql(String.format("%s.%s(%s)", left.accept(this).oql(), toMethodName(op), right.accept(this).oql()));
+    }
 
-    final Object variable = getVariable(call);
-
-    if (op == IterableOperators.CONTAINS) {
-      Preconditions.checkArgument(
-              useBindVariables || isStringOrPrimitive(variable),
-              "String or Primitive types only supported for contains operator but was " + variable.getClass()
-      );
-      return oql(String.format("%s.contains(%s)", namedPath, addAndGetBoundVariable(variable)));
-    } else if (op == StringOperators.MATCHES) {
-      return oql(String.format("%s.matches(%s)", namedPath, addAndGetBoundVariable(variable)));
-    } else if (op == StringOperators.CONTAINS || op == StringOperators.STARTS_WITH || op == StringOperators.ENDS_WITH) {
-      Preconditions.checkArgument(variable instanceof CharSequence, "Variable should be String but was " + variable);
-
-      final String value = Geodes.escapeOql((CharSequence) variable);
-      final String likePattern = getLikePattern(op, value);
-      if (useBindVariables) {
-        variables.add(likePattern);
-        return oql(String.format("%s LIKE $%d", namedPath, variables.size()));
-      } else {
-        return oql(String.format("%s LIKE '%s'", namedPath, likePattern));
-      }
+    if (op == StringOperators.HAS_LENGTH || op == IterableOperators.HAS_SIZE) {
+      return oql(String.format("%s.%s = %s", left.accept(this).oql(), toMethodName(op), right.accept(this).oql()));
     }
 
     final String operator;
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       operator = op == Operators.EQUAL ? "=" : "!=";
     } else if (op == Operators.IN || op == Operators.NOT_IN) {
+      if (right instanceof Constant) {
+        // optimization for IN / NOT IN operators
+        // make constant value(s) distinct using Set
+        Set<Object> newValues = ImmutableSet.copyOf(Visitors.toConstant(right).values());
+        right = Expressions.constant(newValues);
+      }
       operator = op == Operators.IN ? "IN" : "NOT IN";
     } else if (op == ComparableOperators.GREATER_THAN) {
       operator = ">";
@@ -177,71 +166,29 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
       operator = "<";
     } else if (op == ComparableOperators.LESS_THAN_OR_EQUAL) {
       operator = "<=";
-    } else if (op == IterableOperators.HAS_SIZE || op == StringOperators.HAS_LENGTH) {
-      operator = "=";
     } else {
       throw new IllegalArgumentException("Unknown binary operator " + call);
     }
 
-    return oql(String.format("%s %s %s", namedPath, operator, addAndGetBoundVariable(variable)));
+    return oql(String.format("%s %s %s", left.accept(this).oql(), operator, right.accept(this).oql()));
   }
 
-  private static boolean isStringOrPrimitive(Object variable) {
-    return variable instanceof CharSequence || Primitives.isWrapperType(Primitives.wrap(variable.getClass()));
+  @Override
+  public Oql visit(Path path) {
+    return oql(pathNaming.name(path));
   }
 
-  private static String getLikePattern(Operator op, String value) {
-    if (op == StringOperators.STARTS_WITH) {
-      return value + "%";
-    } else if (op == StringOperators.ENDS_WITH) {
-      return "%" + value;
-    } else if (op == StringOperators.CONTAINS) {
-      return "%" + value + "%";
-    } else {
-      throw new IllegalArgumentException("LIKE query used with invalid operator " + op);
-    }
-  }
-
-  private String getNamedPath(Call call) {
-    final Operator op = call.operator();
-    final List<Expression> args = call.arguments();
-
-    final Path path = Visitors.toPath(args.get(0));
-    String namedPath = pathNaming.name(path);
-    if (op == IterableOperators.HAS_SIZE) {
-      return namedPath + ".size";
-    } else if (op == StringOperators.HAS_LENGTH) {
-      return namedPath + ".length";
-    }
-    return namedPath;
-  }
-
-  private static Object getVariable(Call call) {
-    final Operator op = call.operator();
-    final List<Expression> args = call.arguments();
-
-    final Constant constant = Visitors.toConstant(args.get(1));
-
-    if (op == Operators.IN || op == Operators.NOT_IN) {
-      return ImmutableSet.copyOf(constant.values());
-    } else {
-      return constant.value();
-    }
-  }
-
-  private String addAndGetBoundVariable(Object variable) {
-    return maybeAddAndGetBoundVariable(variable)
-            .orElseGet(() -> toString(variable));
-  }
-
-  private Optional<String> maybeAddAndGetBoundVariable(Object variable) {
+  @Override
+  public Oql visit(Constant constant) {
+    String oqlAsString;
     if (useBindVariables) {
-      variables.add(variable);
-
-      return Optional.of("$" + String.valueOf(variables.size()));
+      variables.add(constant.value());
+      oqlAsString = "$" + variables.size();
     } else {
-      return Optional.empty();
+      oqlAsString = valueToString(constant.value());
     }
+
+    return oql(oqlAsString);
   }
 
   /**
@@ -251,23 +198,40 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
     return new Oql(variables, oql);
   }
 
-  private static String toMethod(Operator op) {
+  private static String toMethodName(Operator op) {
     if (op == IterableOperators.IS_EMPTY) {
       return "isEmpty";
+    } else if (op == StringOperators.TO_LOWER_CASE) {
+      return "toLowerCase";
+    } else if (op == StringOperators.TO_UPPER_CASE) {
+      return "toUpperCase";
+    } else if (op == StringOperators.HAS_LENGTH) {
+      return "length";
+    } else if (op == IterableOperators.HAS_SIZE) {
+      return "size";
+    } else if (op == StringOperators.CONTAINS || op == IterableOperators.CONTAINS) {
+      return "contains";
+    } else if (op == StringOperators.STARTS_WITH) {
+      return "startsWith";
+    } else if (op == StringOperators.ENDS_WITH) {
+      return "endsWith";
+    } else if (op == StringOperators.MATCHES) {
+      return "matches";
     }
+
     throw new UnsupportedOperationException("Don't know how to handle Operator " + op);
   }
 
-  private static String toString(Object value) {
+  private static String valueToString(Object value) {
     if (value instanceof CharSequence) {
       return "'" + Geodes.escapeOql((CharSequence) value) + "'";
     } else if (value instanceof Pattern) {
       return "'" + Geodes.escapeOql(((Pattern) value).pattern()) + "'";
-    } else if (value instanceof Collection) {
+    } else if (value instanceof Iterable) {
       @SuppressWarnings("unchecked")
-      final Collection<Object> coll = (Collection<Object>) value;
-      String asString = coll.stream().map(GeodeQueryVisitor::toString).collect(Collectors.joining(", "));
-      return String.format("SET(%s)", asString);
+      final Set<Object> set = ImmutableSet.copyOf((Iterable<Object>) value);
+      String asString = set.stream().map(GeodeQueryVisitor::valueToString).collect(Collectors.joining(", "));
+      return "SET(" + asString + ")";
     } else {
       return Objects.toString(value);
     }

@@ -33,6 +33,7 @@ import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -67,6 +68,11 @@ class ElasticIntegrationTests {
   class StringTest extends StringTemplate {
     private StringTest() {
       super(backend);
+    }
+
+    @Disabled("Does not yet work in Elastic")
+    @Override
+    protected void upperLowerCase() {
     }
   }
 

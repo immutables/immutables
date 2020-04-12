@@ -43,6 +43,20 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String> {
   }
 
   /**
+   * Apply upper case function to current expression (equivalent to {@code $this.toUpperCase()})
+   */
+  default StringMatcher<R> toUpperCase() {
+    return Matchers.extract(this).applyRaw(e -> Expressions.call(StringOperators.TO_UPPER_CASE, e)).create();
+  }
+
+  /**
+   * Apply lower case function to current expression (equivalent to {@code $this.toLowerCase()})
+   */
+  default StringMatcher<R> toLowerCase() {
+    return Matchers.extract(this).applyRaw(e -> Expressions.call(StringOperators.TO_LOWER_CASE, e)).create();
+  }
+
+  /**
    *  Check that attribute contains {@code other}
    */
   default R contains(CharSequence other) {

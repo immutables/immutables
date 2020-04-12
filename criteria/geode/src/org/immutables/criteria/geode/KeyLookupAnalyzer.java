@@ -17,6 +17,7 @@
 package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
@@ -158,7 +159,7 @@ abstract class KeyLookupAnalyzer {
       }
 
       // extract values
-      List<?> values = Visitors.toConstant(predicate.arguments().get(1)).values();
+      List<?> values = ImmutableList.copyOf(Visitors.toConstant(predicate.arguments().get(1)).values());
       return new Result() {
         @Override
         public boolean isOptimizable() {

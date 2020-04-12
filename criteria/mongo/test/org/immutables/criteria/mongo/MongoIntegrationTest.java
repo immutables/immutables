@@ -34,6 +34,7 @@ import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.immutables.criteria.typemodel.UpdateByQueryTemplate;
 import org.immutables.criteria.typemodel.WriteTemplate;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -50,6 +51,11 @@ class MongoIntegrationTest {
   class String extends StringTemplate {
     private String() {
       super(backend);
+    }
+
+    @Disabled("Doesn't work in mongo yet")
+    @Override
+    protected void upperLowerCase() {
     }
   }
 

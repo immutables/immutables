@@ -42,6 +42,19 @@ public enum StringOperators implements Operator {
   ENDS_WITH(Arity.BINARY),
 
   /**
+   * Upper case expression of a string
+   * @see String#toUpperCase()
+   */
+  TO_UPPER_CASE(Arity.UNARY),
+
+
+  /**
+   * Lower case expression of a string
+   * @see String#toLowerCase()
+   */
+  TO_LOWER_CASE(Arity.UNARY),
+
+  /**
    * String has particular length. Eg. {@code 0} for empty string.
    */
   HAS_LENGTH(Arity.BINARY);

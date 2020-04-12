@@ -129,6 +129,17 @@ class ExpressionInterpreter implements Function<Object, Object> {
         return (op == OptionalOperators.IS_ABSENT) ? Objects.isNull(left) : Objects.nonNull(left);
       }
 
+      if (op == StringOperators.TO_UPPER_CASE || op == StringOperators.TO_LOWER_CASE) {
+        Preconditions.checkArgument(args.size() == 1, "Size should be 1 but was %d", args.size());
+        Object value = args.get(0).accept(this);
+        if (value == null || value == UNKNOWN) {
+          return UNKNOWN;
+        }
+
+        Preconditions.checkArgument(value instanceof CharSequence, "Expected %s got %s", CharSequence.class.getSimpleName(), value.getClass().getName());
+        return op == StringOperators.TO_UPPER_CASE ? value.toString().toUpperCase() : value.toString().toLowerCase();
+      }
+
       if (op == Operators.AND || op == Operators.OR) {
         Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
         final boolean shortCircuit = op == Operators.OR;

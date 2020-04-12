@@ -17,6 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -34,6 +35,7 @@ import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -121,12 +123,12 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     }
 
     if (op == Operators.IN || op == Operators.NOT_IN) {
-      final List<Object> values = Visitors.toConstant(call.arguments().get(1)).values();
+      final Collection<Object> values = ImmutableSet.copyOf(Visitors.toConstant(call.arguments().get(1)).values());
       Preconditions.checkNotNull(values, "not expected to be null for %s", op);
       if (values.size() == 1) {
         // optimization: convert IN, NIN (where argument is a list with single element) into EQ / NE
         Operators newOperator = op == Operators.IN ? Operators.EQUAL : Operators.NOT_EQUAL;
-        Call newCall = Expressions.call(newOperator, call.arguments().get(0), Expressions.constant(values.get(0)));
+        Call newCall = Expressions.call(newOperator, call.arguments().get(0), Expressions.constant(values.iterator().next()));
         return binaryCall(newCall);
       }
       return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);
@@ -169,6 +171,11 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
               Pattern.quote(value.toString()),
               op == StringOperators.ENDS_WITH ? "$" : "");
       return Filters.regex(field, Pattern.compile(pattern));
+    }
+
+    if (op == StringOperators.TO_LOWER_CASE || op == StringOperators.TO_UPPER_CASE) {
+      // $expr:{$eq:[ $toUpper: "$field", "value"]}
+      // probably needs special check for wrapping expression
     }
 
     throw new UnsupportedOperationException(String.format("Unsupported binary call %s", call));

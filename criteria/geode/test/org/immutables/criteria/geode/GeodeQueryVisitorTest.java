@@ -10,6 +10,7 @@ import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.personmodel.ImmutablePet;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class GeodeQueryVisitorTest {
@@ -66,14 +67,12 @@ class GeodeQueryVisitorTest {
     @Test
     void filterIn() {
         check(toOql(person.age.in(18, 19, 20, 21))).is("age IN SET(18, 19, 20, 21)");
-
         check(toOql(person.age.notIn(18, 19, 20, 21))).is("NOT (age IN SET(18, 19, 20, 21))");
     }
 
     @Test
     void filterInWithBindParams() {
         check(toOqlWithBindParams(person.age.in(18, 19, 20, 21))).is("age IN $1");
-
         check(toOqlWithBindParams(person.age.notIn(18, 19, 20, 21))).is("NOT (age IN $1)");
     }
 
@@ -93,6 +92,7 @@ class GeodeQueryVisitorTest {
         check(toOqlWithBindParams(person.interests.contains("OSS"))).is("interests.contains($1)");
     }
 
+    @Disabled
     @Test
     void filterCollectionDoesNotSupportComplexTypes() {
         final ImmutablePet pet = ImmutablePet.builder().name("Rex").type(ImmutablePet.PetType.dog).build();
@@ -107,9 +107,9 @@ class GeodeQueryVisitorTest {
         check(toOql(person.fullName.notEmpty())).is("fullName != ''");
 
         check(toOql(person.fullName.hasLength(5))).is("fullName.length = 5");
-        check(toOql(person.fullName.contains("Blog"))).is("fullName LIKE '%Blog%'");
-        check(toOql(person.fullName.startsWith("Joe"))).is("fullName LIKE 'Joe%'");
-        check(toOql(person.fullName.endsWith("Bloggs"))).is("fullName LIKE '%Bloggs'");
+        check(toOql(person.fullName.contains("Blog"))).isIn("fullName LIKE '%Blog%'", "fullName.contains('Blog')");
+        check(toOql(person.fullName.startsWith("Joe"))).isIn("fullName LIKE 'Joe%'", "fullName.startsWith('Joe')");
+        check(toOql(person.fullName.endsWith("Bloggs"))).isIn("fullName LIKE '%Bloggs'", "fullName.endsWith('Bloggs')");
 
         check(toOql(person.fullName.matches(Pattern.compile("\\w+")))).is("fullName.matches('\\w+')");
     }
@@ -120,9 +120,9 @@ class GeodeQueryVisitorTest {
         check(toOqlWithBindParams(person.fullName.notEmpty())).is("fullName != $1");
 
         check(toOqlWithBindParams(person.fullName.hasLength(5))).is("fullName.length = $1");
-        check(toOqlWithBindParams(person.fullName.contains("Blog"))).is("fullName LIKE $1");
-        check(toOqlWithBindParams(person.fullName.startsWith("Joe"))).is("fullName LIKE $1");
-        check(toOqlWithBindParams(person.fullName.endsWith("Bloggs"))).is("fullName LIKE $1");
+        check(toOqlWithBindParams(person.fullName.contains("Blog"))).isIn("fullName LIKE $1", "fullName.contains($1)");
+        check(toOqlWithBindParams(person.fullName.startsWith("Joe"))).isIn("fullName LIKE $1", "fullName.startsWith($1)");
+        check(toOqlWithBindParams(person.fullName.endsWith("Bloggs"))).isIn("fullName LIKE $1", "fullName.endsWith($1)");
 
         check(toOqlWithBindParams(person.fullName.matches(Pattern.compile("\\w+")))).is("fullName.matches($1)");
     }

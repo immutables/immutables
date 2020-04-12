@@ -17,6 +17,8 @@
 package org.immutables.criteria.geode;
 
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.Criterias;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.*;
 import org.immutables.criteria.personmodel.Person;
@@ -126,6 +128,22 @@ class OqlGeneratorTest {
 
   }
 
+  @Test
+  void upperLower() {
+    check(generate(person.fullName.toLowerCase().is("a")))
+            .is("SELECT * FROM /myRegion WHERE fullName.toLowerCase = $1");
+
+    check(generate(Query.of(Person.class).withFilter(toExpression(person.fullName.toUpperCase().is("A")))))
+            .is("SELECT * FROM /myRegion WHERE fullName.toUpperCase = $1");
+
+    check(generate(Query.of(Person.class).withFilter(toExpression(person.fullName.toUpperCase().toLowerCase().is("A")))))
+            .is("SELECT * FROM /myRegion WHERE fullName.toUpperCase.toLowerCase = $1");
+
+    check(generate(Query.of(Person.class).withFilter(toExpression(person.fullName.toUpperCase().toLowerCase().toUpperCase().is("A")))))
+            .is("SELECT * FROM /myRegion WHERE fullName.toUpperCase.toLowerCase.toUpperCase = $1");
+
+  }
+
   /**
    *  <a href="https://geode.apache.org/docs/guide/19/developing/querying_basics/reserved_words.html">reserved</a> words in Geode
    *  have to be enclosed in double quotation marks like {@code "type"} or {@code "where"}
@@ -152,6 +170,11 @@ class OqlGeneratorTest {
             .addCollations(Collections.singleton(Collation.of(type)))
             .addProjections(type, order, date, select))
             .oql()).is("SELECT \"type\", \"order\", \"date\", \"select\" FROM /myRegion GROUP BY \"type\" ORDER BY \"type\"");
+  }
+
+
+  private String generate(Criterion<?> person) {
+    return generate(Criterias.toQuery(person));
   }
 
   private String generate(Query query) {
