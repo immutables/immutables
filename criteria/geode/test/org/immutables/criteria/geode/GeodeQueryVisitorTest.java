@@ -137,7 +137,7 @@ class GeodeQueryVisitorTest {
         check(toOqlWithBindParams(person.age.greaterThan(18)
                 .address.value().city.is("London")
                 .and(person.isActive.isTrue())))
-                .is("((age > $1) AND (address.city = $2)) AND (isActive = $3)");
+                .is("(age > $1) AND (address.city = $2) AND (isActive = $3)");
     }
 
     @Test

@@ -101,9 +101,8 @@ public class NestedTest {
                     .a.value().value.isEmpty()
             ,
             "call op=AND",
-            "  call op=AND",
-            "    call op=EQUAL path=a.value constant=a",
-            "    call op=EQUAL path=a.value constant=b",
+            "  call op=EQUAL path=a.value constant=a",
+            "  call op=EQUAL path=a.value constant=b",
             "  call op=EQUAL path=a.value constant="
     );
     assertExpressional(RootCriteria.root
@@ -111,12 +110,10 @@ public class NestedTest {
                     .a.value().with(a -> a.value.isEmpty().value.notEmpty())
             ,
             "call op=AND",
-            "  call op=AND",
-            "    call op=EQUAL path=a.value constant=a",
-            "    call op=EQUAL path=a.value constant=b",
-            "  call op=AND",
-            "    call op=EQUAL path=a.value constant=",
-            "    call op=NOT_EQUAL path=a.value constant="
+            "  call op=EQUAL path=a.value constant=a",
+            "  call op=EQUAL path=a.value constant=b",
+            "  call op=EQUAL path=a.value constant=",
+            "  call op=NOT_EQUAL path=a.value constant="
     );
   }
 

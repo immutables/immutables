@@ -33,6 +33,6 @@ public interface Disjunction<R> extends Matcher {
    * @return new root criteria with updated expression
    */
   default R or() {
-    return Matchers.extract(this).or().root().create();
+    return Matchers.extract(this).or().create();
   }
 }

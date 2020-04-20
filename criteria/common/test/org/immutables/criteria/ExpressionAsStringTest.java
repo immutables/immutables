@@ -32,58 +32,61 @@ import java.util.stream.Collectors;
  */
 class ExpressionAsStringTest {
 
+  private final PersonCriteria person = PersonCriteria.person;
+
   @Test
   void string() {
-    PersonCriteria crit = PersonCriteria.person;
+    assertExpressional(person.bestFriend.isPresent(), "call op=IS_PRESENT path=bestFriend");
+    assertExpressional(person.bestFriend.isAbsent(), "call op=IS_ABSENT path=bestFriend");
 
-    assertExpressional(crit.bestFriend.isPresent(), "call op=IS_PRESENT path=bestFriend");
-    assertExpressional(crit.bestFriend.isAbsent(), "call op=IS_ABSENT path=bestFriend");
-
-    assertExpressional(crit.bestFriend.value().hobby.is("ski"),
+    assertExpressional(person.bestFriend.value().hobby.is("ski"),
             "call op=EQUAL path=bestFriend.hobby constant=ski");
-    assertExpressional(crit.fullName.in("n1", "n2"), "call op=IN path=fullName constant=[n1, n2]");
+    assertExpressional(person.fullName.in("n1", "n2"), "call op=IN path=fullName constant=[n1, n2]");
 
-    assertExpressional(crit.fullName.is("John").or().fullName.is("Mary"),
+    assertExpressional(person.fullName.is("John").or().fullName.is("Mary"),
             "call op=OR",
                     "  call op=EQUAL path=fullName constant=John",
                     "  call op=EQUAL path=fullName constant=Mary");
 
-    assertExpressional(crit.bestFriend.value().hobby.is("ski"),
+    assertExpressional(person.fullName.is("John").or().fullName.is("Mary").or().fullName.is("Bob"),
+            "call op=OR",
+                    "  call op=EQUAL path=fullName constant=John",
+                    "  call op=EQUAL path=fullName constant=Mary",
+                    "  call op=EQUAL path=fullName constant=Bob");
+
+    assertExpressional(person.bestFriend.value().hobby.is("ski"),
                     "call op=EQUAL path=bestFriend.hobby constant=ski");
   }
 
   @Test
   void with() {
-    PersonCriteria crit = PersonCriteria.person;
-
-    assertExpressional(crit.with(c -> c.fullName.is("John")),
+    assertExpressional(person.with(c -> c.fullName.is("John")),
             "call op=EQUAL path=fullName constant=John");
-    assertExpressional(crit.with(c -> c.fullName.is("John").nickName.isPresent()),
+    assertExpressional(person.with(c -> c.fullName.is("John").nickName.isPresent()),
             "call op=AND",
             "  call op=EQUAL path=fullName constant=John",
             "  call op=IS_PRESENT path=nickName");
-    assertExpressional(crit.fullName.with(f -> f.is("John")),
+    assertExpressional(person.fullName.with(f -> f.is("John")),
             "call op=EQUAL path=fullName constant=John");
 
-    assertExpressional(crit.bestFriend.value().with(f -> f.hobby.is("aaa")),
+    assertExpressional(person.bestFriend.value().with(f -> f.hobby.is("aaa")),
             "call op=EQUAL path=bestFriend.hobby constant=aaa");
 
-    assertExpressional(crit.bestFriend.value().hobby.with(h -> h.is("a").is("b")),
+    assertExpressional(person.bestFriend.value().hobby.with(h -> h.is("a").is("b")),
             "call op=AND",
             "  call op=EQUAL path=bestFriend.hobby constant=a",
             "  call op=EQUAL path=bestFriend.hobby constant=b");
 
-    assertExpressional(crit.bestFriend.value().hobby.with(h -> h.is("a").is("b")),
+    assertExpressional(person.bestFriend.value().hobby.with(h -> h.is("a").is("b")),
             "call op=AND",
             "  call op=EQUAL path=bestFriend.hobby constant=a",
             "  call op=EQUAL path=bestFriend.hobby constant=b");
 
-    assertExpressional(crit.bestFriend.value().hobby.with(h -> h.is("a").is("b"))
+    assertExpressional(person.bestFriend.value().hobby.with(h -> h.is("a").is("b"))
                    .fullName.isEmpty(),
             "call op=AND",
-            "  call op=AND",
-            "    call op=EQUAL path=bestFriend.hobby constant=a",
-            "    call op=EQUAL path=bestFriend.hobby constant=b",
+            "  call op=EQUAL path=bestFriend.hobby constant=a",
+            "  call op=EQUAL path=bestFriend.hobby constant=b",
             "  call op=EQUAL path=fullName constant=");
 
     assertExpressional(PersonCriteria.person
@@ -117,7 +120,7 @@ class ExpressionAsStringTest {
   @Test
   void with2() {
     // nested
-    assertExpressional(PersonCriteria.person.with(p1 -> p1.with(p2-> p2.fullName.is("a"))),
+    assertExpressional(person.with(p1 -> p1.with(p2-> p2.fullName.is("a"))),
             "call op=EQUAL path=fullName constant=a");
 
     assertExpressional(PersonCriteria.person.with(p1 -> p1.with(p2-> p2.fullName.is("a")).age.is(11)),
@@ -147,13 +150,11 @@ class ExpressionAsStringTest {
 
   @Test
   void not() {
-    PersonCriteria crit = PersonCriteria.person;
-
-    assertExpressional(crit.fullName.not(n -> n.is("John")),
+    assertExpressional(person.fullName.not(n -> n.is("John")),
             "call op=NOT",
                     "  call op=EQUAL path=fullName constant=John");
 
-    assertExpressional(crit.not(f -> f.fullName.is("John").bestFriend.isPresent()),
+    assertExpressional(person.not(f -> f.fullName.is("John").bestFriend.isPresent()),
             "call op=NOT",
                     "  call op=AND",
                     "    call op=EQUAL path=fullName constant=John",
@@ -176,54 +177,46 @@ class ExpressionAsStringTest {
 
   @Test
   void and() {
-    PersonCriteria crit = PersonCriteria.person;
-
     PersonCriteria other = PersonCriteria.person
-            .and(crit.age.atMost(1)).and(crit.age.atLeast(2));
+            .and(person.age.atMost(1)).and(person.age.atLeast(2));
 
     assertExpressional(other, "call op=AND",
             "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
             "  call op=GREATER_THAN_OR_EQUAL path=age constant=2");
 
-    assertExpressional(other.and(crit.age.is(3)),
+    assertExpressional(other.and(person.age.is(3)),
             "call op=AND",
-                    "  call op=AND",
-                    "    call op=LESS_THAN_OR_EQUAL path=age constant=1",
-                    "    call op=GREATER_THAN_OR_EQUAL path=age constant=2",
+                    "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+                    "  call op=GREATER_THAN_OR_EQUAL path=age constant=2",
                     "  call op=EQUAL path=age constant=3");
 
-    assertExpressional(other.and(crit.age.is(3)),
+    assertExpressional(other.and(person.age.is(3)),
             "call op=AND",
-                    "  call op=AND",
-                    "    call op=LESS_THAN_OR_EQUAL path=age constant=1",
-                    "    call op=GREATER_THAN_OR_EQUAL path=age constant=2",
+                    "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+                    "  call op=GREATER_THAN_OR_EQUAL path=age constant=2",
                     "  call op=EQUAL path=age constant=3");
   }
 
   @Test
   void or() {
-    PersonCriteria crit = PersonCriteria.person;
-
-    PersonCriteria other = PersonCriteria.person
-            .or(crit.age.atMost(1)).or(crit.age.atLeast(2));
+    PersonCriteria other = person
+            .or(person.age.atMost(1)).or(person.age.atLeast(2));
 
     assertExpressional(other, "call op=OR",
             "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
             "  call op=GREATER_THAN_OR_EQUAL path=age constant=2");
 
-    assertExpressional(other.or(crit.age.is(3)),
+    assertExpressional(other.or(person.age.is(3)),
             "call op=OR",
-                    "  call op=OR",
-                    "    call op=LESS_THAN_OR_EQUAL path=age constant=1",
-                    "    call op=GREATER_THAN_OR_EQUAL path=age constant=2",
+                    "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+                    "  call op=GREATER_THAN_OR_EQUAL path=age constant=2",
                     "  call op=EQUAL path=age constant=3");
 
-    assertExpressional(crit.or(crit.age.atMost(1)).or(crit.age.atLeast(2))
-                    .or(crit.age.is(3)),
+    assertExpressional(person.or(person.age.atMost(1)).or(person.age.atLeast(2))
+                    .or(person.age.is(3)),
             "call op=OR",
-            "  call op=OR",
-            "    call op=LESS_THAN_OR_EQUAL path=age constant=1",
-            "    call op=GREATER_THAN_OR_EQUAL path=age constant=2",
+            "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+            "  call op=GREATER_THAN_OR_EQUAL path=age constant=2",
             "  call op=EQUAL path=age constant=3");
 
   }
@@ -233,10 +226,8 @@ class ExpressionAsStringTest {
    */
   @Test
   void andOrCombined() {
-    PersonCriteria crit = PersonCriteria.person;
-
     // A or (B and C)
-    assertExpressional(crit.age.is(1).or()
+    assertExpressional(person.age.is(1).or()
                     .age.is(2)
                     .age.is(3),
             "call op=OR",
@@ -246,7 +237,7 @@ class ExpressionAsStringTest {
             "    call op=EQUAL path=age constant=3");
 
     // (A and B) or C
-    assertExpressional(crit.age.is(1)
+    assertExpressional(person.age.is(1)
                     .age.is(2)
                     .or()
                     .age.is(3),
@@ -257,7 +248,7 @@ class ExpressionAsStringTest {
             "  call op=EQUAL path=age constant=3");
 
     // A or (B and C and D)
-    assertExpressional(crit.age.is(1).or()
+    assertExpressional(person.age.is(1).or()
                     .age.is(2)
                     .age.is(3)
                     .age.is(4),
@@ -269,7 +260,7 @@ class ExpressionAsStringTest {
             "    call op=EQUAL path=age constant=4");
 
     // (A and B) or (C and D)
-    assertExpressional(crit.age.is(1)
+    assertExpressional(person.age.is(1)
                     .age.is(2)
             .or()
                     .age.is(3)
@@ -283,7 +274,7 @@ class ExpressionAsStringTest {
             "    call op=EQUAL path=age constant=4");
 
     // (A and B and C) or D
-    assertExpressional(crit.age.is(1)
+    assertExpressional(person.age.is(1)
                     .age.is(2)
                     .age.is(3)
             .or()
@@ -299,38 +290,53 @@ class ExpressionAsStringTest {
 
   @Test
   void andOrAsCriteriaParams() {
-    PersonCriteria crit = PersonCriteria.person;
+
+    assertExpressional(person.age.is(1)
+                    .and(person.age.is(2)),
+            "call op=AND",
+            "  call op=EQUAL path=age constant=1",
+            "  call op=EQUAL path=age constant=2"
+    );
+
+    assertExpressional(person.age.is(1)
+                    .and(person.age.is(2))
+                    .and(person.age.is(3)),
+    "call op=AND",
+            "  call op=EQUAL path=age constant=1",
+            "  call op=EQUAL path=age constant=2",
+            "  call op=EQUAL path=age constant=3"
+    );
 
     // combination of OR/AND
-    assertExpressional(crit.age.is(1).or(crit.age.is(2).age.is(3)),
+    assertExpressional(person.age.is(1).or(person.age.is(2).age.is(3)),
             "call op=OR",
             "  call op=EQUAL path=age constant=1",
             "  call op=AND",
             "    call op=EQUAL path=age constant=2",
             "    call op=EQUAL path=age constant=3");
 
-    assertExpressional(crit.age.is(1).or(crit.age.is(2).age.is(3)),
+    assertExpressional(person.age.is(1).or(person.age.is(2).age.is(3)),
             "call op=OR",
             "  call op=EQUAL path=age constant=1",
             "  call op=AND",
             "    call op=EQUAL path=age constant=2",
             "    call op=EQUAL path=age constant=3");
 
-    assertExpressional(crit.age.is(1).and(crit.age.is(2).or().age.is(3)),
+    assertExpressional(person.age.is(1).and(person.age.is(2).or().age.is(3)),
             "call op=AND",
             "  call op=EQUAL path=age constant=1",
             "  call op=OR",
             "    call op=EQUAL path=age constant=2",
             "    call op=EQUAL path=age constant=3");
 
-    assertExpressional(crit.age.is(1).and(crit.age.is(2).or().age.is(3)),
+    assertExpressional(person.age.is(1).and(person.age.is(2).or().age.is(3)),
             "call op=AND",
             "  call op=EQUAL path=age constant=1",
             "  call op=OR",
             "    call op=EQUAL path=age constant=2",
             "    call op=EQUAL path=age constant=3");
 
-    assertExpressional(crit.age.is(1).or().age.is(2).and(crit.age.is(3)),
+    assertExpressional(person.age.is(1).or().age.is(2).and(person.age.is(3)),
             "call op=AND",
             "  call op=OR",
             "    call op=EQUAL path=age constant=1",
@@ -341,16 +347,15 @@ class ExpressionAsStringTest {
 
   @Test
   void next() {
-    PersonCriteria crit = PersonCriteria.person;
-    assertExpressional(crit.bestFriend.value().hobby.is("ski"), "call op=EQUAL path=bestFriend.hobby constant=ski");
+    assertExpressional(person.bestFriend.value().hobby.is("ski"), "call op=EQUAL path=bestFriend.hobby constant=ski");
 
-    assertExpressional(crit.bestFriend.value().hobby.is("ski")
+    assertExpressional(person.bestFriend.value().hobby.is("ski")
                     .age.is(22),
             "call op=AND",
             "  call op=EQUAL path=bestFriend.hobby constant=ski",
             "  call op=EQUAL path=age constant=22");
 
-    assertExpressional(crit.address.value().zip.is("12345"),
+    assertExpressional(person.address.value().zip.is("12345"),
             "call op=EQUAL path=address.zip constant=12345");
     assertExpressional(PersonCriteria.person
                     .address.value().zip.is("12345")
@@ -363,26 +368,26 @@ class ExpressionAsStringTest {
 
   @Test
   void inner() {
-    assertExpressional(PersonCriteria.person.bestFriend.value().with(f -> f.hobby.is("hiking")),
+    assertExpressional(person.bestFriend.value().with(f -> f.hobby.is("hiking")),
             "call op=EQUAL path=bestFriend.hobby constant=hiking");
 
-    assertExpressional(PersonCriteria.person.bestFriend.value().with(f -> f.not(v -> v.hobby.is("hiking"))),
+    assertExpressional(person.bestFriend.value().with(f -> f.not(v -> v.hobby.is("hiking"))),
             "call op=NOT",
             "  call op=EQUAL path=bestFriend.hobby constant=hiking");
 
-    assertExpressional(PersonCriteria.person.bestFriend
+    assertExpressional(person.bestFriend
                     .value().with(f -> f.hobby.is("hiking").hobby.is("ski")),
             "call op=AND",
             "  call op=EQUAL path=bestFriend.hobby constant=hiking",
             "  call op=EQUAL path=bestFriend.hobby constant=ski");
 
-    assertExpressional(PersonCriteria.person.bestFriend
+    assertExpressional(person.bestFriend
                     .value().with(f -> f.hobby.is("hiking").or().hobby.is("ski")),
             "call op=OR",
             "  call op=EQUAL path=bestFriend.hobby constant=hiking",
             "  call op=EQUAL path=bestFriend.hobby constant=ski");
 
-    assertExpressional(PersonCriteria.person.bestFriend
+    assertExpressional(person.bestFriend
                     .value().with(f -> f.hobby.is("hiking").or().hobby.is("ski"))
                     .fullName.isEmpty(),
             "call op=AND",
@@ -392,8 +397,18 @@ class ExpressionAsStringTest {
             "  call op=EQUAL path=fullName constant="
     );
 
+    assertExpressional(person.bestFriend.value().hobby.isEmpty()
+                    .with(p -> p.bestFriend.value().hobby.is("hiking").or()
+                            .bestFriend.value().hobby.is("ski"))
+                    .fullName.is("John"),
+            "call op=AND",
+            "  call op=EQUAL path=bestFriend.hobby constant=",
+            "  call op=OR",
+            "    call op=EQUAL path=bestFriend.hobby constant=hiking",
+            "    call op=EQUAL path=bestFriend.hobby constant=ski",
+            "  call op=EQUAL path=fullName constant=John"
+    );
   }
-
 
   private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {
     final StringBuilder out = new StringBuilder();

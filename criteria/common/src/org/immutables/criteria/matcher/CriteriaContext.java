@@ -17,80 +17,91 @@
 package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
+import org.immutables.criteria.expression.Visitors;
 import org.immutables.criteria.reflect.ClassScanner;
+import org.immutables.value.Value;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Member;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
- * Link between front-end (Criteria DSL) and <a href="https://cs.lmu.edu/~ray/notes/ir/">Intermediate Representation</a>
- * (internally known as {@link Expression}). Keeps current state of the expression.
+ * Expression holder
+ *
+ * Internally keeps two expressions {@code current} and {@code partial} which
+ * are combined using different functions depending on current context.
  */
 public final class CriteriaContext implements Queryable {
 
-  private final Expression expression;
-  private final Path path;
-  final Class<?> entityClass;
-  private final CriteriaContext root;
-  private final CriteriaContext parent;
-  private final CriteriaCreator<?> creator;
+  private final CriteriaContext previous;
+  private final ImmutableState state;
 
-  public CriteriaContext(Class<?> entityClass, CriteriaCreator<?> creator) {
-    this(entityClass, new DnfExpression(), null, creator, null);
+  public CriteriaContext(Class<?> entityType, CriteriaCreator<?> creator) {
+    this(null,
+            ImmutableState.builder()
+                    .combiner(Combiner.and())
+                    .creator(creator)
+                    .entityType(entityType)
+                    .build()
+    );
   }
 
-  CriteriaContext(Class<?> entityClass, Expression expression, Path path, CriteriaCreator<?> creator, CriteriaContext parent) {
-    this.expression = expression;
-    this.path = path;
-    this.creator = Objects.requireNonNull(creator, "creator");
-    this.entityClass = Objects.requireNonNull(entityClass, "entityClass");
-    this.parent = parent;
-    this.root = parent != null ? parent.root() : this;
+  CriteriaContext(CriteriaContext previous, ImmutableState state) {
+    this.previous = previous;
+    this.state = Objects.requireNonNull(state, "state");
+  }
+
+
+  @Value.Immutable
+  interface State {
+    @Nullable Expression current();
+    @Nullable Expression partial();
+    Combiner combiner();
+    CriteriaCreator<?> creator();
+    Class<?> entityType();
+
+
+    @Value.Default
+    @Nullable
+    default Expression defaultPartial() {
+      return null;
+    }
   }
 
   public Path path() {
-    return path;
+    return Visitors.toPath(state.partial());
+  }
+
+  ImmutableState state() {
+    return state;
   }
 
   public Expression expression() {
-    if (expression instanceof DnfExpression) {
-      return dnfExpression().isEmpty() ? path() : dnfExpression().simplify();
+    if (state.current() != null) {
+      return state.current();
     }
 
-    if (expression == null) {
-      return path();
-    }
-
-    return expression;
+    return state.partial();
   }
 
-  CriteriaContext root() {
-    return root;
+  private CriteriaContext first() {
+    return previous != null ? previous.first() : this;
   }
 
   @SuppressWarnings("unchecked")
   <R> R create() {
-    return (R) createWith(creator);
+    return (R) createWith(state.creator());
   }
 
   @SuppressWarnings("unchecked")
   <R> CriteriaCreator<R> creator() {
-    return (CriteriaCreator<R>) creator;
-  }
-
-  /**
-   * Create context as root but keep same expression
-   */
-  private CriteriaContext newRoot() {
-    CriteriaContext rootContext = root();
-    return new CriteriaContext(entityClass, expression, rootContext.path, rootContext.creator, null);
+    return (CriteriaCreator<R>) state.creator();
   }
 
   /**
@@ -103,37 +114,39 @@ public final class CriteriaContext implements Queryable {
             .findAny()
             .orElseThrow(() -> new IllegalArgumentException(String.format("Path %s not found in %s", pathAsString, type)));
 
-    final Path newPath = this.path != null ? this.path.append(member) : Path.ofMember(member);
-    return new CriteriaContext(entityClass, expression, newPath, creator, this);
+    Path newPath;
+    Expression partial = state.partial();
+    if (partial == null) {
+      newPath = Path.ofMember(member);
+    } else if (partial instanceof Path) {
+      newPath = Visitors.toPath(partial).append(member);
+    } else {
+      throw new IllegalStateException("Partial expression is not a path: " + partial);
+    }
+
+    return new CriteriaContext(this, state.withPartial(newPath).withCreator(creator));
   }
 
   /**
    * Create nested context for lambdas used in {@link WithMatcher} or {@link NotMatcher}.
    * It is considered new root expression
    */
-  <T1, T2> CriteriaContext nested() {
-    return new CriteriaContext(entityClass, new DnfExpression(), path, creator, null);
+  CriteriaContext nested() {
+    // return new CriteriaContext(entityClass, new DnfExpression(), path, creator, null);
+    ImmutableState newState = state.withCurrent(null).withDefaultPartial(state.partial()).withCombiner(Combiner.dnfAnd());
+    return new CriteriaContext(null, newState);
   }
 
   public CriteriaContext or() {
-    return new CriteriaContext(entityClass, dnfExpression().or(), path, creator, parent);
-  }
-
-  private DnfExpression dnfExpression() {
-    return (DnfExpression) expression;
+    return new CriteriaContext(previous, state.withCombiner(Combiner.or()));
   }
 
   @Override
   public Query query() {
-    final ImmutableQuery query = Query.of(entityClass);
-    Expression expression = expression();
-    if (expression instanceof DnfExpression) {
-      DnfExpression dnfExpression = dnfExpression();
-      return dnfExpression.isEmpty() ? query : query.withFilter(dnfExpression.simplify());
-    } else if (expression != null) {
-      return query.withFilter(expression);
+    ImmutableQuery query = Query.of(state.entityType());
+    if (state.current() != null) {
+      query = query.withFilter(state.current());
     }
-
     return query;
   }
 
@@ -141,26 +154,30 @@ public final class CriteriaContext implements Queryable {
     return creator.create(this);
   }
 
+  /**
+   * Used by Aggregator Matchers (sum / count / avg etc.)
+   */
   CriteriaContext applyRaw(UnaryOperator<Expression> fn) {
-    return new CriteriaContext(entityClass, fn.apply(path), path, creator, parent);
+    return new CriteriaContext(previous, state.withPartial(fn.apply(state.partial())));
+  }
+
+  <R> R applyAndCreateRoot(UnaryOperator<Expression> fn, Combiner nextCombiner) {
+    Expression newPartial = fn.apply(state.partial());
+    Expression newExpression = state.combiner().combine(state.current(), newPartial);
+
+    // use initial creator
+    CriteriaCreator<?> creator = first().state.creator();
+
+    ImmutableState newState = state.withCombiner(nextCombiner)
+            .withCreator(creator)
+            .withCurrent(newExpression)
+            .withPartial(state.defaultPartial());
+
+    return new CriteriaContext(null, newState).create();
   }
 
   <R> R applyAndCreateRoot(UnaryOperator<Expression> fn) {
-    return apply(fn).newRoot().create();
+    return applyAndCreateRoot(fn, Combiner.dnfAnd());
   }
 
-  CriteriaContext apply(UnaryOperator<Expression> fn) {
-    Objects.requireNonNull(fn, "fn");
-    final Expression apply = fn.apply(path);
-    final Expression newExpression;
-    if (expression instanceof DnfExpression) {
-      newExpression = dnfExpression().and(apply);
-    } else if (expression != null) {
-      newExpression = Expressions.and(expression, apply);
-    } else {
-      newExpression = apply;
-    }
-    final CriteriaContext parentOrSelf = parent != null ? parent : this;
-    return new CriteriaContext(entityClass, newExpression, parentOrSelf.path, parentOrSelf.creator, parentOrSelf.parent);
-  }
 }

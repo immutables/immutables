@@ -16,23 +16,19 @@
 
 package org.immutables.criteria.matcher;
 
+import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
-import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
+import org.immutables.criteria.expression.Operators;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Util functions for matchers
@@ -41,34 +37,16 @@ public final class Matchers {
 
   private Matchers() {}
 
-  static List<Expression> concat(Expression existing, Criterion<?> first, Criterion<?> ... rest) {
-    Stream<Expression> restStream = Stream.concat(Stream.of(first), Arrays.stream(rest))
-            .map(Criterias::toQuery)
-            .filter(q -> q.filter().isPresent())
-            .map(q -> q.filter().get());
-
-    return Stream.concat(Stream.of(existing), restStream)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-
-  }
-
   static <R extends Criterion<?>> R combine(R left, R right, Operator operator) {
-    CriteriaContext context = Matchers.extract(left);
+    Preconditions.checkArgument(operator == Operators.AND || operator == Operators.OR, "Invalid operator %s", operator);
+    CriteriaContext context = extract(left);
     Expression leftExpression = context.expression();
-    Expression rightExpression = Matchers.extract(right).expression();
-    Expression expression = null;
-    if (leftExpression != null && rightExpression != null) {
-      expression = Expressions.call(operator, leftExpression, rightExpression);
-    } else if (rightExpression != null) {
-      expression = rightExpression;
-    } else if (leftExpression != null) {
-      expression = leftExpression;
-    }
-
-    CriteriaContext root = context.root();
-    CriteriaCreator<R> creator = root.creator();
-    return creator.create(new CriteriaContext(root.entityClass, expression, root.path(), creator, null));
+    Expression rightExpression = extract(right).expression();
+    Combiner combiner = operator == Operators.AND ? Combiner.and() : Combiner.or();
+    Expression expression = combiner.combine(leftExpression, rightExpression);
+    CriteriaCreator<R> creator = context.creator();
+    ImmutableState state = context.state();
+    return creator.create(new CriteriaContext(null, state.withCurrent(expression).withPartial(state.defaultPartial())));
 
   }
 
@@ -107,11 +85,6 @@ public final class Matchers {
   public static Expression toExpression(Projection<?> projection) {
     Objects.requireNonNull(projection, "projection");
     CriteriaContext context = extract((Matcher) projection);
-    Expression expression = context.expression();
-    // ugly hack for now
-    if (expression instanceof DnfExpression) {
-      return context.path();
-    }
     return context.expression();
   }
 
@@ -151,7 +124,7 @@ public final class Matchers {
       @SuppressWarnings("unchecked")
       final C initial = (C) newContext.creator().create(newContext);
       final C changed = expr.apply(initial);
-      return Matchers.extract((Matcher) changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
+      return Matchers.extract((Matcher) changed).expression();
     };
   }
 
