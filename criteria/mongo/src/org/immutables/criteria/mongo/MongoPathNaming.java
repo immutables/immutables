@@ -17,7 +17,6 @@
 package org.immutables.criteria.mongo;
 
 import org.immutables.criteria.backend.ExpressionNaming;
-import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Path;
 
@@ -28,14 +27,14 @@ import java.util.stream.Collectors;
 
 class MongoPathNaming implements PathNaming {
 
-  private final IdResolver idResolver;
+  private final Member idProperty;
 
-  MongoPathNaming() {
-    this(IdResolver.defaultResolver());
+  MongoPathNaming(Path idPath) {
+    this((Member) idPath.element());
   }
 
-  MongoPathNaming(IdResolver idResolver) {
-    this.idResolver = Objects.requireNonNull(idResolver, "idResolver");
+  MongoPathNaming(Member idProperty) {
+    this.idProperty = idProperty;
   }
 
   @Override
@@ -43,7 +42,7 @@ class MongoPathNaming implements PathNaming {
     Objects.requireNonNull(path, "path");
     Function<Member, String> toStringFn = a -> {
       Objects.requireNonNull(a, "null element");
-      if (idResolver.asPredicate().test(a)) {
+      if (a.equals(idProperty)) {
         // is ID attribute ?
         return "_id";
       } else {

@@ -16,12 +16,12 @@
 
 package org.immutables.criteria.inmemory;
 
+import com.google.common.base.Preconditions;
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.BackendException;
 import org.immutables.criteria.backend.DefaultResult;
-import org.immutables.criteria.backend.IdExtractor;
-import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Collation;
@@ -46,7 +46,7 @@ public class InMemoryBackend implements Backend {
 
   /** mapping between class and its store */
   private final ConcurrentMap<Class<?>, Map<Object, Object>> classToStore;
-  private final IdResolver idResolver;
+  private final KeyExtractor.Factory keyExtractorFactory;
 
   public InMemoryBackend() {
     this(InMemorySetup.of());
@@ -54,28 +54,29 @@ public class InMemoryBackend implements Backend {
 
   public InMemoryBackend(InMemorySetup setup) {
     Objects.requireNonNull(setup, "setup");
-    this.idResolver = setup.idResolver();
+    this.keyExtractorFactory = setup.keyExtractorFactory();
     this.classToStore = new ConcurrentHashMap<>();
   }
 
   @Override
   public Session open(Class<?> entityType) {
     final Map<Object, Object> store = classToStore.computeIfAbsent(entityType, key -> new ConcurrentHashMap<>());
-    IdExtractor extractor = IdExtractor.fromResolver(idResolver);
-    return new Session(entityType, extractor, store);
+    return new Session(entityType, keyExtractorFactory.create(entityType), store);
   }
 
   private static class Session implements Backend.Session {
 
     private final Class<?> entityType;
     private final PathExtractor pathExtractor;
-    private final IdExtractor idExtractor;
+    private final KeyExtractor keyExtractor;
     private final Map<Object, Object> store;
 
-    private Session(Class<?> entityType, IdExtractor extractor, Map<Object, Object> store) {
+    private Session(Class<?> entityType, KeyExtractor extractor, Map<Object, Object> store) {
       this.entityType  = entityType;
       this.store = Objects.requireNonNull(store, "store");
-      this.idExtractor = extractor;
+      Preconditions.checkArgument(extractor.metadata().isKeyDefined(),
+              "Key should be defined for %s. Did you use correct KeyExtractor %s ? ", entityType, extractor.getClass().getName());
+      this.keyExtractor = extractor;
       this.pathExtractor = new ReflectionExtractor();
     }
 
@@ -165,7 +166,7 @@ public class InMemoryBackend implements Backend {
         return Flowable.just(WriteResult.empty());
       }
 
-      Map<Object, Object> toUpdate = op.values().stream().collect(Collectors.toMap(idExtractor::extract, v -> v));
+      Map<Object, Object> toUpdate = op.values().stream().collect(Collectors.toMap(keyExtractor::extract, v -> v));
 
       if (op.upsert()) {
         return Flowable.fromCallable(() -> {
@@ -185,7 +186,7 @@ public class InMemoryBackend implements Backend {
         return Flowable.just(WriteResult.empty());
       }
 
-      final Map<Object, Object> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor::extract, x -> x));
+      final Map<Object, Object> toInsert = op.values().stream().collect(Collectors.toMap(keyExtractor::extract, x -> x));
       toInsert.forEach((k, v) -> {
         Object result = store.putIfAbsent(k, v);
         if (result != null) {

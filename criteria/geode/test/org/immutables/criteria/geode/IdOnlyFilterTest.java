@@ -17,8 +17,9 @@
 package org.immutables.criteria.geode;
 
 import org.immutables.criteria.Criterias;
-import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Visitors;
 import org.immutables.criteria.typemodel.StringHolderCriteria;
 import org.immutables.criteria.typemodel.TypeHolder;
 import org.junit.jupiter.api.Assertions;
@@ -84,7 +85,7 @@ class IdOnlyFilterTest {
       Assertions.fail("no filter for criteria");
     }
 
-    Member idProperty = IdResolver.defaultResolver().resolve(TypeHolder.StringHolder.class);
+    Member idProperty = (Member) Visitors.toPath(KeyExtractor.defaultFactory().create(TypeHolder.StringHolder.class).metadata().keys().get(0)).element();
     @SuppressWarnings("unchecked")
     List<String> list = new IdOnlyFilter(filter.get(), idProperty)
             .toOptionalList()

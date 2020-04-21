@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.personmodel.CriteriaChecker;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,7 +86,10 @@ class ScrollingTest {
   }
 
   private ElasticsearchBackend backend(int scrollSize) {
-    return new ElasticsearchBackend(ElasticsearchSetup.builder(restClient).objectMapper(MAPPER).indexResolver(ignore -> "test").scrollSize(scrollSize).build());
+    ImmutableElasticsearchSetup setup = ElasticsearchSetup.builder(restClient)
+            .keyExtractorFactory(KeyExtractor.noKey())
+            .objectMapper(MAPPER).indexResolver(ignore -> "test").scrollSize(scrollSize).build();
+    return new ElasticsearchBackend(setup);
   }
 
   @Test

@@ -18,7 +18,7 @@ package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.client.RestClient;
-import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.value.Value;
 
 /**
@@ -42,8 +42,8 @@ public interface ElasticsearchSetup {
   }
 
   @Value.Default
-  default IdResolver idResolver() {
-    return IdResolver.defaultResolver();
+  default KeyExtractor.Factory keyExtractorFactory() {
+    return KeyExtractor.defaultFactory();
   }
 
   @Value.Default

@@ -40,8 +40,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.BackendException;
 import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.ExpressionNaming;
-import org.immutables.criteria.backend.IdExtractor;
-import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
@@ -71,12 +70,12 @@ class MongoSession implements Backend.Session {
   private final ExpressionConverter<Bson> converter;
   private final MongoCollection<?> collection;
   private final PathNaming pathNaming;
-  private final IdExtractor idExtractor;
+  private final KeyExtractor keyExtractor;
 
-  MongoSession(MongoCollection<?> collection, IdResolver idResolver, PathNaming pathNaming) {
+  MongoSession(MongoCollection<?> collection, KeyExtractor keyExtractor, PathNaming pathNaming) {
     this.collection = Objects.requireNonNull(collection, "collection");
     this.converter = Mongos.converter(pathNaming);
-    this.idExtractor = IdExtractor.fromResolver(idResolver);
+    this.keyExtractor = Objects.requireNonNull(keyExtractor, "keyExtractor");
     this.pathNaming = pathNaming;
   }
 
@@ -217,7 +216,7 @@ class MongoSession implements Backend.Session {
     }
 
     List<ReplaceOneModel<Object>> docs =  operation.values().stream()
-            .map(value -> new ReplaceOneModel<>(new BsonDocument("_id", toBsonValue(idExtractor.extract(value))), value, options))
+            .map(value -> new ReplaceOneModel<>(new BsonDocument("_id", toBsonValue(keyExtractor.extract(value))), value, options))
             .collect(Collectors.toList());
 
     Publisher<BulkWriteResult> publisher = ((MongoCollection<Object>) collection).bulkWrite(docs);

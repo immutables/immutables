@@ -76,7 +76,9 @@ class SyncSelect implements Callable<Iterable<Object>> {
     // fast-path for "region.getAll" use-case. ie get values for list of keys
     // assumes no projections / aggregations / sort / count etc.
     // plain get by key lookup
+    // also assumes idProperty is resolved (see IdResolver)
     boolean maybeGetById = query.filter().isPresent()
+            && session.idProperty != null // idProperty known (as expression) ?
             && !query.hasAggregations()
             && !query.hasProjections()
             && !query.count()

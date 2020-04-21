@@ -24,8 +24,7 @@ import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
-import org.immutables.criteria.backend.IdExtractor;
-import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
@@ -47,7 +46,7 @@ public class ElasticsearchBackend implements Backend {
   final RestClient restClient;
   final ObjectMapper objectMapper;
   private final IndexResolver resolver;
-  private final IdResolver idResolver;
+  private final KeyExtractor.Factory keyExtractorFactory;
   private final int scrollSize;
 
   public ElasticsearchBackend(ElasticsearchSetup setup) {
@@ -56,13 +55,13 @@ public class ElasticsearchBackend implements Backend {
     this.objectMapper = setup.objectMapper();
     this.resolver = setup.indexResolver();
     this.scrollSize = setup.scrollSize();
-    this.idResolver = setup.idResolver();
+    this.keyExtractorFactory = setup.keyExtractorFactory();
   }
 
   @Override
   public Backend.Session open(Class<?> entityType) {
     final String index = resolver.resolve(entityType);
-    return new Session(entityType, idResolver, new ElasticsearchOps(restClient, index, objectMapper, scrollSize));
+    return new Session(entityType, keyExtractorFactory.create(entityType), new ElasticsearchOps(restClient, index, objectMapper, scrollSize));
   }
 
   @SuppressWarnings("unchecked")
@@ -70,27 +69,19 @@ public class ElasticsearchBackend implements Backend {
     final Class<?> entityType;
     final ObjectMapper objectMapper;
     final ElasticsearchOps ops;
-    final IdExtractor idExtractor;
+    final KeyExtractor keyExtractor;
     final JsonConverter<Object> converter;
     private final boolean hasId;
 
 
-    private Session(Class<?> entityClass, IdResolver idResolver, ElasticsearchOps ops) {
+    private Session(Class<?> entityClass, KeyExtractor keyExtractor, ElasticsearchOps ops) {
       Objects.requireNonNull(entityClass, "entityClass");
       this.entityType = entityClass;
       this.ops = Objects.requireNonNull(ops, "ops");
       this.objectMapper = ops.mapper();
-      IdExtractor idExtractor = IdExtractor.fromFunction(x -> x);
-      boolean hasId = false;
-      try {
-        idExtractor = IdExtractor.fromResolver(idResolver);
-        hasId = true;
-      } catch (IllegalArgumentException ignore) {
-        // id not supported
-      }
-      this.idExtractor = idExtractor;
+      this.keyExtractor = keyExtractor;
+      this.hasId = keyExtractor.metadata().isKeyDefined();
       this.converter = DefaultConverter.<Object>of(objectMapper, entityClass);
-      this.hasId = hasId;
     }
 
     @Override
@@ -174,7 +165,7 @@ public class ElasticsearchBackend implements Backend {
 
       // sets _id attribute (if entity has @Criteria.Id annotation)
       final BiFunction<Object, ObjectNode, ObjectNode> idFn = (entity, node) ->
-              hasId ? (ObjectNode) node.set("_id", objectMapper.valueToTree(idExtractor.extract(entity))) : node;
+              hasId ? (ObjectNode) node.set("_id", objectMapper.valueToTree(keyExtractor.extract(entity))) : node;
 
       final List<ObjectNode> docs = insert.values().stream()
               .map(e -> idFn.apply(e, objectMapper.valueToTree(e)))

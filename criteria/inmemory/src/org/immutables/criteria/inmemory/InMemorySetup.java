@@ -16,7 +16,7 @@
 
 package org.immutables.criteria.inmemory;
 
-import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.value.Value;
 
 /**
@@ -27,8 +27,8 @@ import org.immutables.value.Value;
 public interface InMemorySetup {
 
   @Value.Default
-  default IdResolver idResolver() {
-    return IdResolver.defaultResolver();
+  default KeyExtractor.Factory keyExtractorFactory() {
+    return KeyExtractor.defaultFactory();
   }
 
   /**

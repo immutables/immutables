@@ -16,10 +16,12 @@
 
 package org.immutables.criteria.mongo;
 
+import com.google.common.collect.Iterables;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.IdResolver;
-import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.backend.KeyExtractor;
+import org.immutables.criteria.expression.Visitors;
 
+import java.lang.reflect.Member;
 import java.util.Objects;
 
 /**
@@ -30,20 +32,26 @@ import java.util.Objects;
 public class MongoBackend implements Backend {
 
   private final CollectionResolver collectionResolver;
-  private final PathNaming pathNaming;
-  private final IdResolver idResolver;
+  private final KeyExtractor.Factory keyExtractorFactory;
 
   public MongoBackend(MongoSetup setup) {
     Objects.requireNonNull(setup, "setup");
     this.collectionResolver = setup.collectionResolver();
-    this.idResolver = setup.idResolver();
-    this.pathNaming = new MongoPathNaming(idResolver);
+    this.keyExtractorFactory = setup.keyExtractorFactory();
   }
 
   @Override
   public Session open(Class<?> entityType) {
     Objects.requireNonNull(entityType, "context");
-    return new MongoSession(collectionResolver.resolve(entityType), idResolver, pathNaming);
+    KeyExtractor keyExtractor = keyExtractorFactory.create(entityType);
+    Member idProperty;
+    if (keyExtractor.metadata().isExpression() && keyExtractor.metadata().isKeyDefined()) {
+      idProperty = (Member) Visitors.toPath(Iterables.getOnlyElement(keyExtractor.metadata().keys())).element();
+    } else {
+      idProperty = null;
+    }
+    MongoPathNaming naming = new MongoPathNaming(idProperty);
+    return new MongoSession(collectionResolver.resolve(entityType), keyExtractor, naming);
   }
 
 }

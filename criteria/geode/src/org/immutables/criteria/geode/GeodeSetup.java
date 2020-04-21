@@ -17,7 +17,7 @@
 package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.GemFireCache;
-import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.value.Value;
 
 import java.util.Objects;
@@ -32,9 +32,12 @@ public interface GeodeSetup {
   @Value.Parameter
   RegionResolver regionResolver();
 
+  /**
+   * Strategy to extract key(s) from an object.
+   */
   @Value.Default
-  default IdResolver idResolver() {
-    return IdResolver.defaultResolver();
+  default KeyExtractor.Factory keyExtractorFactory() {
+    return KeyExtractor.defaultFactory();
   }
 
   @Value.Default
@@ -48,8 +51,7 @@ public interface GeodeSetup {
   }
 
   static GeodeSetup of(RegionResolver resolver) {
-    return ImmutableGeodeSetup.of(resolver);
-  }
+    return ImmutableGeodeSetup.of(resolver);  }
 
   static Builder builder() {
     return new Builder();

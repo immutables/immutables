@@ -49,10 +49,13 @@ class SyncDelete implements Callable<WriteResult> {
 
     Expression filter = operation.query().filter().orElseThrow(() -> new IllegalStateException("For " + operation));
 
-    IdOnlyFilter idOnly = new IdOnlyFilter(filter, session.idProperty);
-    // special case when expression contains only ID / key attribute
-    if (idOnly.hasOnlyIds()) {
-      return deleteByKeys(idOnly.toList());
+    // special case when expression may contain only ID / key attribute
+    // assume idProperty is defined (see IdResolver)
+    if (session.idProperty != null) {
+      IdOnlyFilter idOnly = new IdOnlyFilter(filter, session.idProperty);
+      if (idOnly.hasOnlyIds()) {
+        return deleteByKeys(idOnly.toList());
+      }
     }
 
     GeodeQueryVisitor visitor = new GeodeQueryVisitor(true, path -> String.format("e.value.%s", session.pathNaming.name(path)));

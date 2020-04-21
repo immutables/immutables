@@ -25,11 +25,11 @@ import org.apache.geode.cache.query.CqQuery;
 import org.apache.geode.cache.query.QueryService;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
-import org.immutables.criteria.backend.IdExtractor;
-import org.immutables.criteria.backend.IdResolver;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
+import org.immutables.criteria.expression.Visitors;
 import org.reactivestreams.Publisher;
 
 import java.lang.reflect.Member;
@@ -46,7 +46,6 @@ public class GeodeBackend implements Backend {
   private final GeodeSetup setup;
   private final PathNaming pathNaming;
 
-
   public GeodeBackend(GeodeSetup setup) {
     this.setup = Objects.requireNonNull(setup, "setup");
     this.pathNaming = ReservedWordNaming.of(PathNaming.defaultNaming());
@@ -62,8 +61,7 @@ public class GeodeBackend implements Backend {
 
     final Class<?> entityType;
     final Region<Object, Object> region;
-    final IdExtractor idExtractor;
-    final IdResolver idResolver;
+    final KeyExtractor keyExtractor;
     final Member idProperty;
     final QueryService queryService;
     final PathNaming pathNaming;
@@ -74,9 +72,20 @@ public class GeodeBackend implements Backend {
       @SuppressWarnings("unchecked")
       Region<Object, Object> region = (Region<Object, Object>) setup.regionResolver().resolve(entityType);
       this.region = region;
-      this.idResolver = setup.idResolver();
-      this.idProperty = setup.idResolver().resolve(entityType);
-      this.idExtractor = IdExtractor.fromResolver(idResolver);
+
+      KeyExtractor keyExtractor = setup.keyExtractorFactory().create(entityType);
+      if (!keyExtractor.metadata().isKeyDefined()) {
+        throw new IllegalArgumentException(String.format("Key on %s is required for %s", entityType, GeodeBackend.class.getSimpleName()));
+      }
+
+      if (keyExtractor.metadata().isExpression() && keyExtractor.metadata().keys().size() == 1) {
+        // we know how to optimize single-expression key
+        this.idProperty = (Member) Visitors.toPath(keyExtractor.metadata().keys().get(0)).element();
+      } else {
+        this.idProperty = null;
+      }
+
+      this.keyExtractor = keyExtractor;
       this.queryService = setup.queryServiceResolver().resolve(region);
       this.pathNaming = backend.pathNaming;
     }

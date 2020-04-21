@@ -43,7 +43,7 @@ class SyncInsert implements Callable<WriteResult> {
       return WriteResult.empty();
     }
 
-    final Map<Object, Object> toInsert = operation.values().stream().collect(Collectors.toMap(session.idExtractor::extract, x -> x));
+    final Map<Object, Object> toInsert = operation.values().stream().collect(Collectors.toMap(session.keyExtractor::extract, x -> x));
     final Region<Object, Object> region = this.region;
     for (Map.Entry<Object, Object> entry: toInsert.entrySet()) {
       Object previous = region.putIfAbsent(entry.getKey(), entry.getValue());

@@ -42,7 +42,7 @@ class SyncUpdate implements Callable<WriteResult> {
       return WriteResult.empty();
     }
 
-    Map<Object, Object> toInsert = operation.values().stream().collect(Collectors.toMap(session.idExtractor::extract, x -> x));
+    Map<Object, Object> toInsert = operation.values().stream().collect(Collectors.toMap(session.keyExtractor::extract, x -> x));
     Region<Object, Object> region = this.region;
 
     // use putAll for upsert

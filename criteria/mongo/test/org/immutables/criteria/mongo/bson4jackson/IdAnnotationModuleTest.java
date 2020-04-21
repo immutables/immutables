@@ -24,7 +24,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criteria;
-import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.javabean.JavaBean1;
 import org.immutables.criteria.personmodel.ImmutablePerson;
 import org.immutables.criteria.personmodel.Person;
@@ -33,6 +32,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
+import java.lang.reflect.AnnotatedElement;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,7 +50,7 @@ class IdAnnotationModuleTest {
             .registerModule(new JavaTimeModule());
 
     ObjectMapper mapper1 = template.copy().registerModule(new IdAnnotationModule());
-    ObjectMapper mapper2 = template.copy().registerModule(IdAnnotationModule.fromPredicate(IdResolver.defaultResolver().asPredicate()));
+    ObjectMapper mapper2 = template.copy().registerModule(IdAnnotationModule.fromPredicate(m -> ((AnnotatedElement) m).isAnnotationPresent(Criteria.Id.class)));
     ObjectMapper mapper3 = template.copy().registerModule(IdAnnotationModule.fromAnnotation(Criteria.Id.class));
     return Arrays.asList(mapper1, mapper2, mapper3);
   }

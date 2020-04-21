@@ -29,8 +29,11 @@ import org.bson.BsonString;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.backend.ProjectedTuple;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Visitors;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.mongo.bson4jackson.BsonModule;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
@@ -60,7 +63,8 @@ public class TupleCodecProviderTest {
   @Test
   public void age() {
     Query query = Query.of(Person.class).addProjections(Matchers.toExpression(PersonCriteria.person.age));
-    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming().toExpression());
+    Path idPath = Visitors.toPath(KeyExtractor.defaultFactory().create(Person.class).metadata().keys().get(0));
+    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming(idPath).toExpression());
     Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
 
     ProjectedTuple tuple = codec.decode(new BsonDocumentReader(new BsonDocument("age", new BsonInt32(10))), DecoderContext.builder().build());
@@ -76,7 +80,8 @@ public class TupleCodecProviderTest {
     Query query = Query.of(TypeHolder.LocalDateHolder.class)
             .addProjections(Matchers.toExpression(criteria.value),  Matchers.toExpression(criteria.nullable), Matchers.toExpression(criteria.optional));
 
-    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming().toExpression());
+    Path idPath = Visitors.toPath(KeyExtractor.defaultFactory().create(TypeHolder.LocalDateHolder.class).metadata().keys().get(0));
+    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming(idPath).toExpression());
     Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
 
     LocalDate now = LocalDate.now();
@@ -104,7 +109,8 @@ public class TupleCodecProviderTest {
   @SuppressWarnings("unchecked")
   public void optionalAttribute_nickname() {
     Query query = Query.of(Person.class).addProjections(Matchers.toExpression(PersonCriteria.person.nickName));
-    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming().toExpression());
+    Path idPath = Visitors.toPath(KeyExtractor.defaultFactory().create(Person.class).metadata().keys().get(0));
+    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming(idPath).toExpression());
     Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
 
     ProjectedTuple tuple1 = codec.decode(new BsonDocumentReader(new BsonDocument("nickName", new BsonString("aaa"))), DecoderContext.builder().build());
