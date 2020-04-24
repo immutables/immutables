@@ -16,12 +16,9 @@
 
 package org.immutables.criteria.mongo;
 
-import com.google.common.collect.Iterables;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.KeyExtractor;
-import org.immutables.criteria.expression.Visitors;
 
-import java.lang.reflect.Member;
 import java.util.Objects;
 
 /**
@@ -44,14 +41,7 @@ public class MongoBackend implements Backend {
   public Session open(Class<?> entityType) {
     Objects.requireNonNull(entityType, "context");
     KeyExtractor keyExtractor = keyExtractorFactory.create(entityType);
-    Member idProperty;
-    if (keyExtractor.metadata().isExpression() && keyExtractor.metadata().isKeyDefined()) {
-      idProperty = (Member) Visitors.toPath(Iterables.getOnlyElement(keyExtractor.metadata().keys())).element();
-    } else {
-      idProperty = null;
-    }
-    MongoPathNaming naming = new MongoPathNaming(idProperty);
-    return new MongoSession(collectionResolver.resolve(entityType), keyExtractor, naming);
+    return new MongoSession(collectionResolver.resolve(entityType), keyExtractor);
   }
 
 }

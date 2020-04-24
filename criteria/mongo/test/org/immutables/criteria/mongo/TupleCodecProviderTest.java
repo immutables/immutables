@@ -30,6 +30,7 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.criteria.backend.KeyExtractor;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
@@ -64,7 +65,7 @@ public class TupleCodecProviderTest {
   public void age() {
     Query query = Query.of(Person.class).addProjections(Matchers.toExpression(PersonCriteria.person.age));
     Path idPath = Visitors.toPath(KeyExtractor.defaultFactory().create(Person.class).metadata().keys().get(0));
-    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming(idPath).toExpression());
+    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming(idPath, PathNaming.defaultNaming()).toExpression());
     Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
 
     ProjectedTuple tuple = codec.decode(new BsonDocumentReader(new BsonDocument("age", new BsonInt32(10))), DecoderContext.builder().build());
@@ -81,7 +82,7 @@ public class TupleCodecProviderTest {
             .addProjections(Matchers.toExpression(criteria.value),  Matchers.toExpression(criteria.nullable), Matchers.toExpression(criteria.optional));
 
     Path idPath = Visitors.toPath(KeyExtractor.defaultFactory().create(TypeHolder.LocalDateHolder.class).metadata().keys().get(0));
-    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming(idPath).toExpression());
+    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming(idPath, PathNaming.defaultNaming()).toExpression());
     Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
 
     LocalDate now = LocalDate.now();
@@ -110,7 +111,7 @@ public class TupleCodecProviderTest {
   public void optionalAttribute_nickname() {
     Query query = Query.of(Person.class).addProjections(Matchers.toExpression(PersonCriteria.person.nickName));
     Path idPath = Visitors.toPath(KeyExtractor.defaultFactory().create(Person.class).metadata().keys().get(0));
-    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming(idPath).toExpression());
+    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming(idPath, PathNaming.defaultNaming()).toExpression());
     Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
 
     ProjectedTuple tuple1 = codec.decode(new BsonDocumentReader(new BsonDocument("nickName", new BsonString("aaa"))), DecoderContext.builder().build());

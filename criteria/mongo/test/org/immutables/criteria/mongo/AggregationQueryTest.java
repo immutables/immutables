@@ -20,6 +20,7 @@ import com.mongodb.MongoClientSettings;
 import org.bson.BsonDocument;
 import org.bson.json.JsonWriterSettings;
 import org.immutables.criteria.backend.KeyExtractor;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Path;
@@ -141,7 +142,7 @@ class AggregationQueryTest {
 
   private static void assertAgg(Query query, String ... lines) {
     Path idPath = Visitors.toPath(KeyExtractor.defaultFactory().create(Person.class).metadata().keys().get(0));
-    AggregationQuery agg = new AggregationQuery(query, new MongoPathNaming(idPath));
+    AggregationQuery agg = new AggregationQuery(query, new MongoPathNaming(idPath, PathNaming.defaultNaming()));
     List<BsonDocument> actual = agg.toPipeline().stream()
             .map(b -> b.toBsonDocument(BsonDocument.class, MongoClientSettings.getDefaultCodecRegistry()))
             .collect(Collectors.toList());

@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.mongo;
 
+import com.google.common.collect.Iterables;
 import com.mongodb.MongoException;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.model.Projections;
@@ -72,11 +73,18 @@ class MongoSession implements Backend.Session {
   private final PathNaming pathNaming;
   private final KeyExtractor keyExtractor;
 
-  MongoSession(MongoCollection<?> collection, KeyExtractor keyExtractor, PathNaming pathNaming) {
+  MongoSession(MongoCollection<?> collection, KeyExtractor keyExtractor) {
     this.collection = Objects.requireNonNull(collection, "collection");
-    this.converter = Mongos.converter(pathNaming);
     this.keyExtractor = Objects.requireNonNull(keyExtractor, "keyExtractor");
+
+    PathNaming pathNaming = PathNaming.defaultNaming();
+    KeyExtractor.KeyMetadata metadata = keyExtractor.metadata();
+    if (metadata.isKeyDefined() && metadata.isExpression() && metadata.keys().size() == 1) {
+      Path idProperty = Visitors.toPath(Iterables.getOnlyElement(metadata.keys()));
+      pathNaming = new MongoPathNaming(idProperty, pathNaming);
+    }
     this.pathNaming = pathNaming;
+    this.converter = Mongos.converter(this.pathNaming);
   }
 
   private Bson toBsonFilter(Query query) {

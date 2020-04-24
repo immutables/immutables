@@ -20,37 +20,24 @@ import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Path;
 
-import java.lang.reflect.Member;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
+/**
+ * Aware of {@code _id} field name for primary key
+ */
 class MongoPathNaming implements PathNaming {
 
-  private final Member idProperty;
+  private final Path idProperty;
+  private final PathNaming delegate;
 
-  MongoPathNaming(Path idPath) {
-    this((Member) idPath.element());
-  }
-
-  MongoPathNaming(Member idProperty) {
-    this.idProperty = idProperty;
+  MongoPathNaming(Path idProperty, PathNaming delegate) {
+    this.idProperty = Objects.requireNonNull(idProperty, "idProperty");
+    this.delegate = Objects.requireNonNull(delegate, "delegate");
   }
 
   @Override
   public String name(Path path) {
-    Objects.requireNonNull(path, "path");
-    Function<Member, String> toStringFn = a -> {
-      Objects.requireNonNull(a, "null element");
-      if (a.equals(idProperty)) {
-        // is ID attribute ?
-        return "_id";
-      } else {
-        return a.getName();
-      }
-    };
-
-    return path.members().stream().map(toStringFn).collect(Collectors.joining("."));
+    return idProperty.equals(path) ? "_id" : delegate.name(path);
   }
 
   ExpressionNaming toExpression() {
