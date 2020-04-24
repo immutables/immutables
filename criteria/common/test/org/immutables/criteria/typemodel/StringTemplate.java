@@ -213,6 +213,31 @@ public abstract class StringTemplate {
   }
 
   /**
+   * cases for {@code foo in [1]} or {@code foo not in [1]}.
+   * When list has just one element
+   */
+  @Test
+  void inNotIn_singleElement() {
+    repository.insert(generator.get().withId("id1").withValue("value1"));
+    repository.insert(generator.get().withId("id2").withValue(""));
+
+    // for id
+    ids(string.id.in(Collections.emptyList())).isEmpty();
+    ids(string.id.in(Collections.singleton("id1"))).isOf("id1");
+    ids(string.id.notIn(Collections.singleton("id1"))).isOf("id2");
+    ids(string.id.notIn(Collections.singleton("id2"))).isOf("id1");
+    ids(string.id.notIn(Collections.emptyList())).hasContentInAnyOrder("id1", "id2");
+
+    // for value
+    ids(string.value.in(Collections.emptyList())).isEmpty();
+    ids(string.value.in(Collections.singleton("value1"))).isOf("id1");
+    ids(string.value.notIn(Collections.singleton("value1"))).isOf("id2");
+    ids(string.value.notIn(Collections.singleton(""))).isOf("id1");
+    ids(string.value.notIn(Collections.emptyList())).hasContentInAnyOrder("id1", "id2");
+
+  }
+
+  /**
    * validate {@code one() / oneOrNone() / exists()} methods
    */
   @Test

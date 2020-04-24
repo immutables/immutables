@@ -277,7 +277,10 @@ public abstract class AbstractPersonTest {
     check(person.fullName.is("John")
             .age.is(22)).hasSize(1);
     check(person.fullName.is("_MISSING_")).empty();
+    check(person.fullName.in(Collections.emptyList())).empty();
+    check(person.fullName.in(Collections.singleton("John"))).hasSize(1);
     check(person.fullName.in("John", "test2")).hasSize(1);
+    check(person.fullName.notIn(Collections.singleton("John"))).empty();
     check(person.fullName.notIn("John", "test2")).empty();
 
     // true / false

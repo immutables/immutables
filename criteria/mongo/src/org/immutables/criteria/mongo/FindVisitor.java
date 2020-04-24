@@ -123,6 +123,12 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     if (op == Operators.IN || op == Operators.NOT_IN) {
       final List<Object> values = Visitors.toConstant(call.arguments().get(1)).values();
       Preconditions.checkNotNull(values, "not expected to be null for %s", op);
+      if (values.size() == 1) {
+        // optimization: convert IN, NIN (where argument is a list with single element) into EQ / NE
+        Operators newOperator = op == Operators.IN ? Operators.EQUAL : Operators.NOT_EQUAL;
+        Call newCall = Expressions.call(newOperator, call.arguments().get(0), Expressions.constant(values.get(0)));
+        return binaryCall(newCall);
+      }
       return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);
     }
 
