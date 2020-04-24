@@ -27,15 +27,15 @@ import org.immutables.criteria.expression.Operators;
 public interface BooleanMatcher<R> extends Matcher {
 
   default R isTrue() {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.TRUE)));
+    return is(true);
   }
 
   default R isFalse() {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.FALSE)));
+    return is(false);
   }
 
   default R is(boolean value) {
-    return value ? isTrue() : isFalse();
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
   }
 
   /**
