@@ -17,6 +17,7 @@
 package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Region;
+import org.immutables.criteria.backend.KeyLookupAnalyzer;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Expression;
@@ -51,11 +52,9 @@ class SyncDelete implements Callable<WriteResult> {
 
     // special case when expression may contain only ID / key attribute
     // assume idProperty is defined (see IdResolver)
-    if (session.idProperty != null) {
-      IdOnlyFilter idOnly = new IdOnlyFilter(filter, session.idProperty);
-      if (idOnly.hasOnlyIds()) {
-        return deleteByKeys(idOnly.toList());
-      }
+    KeyLookupAnalyzer.Result result = session.keyLookupAnalyzer.analyze(filter);
+    if (result.isOptimizable()) {
+      return deleteByKeys(result.values());
     }
 
     GeodeQueryVisitor visitor = new GeodeQueryVisitor(true, path -> String.format("e.value.%s", session.pathNaming.name(path)));

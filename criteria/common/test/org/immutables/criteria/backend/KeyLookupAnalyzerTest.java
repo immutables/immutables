@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.geode;
+package org.immutables.criteria.backend;
 
 import org.immutables.criteria.Criterias;
-import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Visitors;
 import org.immutables.criteria.typemodel.StringHolderCriteria;
 import org.immutables.criteria.typemodel.TypeHolder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Member;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.immutables.check.Checkers.check;
 
 /**
  * Test for "ID only expression" extractor
  */
-class IdOnlyFilterTest {
+class KeyLookupAnalyzerTest {
 
   private final StringHolderCriteria string = StringHolderCriteria.stringHolder;
 
@@ -79,20 +75,30 @@ class IdOnlyFilterTest {
     check(ids(string.nullable.isNot("a"))).isEmpty();
   }
 
+  @Test
+  void disabled() {
+    KeyLookupAnalyzer analyzer = KeyLookupAnalyzer.disabled();
+    Expression expr = Criterias.toQuery(string.id.is("foo")).filter().get();
+
+    KeyLookupAnalyzer.Result result = analyzer.analyze(expr);
+    check(!result.isOptimizable());
+
+    Assertions.assertThrows(UnsupportedOperationException.class, result::values);
+  }
+
   private static List<String> ids(StringHolderCriteria crit) {
-    Optional<Expression> filter = Criterias.toQuery(crit).filter();
-    if (!filter.isPresent()) {
-      Assertions.fail("no filter for criteria");
+    Expression filter =Criterias.toQuery(crit).filter()
+            .orElseThrow(() -> new AssertionError("No filter present"));
+
+    KeyExtractor extractor = KeyExtractor.defaultFactory().create(TypeHolder.StringHolder.class);
+    KeyLookupAnalyzer analyzer = KeyLookupAnalyzer.fromExtractor(extractor);
+    KeyLookupAnalyzer.Result result = analyzer.analyze(filter);
+
+    if (!result.isOptimizable()) {
+      return Collections.emptyList();
     }
 
-    Member idProperty = (Member) Visitors.toPath(KeyExtractor.defaultFactory().create(TypeHolder.StringHolder.class).metadata().keys().get(0)).element();
-    @SuppressWarnings("unchecked")
-    List<String> list = new IdOnlyFilter(filter.get(), idProperty)
-            .toOptionalList()
-            .map(x -> (List<String>) x)
-            .orElse(Collections.emptyList());
-
-    return list;
+    return (List<String>) result.values();
   }
 
 }

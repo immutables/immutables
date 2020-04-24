@@ -26,13 +26,12 @@ import org.apache.geode.cache.query.QueryService;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.KeyExtractor;
+import org.immutables.criteria.backend.KeyLookupAnalyzer;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
-import org.immutables.criteria.expression.Visitors;
 import org.reactivestreams.Publisher;
 
-import java.lang.reflect.Member;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -62,9 +61,9 @@ public class GeodeBackend implements Backend {
     final Class<?> entityType;
     final Region<Object, Object> region;
     final KeyExtractor keyExtractor;
-    final Member idProperty;
     final QueryService queryService;
     final PathNaming pathNaming;
+    final KeyLookupAnalyzer keyLookupAnalyzer;
 
     private Session(Class<?> entityType, GeodeBackend backend) {
       this.entityType = Objects.requireNonNull(entityType, "entityType");
@@ -78,16 +77,10 @@ public class GeodeBackend implements Backend {
         throw new IllegalArgumentException(String.format("Key on %s is required for %s", entityType, GeodeBackend.class.getSimpleName()));
       }
 
-      if (keyExtractor.metadata().isExpression() && keyExtractor.metadata().keys().size() == 1) {
-        // we know how to optimize single-expression key
-        this.idProperty = (Member) Visitors.toPath(keyExtractor.metadata().keys().get(0)).element();
-      } else {
-        this.idProperty = null;
-      }
-
       this.keyExtractor = keyExtractor;
       this.queryService = setup.queryServiceResolver().resolve(region);
       this.pathNaming = backend.pathNaming;
+      this.keyLookupAnalyzer = KeyLookupAnalyzer.fromExtractor(keyExtractor);
     }
 
     @Override

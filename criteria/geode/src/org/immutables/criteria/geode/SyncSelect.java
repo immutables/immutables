@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.apache.geode.cache.query.QueryService;
 import org.apache.geode.cache.query.Struct;
+import org.immutables.criteria.backend.KeyLookupAnalyzer;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Expression;
@@ -78,16 +79,15 @@ class SyncSelect implements Callable<Iterable<Object>> {
     // plain get by key lookup
     // also assumes idProperty is resolved (see IdResolver)
     boolean maybeGetById = query.filter().isPresent()
-            && session.idProperty != null // idProperty known (as expression) ?
             && !query.hasAggregations()
             && !query.hasProjections()
             && !query.count()
             && query.collations().isEmpty();
 
     if (maybeGetById) {
-      IdOnlyFilter idOnlyFilter = new IdOnlyFilter(query.filter().get(), session.idProperty);
-      if (idOnlyFilter.hasOnlyIds()) {
-        return session.region.getAll(idOnlyFilter.toList())
+      KeyLookupAnalyzer.Result result = session.keyLookupAnalyzer.analyze(query.filter().get());
+      if (result.isOptimizable()) {
+        return session.region.getAll(result.values())
                 .values().stream()
                 .filter(Objects::nonNull) // skip missing keys (null values)
                 .collect(Collectors.toList());
