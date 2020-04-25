@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Converter;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.UniqueCachedNaming;
 import org.immutables.criteria.expression.AggregationCall;
@@ -65,11 +66,13 @@ class AggregateQueryBuilder {
   private final UniqueCachedNaming<Expression> naming;
   private final ObjectMapper mapper;
   private final JsonNodeFactory nodeFactory;
+  private final PathNaming pathNaming;
 
-  AggregateQueryBuilder(Query query, ObjectMapper mapper, Mapping mapping) {
+  AggregateQueryBuilder(Query query, ObjectMapper mapper, Mapping mapping, PathNaming pathNaming) {
     this.query = Objects.requireNonNull(query, "query");
     Preconditions.checkArgument(query.hasAggregations(), "no aggregations for query %s", query);
     this.mapping = mapping;
+    this.pathNaming = pathNaming;
     List<Expression> toName = new ArrayList<>();
     toName.addAll(query.projections());
     toName.addAll(query.collations().stream().map(Collation::expression).collect(Collectors.toList()));
@@ -95,7 +98,7 @@ class AggregateQueryBuilder {
     json.put("size", 0);
     json.put("stored_fields", "_none_"); // avoid fetch phase
 
-    query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(mapper).convert(f)));
+    query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(mapper, pathNaming).convert(f)));
 
     // due to ES aggregation format. fields in "order by" clause should go first
     // if "order by" is missing. order in "group by" is un-important

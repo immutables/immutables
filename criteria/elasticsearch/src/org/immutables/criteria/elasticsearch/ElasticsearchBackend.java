@@ -25,6 +25,7 @@ import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.KeyExtractor;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
@@ -48,6 +49,7 @@ public class ElasticsearchBackend implements Backend {
   private final IndexResolver resolver;
   private final KeyExtractor.Factory keyExtractorFactory;
   private final int scrollSize;
+  private final PathNaming pathNaming;
 
   public ElasticsearchBackend(ElasticsearchSetup setup) {
     Objects.requireNonNull(setup, "setup");
@@ -56,15 +58,15 @@ public class ElasticsearchBackend implements Backend {
     this.resolver = setup.indexResolver();
     this.scrollSize = setup.scrollSize();
     this.keyExtractorFactory = setup.keyExtractorFactory();
+    this.pathNaming = PathNaming.defaultNaming();
   }
 
   @Override
   public Backend.Session open(Class<?> entityType) {
     final String index = resolver.resolve(entityType);
-    return new Session(entityType, keyExtractorFactory.create(entityType), new ElasticsearchOps(restClient, index, objectMapper, scrollSize));
+    return new Session(entityType, keyExtractorFactory.create(entityType), new ElasticsearchOps(restClient, index, objectMapper, scrollSize), pathNaming);
   }
 
-  @SuppressWarnings("unchecked")
   static class Session implements Backend.Session {
     final Class<?> entityType;
     final ObjectMapper objectMapper;
@@ -72,16 +74,18 @@ public class ElasticsearchBackend implements Backend {
     final KeyExtractor keyExtractor;
     final JsonConverter<Object> converter;
     private final boolean hasId;
+    final PathNaming pathNaming;
 
-
-    private Session(Class<?> entityClass, KeyExtractor keyExtractor, ElasticsearchOps ops) {
+    private Session(Class<?> entityClass, KeyExtractor keyExtractor, ElasticsearchOps ops, PathNaming pathNaming) {
       Objects.requireNonNull(entityClass, "entityClass");
       this.entityType = entityClass;
       this.ops = Objects.requireNonNull(ops, "ops");
       this.objectMapper = ops.mapper();
       this.keyExtractor = keyExtractor;
-      this.hasId = keyExtractor.metadata().isKeyDefined();
       this.converter = DefaultConverter.<Object>of(objectMapper, entityClass);
+      KeyExtractor.KeyMetadata metadata = keyExtractor.metadata();
+      this.hasId = metadata.isKeyDefined();
+      this.pathNaming = pathNaming;
     }
 
     @Override
@@ -104,7 +108,7 @@ public class ElasticsearchBackend implements Backend {
     private Flowable<ProjectedTuple> aggregate(StandardOperations.Select op) {
       final Query query = op.query();
       Preconditions.checkArgument(query.hasAggregations(), "No Aggregations");
-      AggregateQueryBuilder builder = new AggregateQueryBuilder(query, objectMapper, ops.mapping);
+      AggregateQueryBuilder builder = new AggregateQueryBuilder(query, objectMapper, ops.mapping, pathNaming);
       return ops.searchRaw(builder.jsonQuery(), Collections.emptyMap())
               .map(builder::processResult)
               .toFlowable()
@@ -127,7 +131,7 @@ public class ElasticsearchBackend implements Backend {
       }
       final ObjectNode json = objectMapper.createObjectNode();
 
-      query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(objectMapper).convert(f)));
+      query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(objectMapper, pathNaming).convert(f)));
       query.limit().ifPresent(limit -> json.put("size", limit));
       query.offset().ifPresent(offset -> json.put("from", offset));
       if (!query.collations().isEmpty()) {

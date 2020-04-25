@@ -48,7 +48,7 @@ class CountCall implements Callable<Single<Long>> {
     }
 
     ObjectNode filter =  query.filter()
-            .map(f -> Elasticsearch.toBuilder(f).toJson(session.objectMapper))
+            .map(f -> Elasticsearch.toBuilder(f, session.pathNaming).toJson(session.objectMapper))
             .orElse(session.objectMapper.createObjectNode());
 
     if (filter.size() != 0) {

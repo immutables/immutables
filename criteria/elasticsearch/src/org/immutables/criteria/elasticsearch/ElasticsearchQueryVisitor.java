@@ -17,6 +17,7 @@
 package org.immutables.criteria.elasticsearch;
 
 import com.google.common.base.Preconditions;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.ComparableOperators;
@@ -28,6 +29,7 @@ import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -35,8 +37,11 @@ import java.util.regex.Pattern;
  */
 class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.QueryBuilder> {
 
-  ElasticsearchQueryVisitor() {
+  private final PathNaming pathNaming;
+
+  ElasticsearchQueryVisitor(PathNaming pathNaming) {
     super(e -> { throw new UnsupportedOperationException(); });
+    this.pathNaming = Objects.requireNonNull(pathNaming, "pathNaming");
   }
 
   @Override
@@ -45,7 +50,7 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
     final List<Expression> args = call.arguments();
 
     if (op == OptionalOperators.IS_PRESENT || op == OptionalOperators.IS_ABSENT) {
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final String field = pathNaming.name(Visitors.toPath(args.get(0)));
 
       QueryBuilders.QueryBuilder builder = QueryBuilders.existsQuery(field);
 
@@ -79,12 +84,12 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
     throw new UnsupportedOperationException("Don't know how to handle " + call);
   }
 
-  private static QueryBuilders.QueryBuilder binaryCall(Call call) {
+  private QueryBuilders.QueryBuilder binaryCall(Call call) {
     final List<Expression> arguments = call.arguments();
     Preconditions.checkArgument(arguments.size() == 2, "Size should be 2 for %s but was %s",
             call.operator(), arguments.size());
     final Operator op = call.operator();
-    final String field = Visitors.toPath(arguments.get(0)).toStringPath();
+    final String field = pathNaming.name(Visitors.toPath(arguments.get(0)));
     final Object value = Visitors.toConstant(arguments.get(1)).value();
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {

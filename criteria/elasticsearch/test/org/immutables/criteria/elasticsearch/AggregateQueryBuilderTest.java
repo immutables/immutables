@@ -23,6 +23,7 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.immutables.criteria.Criterias;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
@@ -42,6 +43,8 @@ class AggregateQueryBuilderTest {
 
   private final Mapping mapping = Mapping.ofElastic(PersonModel.MAPPING);
 
+  private final PathNaming pathNaming = PathNaming.defaultNaming();
+
   @Test
   void agg1() {
     PersonCriteria person = PersonCriteria.person;
@@ -58,7 +61,7 @@ class AggregateQueryBuilderTest {
             .withFilter(Criterias.toQuery(person.age.atLeast(30)).filter().get())
             .withLimit(11);
 
-    AggregateQueryBuilder builder = new AggregateQueryBuilder(query, MAPPER, mapping);
+    AggregateQueryBuilder builder = new AggregateQueryBuilder(query, MAPPER, mapping, pathNaming);
     ObjectNode json = builder.jsonQuery();
 
     JsonChecker.of(json).is("{'_source':false,",

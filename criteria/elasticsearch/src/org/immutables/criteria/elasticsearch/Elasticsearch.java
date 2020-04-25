@@ -18,6 +18,7 @@ package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionConverter;
 
@@ -27,17 +28,17 @@ final class Elasticsearch {
 
   private  Elasticsearch() {}
 
-  static QueryBuilders.QueryBuilder toBuilder(Expression expression) {
-    return expression.accept(new ElasticsearchQueryVisitor());
+  static QueryBuilders.QueryBuilder toBuilder(Expression expression, PathNaming pathNaming) {
+    return expression.accept(new ElasticsearchQueryVisitor(pathNaming));
   }
 
   /**
    * {@code query} part of the JSON
    */
-  static ExpressionConverter<ObjectNode> constantScoreQuery(ObjectMapper mapper) {
+  static ExpressionConverter<ObjectNode> constantScoreQuery(ObjectMapper mapper, PathNaming pathNaming) {
     Objects.requireNonNull(mapper, "expression");
     return expression -> {
-      final QueryBuilders.QueryBuilder builder = toBuilder(expression);
+      final QueryBuilders.QueryBuilder builder = toBuilder(expression, pathNaming);
       return QueryBuilders.constantScoreQuery(builder).toJson(mapper);
     };
   }
