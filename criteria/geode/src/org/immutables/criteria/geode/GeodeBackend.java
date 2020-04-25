@@ -26,7 +26,6 @@ import org.apache.geode.cache.query.QueryService;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.KeyExtractor;
-import org.immutables.criteria.backend.KeyLookupAnalyzer;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;

@@ -17,7 +17,6 @@
 package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Region;
-import org.immutables.criteria.backend.KeyLookupAnalyzer;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Expression;

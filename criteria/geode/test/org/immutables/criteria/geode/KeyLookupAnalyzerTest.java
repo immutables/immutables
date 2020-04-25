@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Immutables Authors and Contributors
+ * Copyright 2020 Immutables Authors and Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.backend;
+package org.immutables.criteria.geode;
 
 import org.immutables.criteria.Criterias;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.typemodel.StringHolderCriteria;
 import org.immutables.criteria.typemodel.TypeHolder;

@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.apache.geode.cache.query.QueryService;
 import org.apache.geode.cache.query.Struct;
-import org.immutables.criteria.backend.KeyLookupAnalyzer;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Expression;

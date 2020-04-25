@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.backend;
+package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
