@@ -188,6 +188,13 @@ class QueryBuilders {
   }
 
   /**
+   * Filter on document ID ({@code _id}) values
+   */
+  static IdsQueryBuilder idsQuery(Iterable<?> values) {
+    return new IdsQueryBuilder(values);
+  }
+
+  /**
    * A query that matches on all documents.
    */
   static MatchAllQueryBuilder matchAll() {
@@ -455,6 +462,25 @@ class QueryBuilders {
     ObjectNode toJson(ObjectMapper mapper) {
       ObjectNode result = mapper.createObjectNode();
       result.with("wildcard").put(fieldName, wildcard);
+      return result;
+    }
+  }
+
+  /**
+   * @see <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-ids-query.html">IDs query</a>
+   */
+  static class IdsQueryBuilder extends QueryBuilder {
+    private final Iterable<?> values;
+
+    IdsQueryBuilder(Iterable<?> values) {
+      this.values = Objects.requireNonNull(values, "values");
+    }
+
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
+      ObjectNode result = mapper.createObjectNode();
+      ArrayNode array = result.with("ids").withArray("values");
+      values.forEach(v -> array.add(toJsonValue(v, mapper)));
       return result;
     }
   }

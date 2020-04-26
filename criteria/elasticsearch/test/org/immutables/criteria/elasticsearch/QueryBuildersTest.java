@@ -164,6 +164,16 @@ public class QueryBuildersTest {
   }
 
   @Test
+  void ids() {
+    assertEquals("{\"ids\":{\"values\":[]}}",
+            toJson(QueryBuilders.idsQuery(Collections.emptyList())));
+    assertEquals("{\"ids\":{\"values\":[\"one\"]}}",
+            toJson(QueryBuilders.idsQuery(Collections.singleton("one"))));
+    assertEquals("{\"ids\":{\"values\":[\"one\",\"two\"]}}",
+            toJson(QueryBuilders.idsQuery(Arrays.asList("one", "two"))));
+  }
+
+  @Test
   public void matchAll() {
     assertEquals("{\"match_all\":{}}",
             toJson(QueryBuilders.matchAll()));

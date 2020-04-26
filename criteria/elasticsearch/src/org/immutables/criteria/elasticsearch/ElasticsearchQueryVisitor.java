@@ -25,11 +25,14 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.OptionalOperators;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -38,10 +41,12 @@ import java.util.regex.Pattern;
 class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.QueryBuilder> {
 
   private final PathNaming pathNaming;
+  private final Predicate<Path> idPredicate;
 
-  ElasticsearchQueryVisitor(PathNaming pathNaming) {
+  ElasticsearchQueryVisitor(PathNaming pathNaming, Predicate<Path> idPredicate) {
     super(e -> { throw new UnsupportedOperationException(); });
     this.pathNaming = Objects.requireNonNull(pathNaming, "pathNaming");
+    this.idPredicate = Objects.requireNonNull(idPredicate, "idPredicate");
   }
 
   @Override
@@ -89,27 +94,41 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
     Preconditions.checkArgument(arguments.size() == 2, "Size should be 2 for %s but was %s",
             call.operator(), arguments.size());
     final Operator op = call.operator();
-    final String field = pathNaming.name(Visitors.toPath(arguments.get(0)));
+    final Path path = Visitors.toPath(arguments.get(0));
+    final String field = pathNaming.name(path);
     final Object value = Visitors.toConstant(arguments.get(1)).value();
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
-      QueryBuilders.QueryBuilder term = QueryBuilders.termQuery(field, value);
+      QueryBuilders.QueryBuilder builder;
+      if (idPredicate.test(path)) {
+        // use more efficient ids query for keys
+        builder = QueryBuilders.idsQuery(Collections.singleton(value));
+      } else {
+        builder = QueryBuilders.termQuery(field, value);
+      }
+
       if (op == Operators.NOT_EQUAL) {
-        QueryBuilders.BoolQueryBuilder bool = QueryBuilders.boolQuery().mustNot(term);
+        QueryBuilders.BoolQueryBuilder bool = QueryBuilders.boolQuery().mustNot(builder);
         if ("".equals(value)) {
           // string is not empty (should also exists)
           bool = bool.should(QueryBuilders.existsQuery(field));
         }
-        term = bool;
+        builder = bool;
       }
 
-      return term;
+      return builder;
     }
 
     if (op == Operators.IN || op == Operators.NOT_IN) {
       final List<Object> values = Visitors.toConstant(arguments.get(1)).values();
 
-      QueryBuilders.QueryBuilder builder = QueryBuilders.termsQuery(field, values);
+      QueryBuilders.QueryBuilder builder;
+      if (idPredicate.test(path)) {
+        // more efficient query by ID
+        builder = QueryBuilders.idsQuery(values);
+      } else {
+        builder = QueryBuilders.termsQuery(field, values);
+      }
 
       if (op == Operators.NOT_IN) {
         builder = QueryBuilders.boolQuery().mustNot(builder);

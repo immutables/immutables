@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -67,8 +68,9 @@ class AggregateQueryBuilder {
   private final ObjectMapper mapper;
   private final JsonNodeFactory nodeFactory;
   private final PathNaming pathNaming;
+  private final Predicate<Path> idPredicate;
 
-  AggregateQueryBuilder(Query query, ObjectMapper mapper, Mapping mapping, PathNaming pathNaming) {
+  AggregateQueryBuilder(Query query, ObjectMapper mapper, Mapping mapping, PathNaming pathNaming, Predicate<Path> idPredicate) {
     this.query = Objects.requireNonNull(query, "query");
     Preconditions.checkArgument(query.hasAggregations(), "no aggregations for query %s", query);
     this.mapping = mapping;
@@ -80,6 +82,7 @@ class AggregateQueryBuilder {
     naming = UniqueCachedNaming.of(toName);
     this.mapper = mapper;
     this.nodeFactory = mapper.getNodeFactory();
+    this.idPredicate = idPredicate;
   }
 
   ObjectNode jsonQuery() {
@@ -98,7 +101,7 @@ class AggregateQueryBuilder {
     json.put("size", 0);
     json.put("stored_fields", "_none_"); // avoid fetch phase
 
-    query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(mapper, pathNaming).convert(f)));
+    query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(mapper, pathNaming, idPredicate).convert(f)));
 
     // due to ES aggregation format. fields in "order by" clause should go first
     // if "order by" is missing. order in "group by" is un-important

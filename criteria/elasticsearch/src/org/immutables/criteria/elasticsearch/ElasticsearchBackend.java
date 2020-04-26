@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -75,6 +76,7 @@ public class ElasticsearchBackend implements Backend {
     final JsonConverter<Object> converter;
     private final boolean hasId;
     final PathNaming pathNaming;
+    final Predicate<Path> idPredicate;
 
     private Session(Class<?> entityClass, KeyExtractor keyExtractor, ElasticsearchOps ops, PathNaming pathNaming) {
       Objects.requireNonNull(entityClass, "entityClass");
@@ -86,6 +88,7 @@ public class ElasticsearchBackend implements Backend {
       KeyExtractor.KeyMetadata metadata = keyExtractor.metadata();
       this.hasId = metadata.isKeyDefined();
       this.pathNaming = pathNaming;
+      this.idPredicate = Elasticsearch.idPredicate(keyExtractor.metadata());
     }
 
     @Override
@@ -108,7 +111,7 @@ public class ElasticsearchBackend implements Backend {
     private Flowable<ProjectedTuple> aggregate(StandardOperations.Select op) {
       final Query query = op.query();
       Preconditions.checkArgument(query.hasAggregations(), "No Aggregations");
-      AggregateQueryBuilder builder = new AggregateQueryBuilder(query, objectMapper, ops.mapping, pathNaming);
+      AggregateQueryBuilder builder = new AggregateQueryBuilder(query, objectMapper, ops.mapping, pathNaming, idPredicate);
       return ops.searchRaw(builder.jsonQuery(), Collections.emptyMap())
               .map(builder::processResult)
               .toFlowable()
@@ -131,7 +134,7 @@ public class ElasticsearchBackend implements Backend {
       }
       final ObjectNode json = objectMapper.createObjectNode();
 
-      query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(objectMapper, pathNaming).convert(f)));
+      query.filter().ifPresent(f -> json.set("query", Elasticsearch.constantScoreQuery(objectMapper, pathNaming, idPredicate).convert(f)));
       query.limit().ifPresent(limit -> json.put("size", limit));
       query.offset().ifPresent(offset -> json.put("from", offset));
       if (!query.collations().isEmpty()) {

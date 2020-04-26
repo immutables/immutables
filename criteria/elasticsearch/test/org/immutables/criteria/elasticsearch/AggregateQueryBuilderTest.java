@@ -23,8 +23,10 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.immutables.criteria.Criterias;
+import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Collation;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.personmodel.Person;
@@ -32,6 +34,7 @@ import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.function.Predicate;
 
 class AggregateQueryBuilderTest {
 
@@ -42,8 +45,8 @@ class AggregateQueryBuilderTest {
           .registerModule(new Jdk8Module());
 
   private final Mapping mapping = Mapping.ofElastic(PersonModel.MAPPING);
-
   private final PathNaming pathNaming = PathNaming.defaultNaming();
+  private final Predicate<Path> idPredicate = Elasticsearch.idPredicate(KeyExtractor.defaultFactory().create(Person.class).metadata());
 
   @Test
   void agg1() {
@@ -61,7 +64,7 @@ class AggregateQueryBuilderTest {
             .withFilter(Criterias.toQuery(person.age.atLeast(30)).filter().get())
             .withLimit(11);
 
-    AggregateQueryBuilder builder = new AggregateQueryBuilder(query, MAPPER, mapping, pathNaming);
+    AggregateQueryBuilder builder = new AggregateQueryBuilder(query, MAPPER, mapping, pathNaming, idPredicate);
     ObjectNode json = builder.jsonQuery();
 
     JsonChecker.of(json).is("{'_source':false,",

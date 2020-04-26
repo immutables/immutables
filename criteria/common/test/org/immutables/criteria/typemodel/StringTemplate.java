@@ -343,6 +343,28 @@ public abstract class StringTemplate {
   }
 
   /**
+   * Basic queries on key
+   */
+  @Test
+  void queryOnId() {
+    repository.insert(generator.get().withId("id1"));
+    repository.insert(generator.get().withId("id2"));
+
+    ids(string.id.is("id1")).isOf("id1");
+    ids(string.id.is("id2")).isOf("id2");
+
+    ids(string.id.in("id1", "id2")).hasContentInAnyOrder("id1", "id2");
+    ids(string.id.in(Collections.singleton("id1"))).isOf("id1");
+
+    // negatives
+    ids(string.id.isNot("id1")).hasContentInAnyOrder("id2");
+    ids(string.id.isNot("id2")).hasContentInAnyOrder("id1");
+    ids(string.id.notIn(Collections.singleton("id1"))).hasContentInAnyOrder("id2");
+    ids(string.id.notIn(Collections.singleton("id2"))).hasContentInAnyOrder("id1");
+  }
+
+
+  /**
    * Return {@link TypeHolder.StringHolder#value()} after applying a criteria
    */
   private IterableChecker<List<String>, String> values(StringHolderCriteria criteria) {

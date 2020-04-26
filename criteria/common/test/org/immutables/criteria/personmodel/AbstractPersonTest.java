@@ -296,6 +296,31 @@ public abstract class AbstractPersonTest {
     check(person.isActive.isFalse().or().isActive.isTrue()).notEmpty();
   }
 
+  /**
+   * Basic queries on ID
+   */
+  @Test
+  void id() {
+    assumeFeature(Feature.QUERY);
+    PersonGenerator generator = new PersonGenerator();
+
+    insert(generator.next().withId("id1"));
+    insert(generator.next().withId("id2"));
+
+    check(person.id.is("id1")).toList(Person::id).isOf("id1");
+    check(person.id.is("id2")).toList(Person::id).isOf("id2");
+
+    check(person.id.in("id1", "id2")).toList(Person::id).hasContentInAnyOrder("id1", "id2");
+    check(person.id.in(Collections.singleton("id1"))).toList(Person::id).isOf("id1");
+
+    // negatives
+    check(person.id.isNot("id1")).toList(Person::id).hasContentInAnyOrder("id2");
+    check(person.id.isNot("id2")).toList(Person::id).hasContentInAnyOrder("id1");
+
+    check(person.id.notIn(Collections.singleton("id1"))).toList(Person::id).hasContentInAnyOrder("id2");
+    check(person.id.notIn(Collections.singleton("id2"))).toList(Person::id).hasContentInAnyOrder("id1");
+  }
+
   @Test
   public void nested() {
     final ImmutablePerson john = new PersonGenerator().next().withBestFriend(ImmutableFriend.builder().hobby("ski").build());
