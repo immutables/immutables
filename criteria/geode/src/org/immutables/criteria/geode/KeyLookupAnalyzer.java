@@ -51,7 +51,7 @@ import java.util.Optional;
  *  }
  * </pre>
  */
-public abstract class KeyLookupAnalyzer {
+abstract class KeyLookupAnalyzer {
 
   /**
    * Analyze current expression and check if it has {@code (id = 1) or (id in [...])}
@@ -66,7 +66,7 @@ public abstract class KeyLookupAnalyzer {
    */
   public interface Result {
     /**
-     * Wherever current expression can be converted to a key-lookup
+     * Wherever current expression can be converted to a key-lookup API similar to {@code key = 123} or {@code key in [1, 2, 3]}
      */
     boolean isOptimizable();
 
@@ -84,7 +84,7 @@ public abstract class KeyLookupAnalyzer {
   /**
    * Always returns non-optimizable result
    */
-  public static KeyLookupAnalyzer disabled() {
+  static KeyLookupAnalyzer disabled() {
     return new KeyLookupAnalyzer() {
       @Override
       public Result analyze(Expression filter) {
@@ -97,7 +97,7 @@ public abstract class KeyLookupAnalyzer {
    * Create analyzer based on existing extractor. Currently only
    * single key is supported and key expression has to be {@link Path}.
    */
-  public static KeyLookupAnalyzer fromExtractor(KeyExtractor extractor) {
+  static KeyLookupAnalyzer fromExtractor(KeyExtractor extractor) {
     Objects.requireNonNull(extractor, "extractor");
     KeyExtractor.KeyMetadata metadata = extractor.metadata();
     if (!(metadata.isExpression() && metadata.isKeyDefined()) || metadata.keys().size() > 1) {
@@ -111,7 +111,7 @@ public abstract class KeyLookupAnalyzer {
   /**
    * Create optimizer when id attribute is known as {@link Path}
    */
-  public static KeyLookupAnalyzer forPath(Path idPath) {
+  static KeyLookupAnalyzer forPath(Path idPath) {
     Objects.requireNonNull(idPath, "idPath");
     return new PathAnalyzer(idPath);
   }
