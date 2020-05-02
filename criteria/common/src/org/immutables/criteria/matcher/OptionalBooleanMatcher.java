@@ -16,12 +16,29 @@
 package org.immutables.criteria.matcher;
 
 
+import java.util.Objects;
+import java.util.Optional;
+
 /**
- * Intersection type between {@link OptionalMatcher} and {@link BooleanMatcher}
+ * Intersection type between {@link OptionalValueMatcher} and {@link BooleanMatcher}
  *
  * @param <R> root criteria type
  */
 public interface OptionalBooleanMatcher<R> extends BooleanMatcher<R>, PresentAbsentMatcher<R> {
+
+  /**
+   * Match current boolean attribute given an optional boolean parameter. If optional is
+   * empty, matching is equivalent to {@link #isAbsent()} otherwise standard
+   * {@link #is(boolean)} matching is used.
+   *
+   * @param optional argument to match with
+   * @throws NullPointerException if argument is null
+   */
+  @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+  default R is(Optional<Boolean> optional) {
+    Objects.requireNonNull(optional, "optional");
+    return optional.map(this::is).orElseGet(this::isAbsent);
+  }
 
   interface Self extends Template<Self, Void> {}
 

@@ -114,13 +114,18 @@ public abstract class LocalDateTimeTemplate {
     repository.insert(generator.get().withId("id1").withNullable(null));
     repository.insert(generator.get().withId("id2").withNullable(date));
 
-    ids(holder.nullable.isPresent()).hasContentInAnyOrder("id2");
-    ids(holder.nullable.isAbsent()).hasContentInAnyOrder("id1");
-    ids(holder.nullable.is(date)).hasContentInAnyOrder("id2");
-    ids(holder.nullable.atLeast(date)).hasContentInAnyOrder("id2");
-    ids(holder.nullable.atMost(date)).hasContentInAnyOrder("id2");
+    ids(holder.nullable.isPresent()).isOf("id2");
+    ids(holder.nullable.isAbsent()).isOf("id1");
+    ids(holder.nullable.is(date)).isOf("id2");
+    ids(holder.nullable.atLeast(date)).isOf("id2");
+    ids(holder.nullable.atMost(date)).isOf("id2");
     ids(holder.nullable.greaterThan(date)).isEmpty();
     ids(holder.nullable.lessThan(date)).isEmpty();
+
+    // using OptionalValue matcher API
+    ids(holder.nullable.is(Optional.empty())).isOf("id1");
+    ids(holder.nullable.is(Optional.of(date))).isOf("id2");
+    ids(holder.nullable.isNot(Optional.empty())).isOf("id2");
   }
 
   @Test
@@ -128,13 +133,18 @@ public abstract class LocalDateTimeTemplate {
     LocalDateTime date = LocalDateTime.now();
     repository.insert(generator.get().withId("id1").withOptional(Optional.empty()));
     repository.insert(generator.get().withId("id2").withOptional(Optional.of(date)));
-    ids(holder.optional.isPresent()).hasContentInAnyOrder("id2");
-    ids(holder.optional.isAbsent()).hasContentInAnyOrder("id1");
-    ids(holder.optional.is(date)).hasContentInAnyOrder("id2");
-    ids(holder.optional.atLeast(date)).hasContentInAnyOrder("id2");
-    ids(holder.optional.atMost(date)).hasContentInAnyOrder("id2");
+    ids(holder.optional.isPresent()).isOf("id2");
+    ids(holder.optional.isAbsent()).isOf("id1");
+    ids(holder.optional.is(date)).isOf("id2");
+    ids(holder.optional.atLeast(date)).isOf("id2");
+    ids(holder.optional.atMost(date)).isOf("id2");
     ids(holder.optional.greaterThan(date)).isEmpty();
     ids(holder.optional.lessThan(date)).isEmpty();
+
+    // using OptionalValue matcher API
+    ids(holder.optional.is(Optional.empty())).isOf("id1");
+    ids(holder.optional.is(Optional.of(date))).isOf("id2");
+    ids(holder.optional.isNot(Optional.empty())).isOf("id2");
   }
 
   @Test

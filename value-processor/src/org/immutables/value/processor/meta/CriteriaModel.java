@@ -309,7 +309,7 @@ public class CriteriaModel {
       } else if (param.isComparable()) {
         name = "org.immutables.criteria.matcher.OptionalComparableMatcher.Template";
       } else {
-        name = "org.immutables.criteria.matcher.OptionalMatcher.Template";
+        name = "org.immutables.criteria.matcher.OptionalObjectMatcher.Template";
       }
     } else if (introspected.hasCriteria()) {
       name = topLevelCriteriaClassName(type);

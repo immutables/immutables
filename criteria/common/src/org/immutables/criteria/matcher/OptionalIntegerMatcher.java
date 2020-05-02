@@ -16,19 +16,26 @@
 
 package org.immutables.criteria.matcher;
 
+import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
 /**
- * Intersection type between {@link OptionalMatcher} and {@link NumberMatcher}.
+ * Intersection type between {@link OptionalObjectMatcher} and {@link NumberMatcher}.
  *
- * <p>Syntax sugar to avoid chaining {@code value()} method from {@link OptionalMatcher}
+ * <p>Syntax sugar to avoid chaining {@code value()} method from {@link OptionalObjectMatcher}
  * on long expressions with many optional elements.
  *
  * @param <R> root criteria type
  */
 public interface OptionalIntegerMatcher<R> extends OptionalNumberMatcher<R, Integer> {
+
+  @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+  default R is(OptionalInt optional) {
+    Objects.requireNonNull(optional, "optional");
+    return optional.isPresent() ? is(optional.getAsInt()) : isAbsent();
+  }
 
   /**
    * Self-type for this matcher

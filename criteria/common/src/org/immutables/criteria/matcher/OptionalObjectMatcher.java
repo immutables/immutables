@@ -17,9 +17,9 @@
 package org.immutables.criteria.matcher;
 
 /**
- * Matcher for optional attributes
+ * Matcher for optional (non-scalar) attributes
  */
-public interface OptionalMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher {
+public interface OptionalObjectMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher {
 
   /**
    * Apply context-specific matcher if value is present
@@ -34,7 +34,7 @@ public interface OptionalMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher 
    */
   interface Self<S> extends Template<Self<S>, S, Void>, Disjunction<Self<S>> {}
 
-  interface Template<R, S, P> extends OptionalMatcher<R, S>, Projection<P>, Aggregation.Count {}
+  interface Template<R, S, P> extends OptionalObjectMatcher<R, S>, Projection<P>, Aggregation.Count {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

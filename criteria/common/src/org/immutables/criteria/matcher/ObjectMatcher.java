@@ -34,11 +34,21 @@ import java.util.Objects;
  */
 public interface ObjectMatcher<R, V> extends Matcher {
 
+  /**
+   * Equivalent to {@code this == value} ({@code value} can't be null)
+   * @throws NullPointerException if value argument is null
+   */
   default R is(V value) {
+    Objects.requireNonNull(value,"value");
     return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
   }
 
+  /**
+   * Equivalent to {@code this != value} ({@code value} can't be null)
+   * @throws NullPointerException if value argument is null
+   */
   default R isNot(V value) {
+    Objects.requireNonNull(value,"value");
     return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant(value)));
   }
 
@@ -60,6 +70,9 @@ public interface ObjectMatcher<R, V> extends Matcher {
     return notIn(values);
   }
 
+  /**
+   * Equivalent to {@code this in $values}
+   */
   default R in(Iterable<? extends V> values) {
     Objects.requireNonNull(values, "values");
     return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));

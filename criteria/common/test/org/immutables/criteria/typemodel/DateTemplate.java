@@ -127,6 +127,11 @@ public abstract class DateTemplate {
     ids(criteria.nullable.atMost(date)).hasContentInAnyOrder("id2");
     ids(criteria.nullable.greaterThan(date)).isEmpty();
     ids(criteria.nullable.lessThan(date)).isEmpty();
+
+    // using OptionalValue matcher API
+    ids(criteria.nullable.is(Optional.empty())).isOf("id1");
+    ids(criteria.nullable.is(Optional.of(date))).isOf("id2");
+    ids(criteria.nullable.isNot(Optional.empty())).isOf("id2");
   }
 
   @Test
@@ -141,6 +146,11 @@ public abstract class DateTemplate {
     ids(criteria.optional.atMost(date)).hasContentInAnyOrder("id2");
     ids(criteria.optional.greaterThan(date)).isEmpty();
     ids(criteria.optional.lessThan(date)).isEmpty();
+
+    // using OptionalValue matcher API
+    ids(criteria.optional.is(Optional.empty())).isOf("id1");
+    ids(criteria.optional.is(Optional.of(date))).isOf("id2");
+    ids(criteria.optional.isNot(Optional.empty())).isOf("id2");
   }
 
   @Test

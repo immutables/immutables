@@ -198,6 +198,11 @@ public abstract class StringTemplate {
     values(string.nullable.is("")).isEmpty();
     values(string.value.is("null")).hasContentInAnyOrder("null");
     values(string.value.is("notnull")).hasContentInAnyOrder("notnull");
+
+    // using OptionalValue matcher API
+    values(string.nullable.is(Optional.empty())).isOf("null");
+    values(string.nullable.isNot(Optional.empty())).isOf("notnull");
+    values(string.nullable.is(Optional.of("notnull"))).isOf("notnull");
   }
 
   @Test
@@ -205,11 +210,16 @@ public abstract class StringTemplate {
     repository.insert(generator.get().withValue("null").withNullable(null).withOptional(Optional.empty()));
     repository.insert(generator.get().withValue("notnull").withNullable("notnull").withOptional("notempty"));
 
-    values(string.optional.isAbsent()).hasContentInAnyOrder("null");
-    values(string.optional.isPresent()).hasContentInAnyOrder("notnull");
+    values(string.optional.isAbsent()).isOf("null");
+    values(string.optional.isPresent()).isOf("notnull");
     values(string.optional.is("null")).isEmpty();
-    values(string.optional.is("notempty")).hasContentInAnyOrder("notnull");
+    values(string.optional.is("notempty")).isOf("notnull");
     values(string.optional.is("")).isEmpty();
+
+    // using OptionalValue matcher API
+    values(string.optional.is(Optional.empty())).isOf("null");
+    values(string.optional.isNot(Optional.empty())).isOf("notnull");
+    values(string.optional.is(Optional.of("notempty"))).isOf("notnull");
   }
 
   /**

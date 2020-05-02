@@ -124,6 +124,11 @@ public abstract class InstantTemplate {
     ids(holder.nullable.atMost(date)).hasContentInAnyOrder("id2");
     ids(holder.nullable.greaterThan(date)).isEmpty();
     ids(holder.nullable.lessThan(date)).isEmpty();
+
+    // using OptionalValue matcher API
+    ids(holder.nullable.is(Optional.empty())).isOf("id1");
+    ids(holder.nullable.is(Optional.of(date))).isOf("id2");
+    ids(holder.nullable.isNot(Optional.empty())).isOf("id2");
   }
 
   @Test
@@ -138,6 +143,11 @@ public abstract class InstantTemplate {
     ids(holder.optional.atMost(date)).hasContentInAnyOrder("id2");
     ids(holder.optional.greaterThan(date)).isEmpty();
     ids(holder.optional.lessThan(date)).isEmpty();
+
+    // using OptionalValue matcher API
+    ids(holder.optional.is(Optional.empty())).isOf("id1");
+    ids(holder.optional.is(Optional.of(date))).isOf("id2");
+    ids(holder.optional.isNot(Optional.empty())).isOf("id2");
   }
 
   @Test

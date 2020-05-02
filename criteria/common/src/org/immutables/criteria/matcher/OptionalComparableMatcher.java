@@ -19,14 +19,14 @@ package org.immutables.criteria.matcher;
 import java.util.Optional;
 
 /**
- * Intersection type between {@link OptionalMatcher} and {@link ComparableMatcher}.
+ * Intersection type between {@link OptionalObjectMatcher} and {@link ComparableMatcher}.
  *
- * <p>Syntax sugar to avoid chaining {@code value()} method from {@link OptionalMatcher}
+ * <p>Syntax sugar to avoid chaining {@code value()} method from {@link OptionalObjectMatcher}
  * on long expressions with many optional elements.
  *
  * @param <R> root criteria type
  */
-public interface OptionalComparableMatcher<R, V extends Comparable<? super V>> extends ComparableMatcher<R, V>, PresentAbsentMatcher<R> {
+public interface OptionalComparableMatcher<R, V extends Comparable<? super V>> extends ComparableMatcher<R, V>, OptionalValueMatcher<R, V> {
 
   /**
    * Self-type for this matcher

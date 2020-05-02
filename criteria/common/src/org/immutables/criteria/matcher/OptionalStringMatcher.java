@@ -19,10 +19,10 @@ package org.immutables.criteria.matcher;
 import java.util.Optional;
 
 /**
- * Intersection type between {@link OptionalMatcher} and {@link StringMatcher}
+ * Intersection type between {@link OptionalValueMatcher} and {@link StringMatcher}
  * @param <R> root criteria type
  */
-public interface OptionalStringMatcher<R> extends StringMatcher<R>, PresentAbsentMatcher<R> {
+public interface OptionalStringMatcher<R> extends StringMatcher<R>, OptionalValueMatcher<R, String> {
 
   interface Self extends Template<Self, Void>, Disjunction<OptionalStringMatcher<Self>> {}
 

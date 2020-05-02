@@ -82,6 +82,11 @@ public abstract class BooleanTemplate {
     ids(holder.optional.isTrue()).hasContentInAnyOrder("id2");
     ids(holder.optional.is(false)).hasContentInAnyOrder("id1");
     ids(holder.optional.isFalse()).hasContentInAnyOrder("id1");
+
+    // using OptionalValue matcher API
+    ids(holder.optional.is(Optional.empty())).isOf("id3");
+    ids(holder.optional.is(Optional.of(true))).isOf("id2");
+    ids(holder.optional.is(Optional.of(false))).isOf("id1");
   }
 
   @Test
@@ -96,6 +101,11 @@ public abstract class BooleanTemplate {
     ids(holder.nullable.isTrue()).hasContentInAnyOrder("id2");
     ids(holder.nullable.is(false)).hasContentInAnyOrder("id1");
     ids(holder.nullable.isFalse()).hasContentInAnyOrder("id1");
+
+    // using OptionalValue matcher API
+    ids(holder.nullable.is(Optional.empty())).isOf("id3");
+    ids(holder.nullable.is(Optional.of(true))).isOf("id2");
+    ids(holder.nullable.is(Optional.of(false))).isOf("id1");
   }
 
   @Test

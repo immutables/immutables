@@ -91,6 +91,17 @@ public abstract class EnumTemplate {
     
   }
 
+  @Test
+  void nullable() {
+    repository.insert(generator.get().withId("id1").withNullable(TypeHolder.Foo.ONE));
+    repository.insert(generator.get().withId("id2").withNullable(null));
+    repository.insert(generator.get().withId("id3").withNullable(TypeHolder.Foo.TWO));
+
+    ids(criteria.nullable.is(Optional.of(TypeHolder.Foo.ONE))).isOf("id1");
+    ids(criteria.nullable.is(Optional.empty())).isOf("id2");
+    ids(criteria.nullable.is(Optional.of(TypeHolder.Foo.TWO))).isOf("id3");
+  }
+
   private IterableChecker<List<String>, String> ids(EnumHolderCriteria criteria) {
     return  CriteriaChecker.<TypeHolder.EnumHolder>ofReader(repository.find(criteria)).toList(TypeHolder.EnumHolder::id);
   }

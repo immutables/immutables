@@ -20,9 +20,9 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
- * Intersection type between {@link OptionalMatcher} and {@link NumberMatcher}.
+ * Intersection type between {@link OptionalObjectMatcher} and {@link NumberMatcher}.
  *
- * <p>Syntax sugar to avoid chaining {@code value()} method from {@link OptionalMatcher}
+ * <p>Syntax sugar to avoid chaining {@code value()} method from {@link OptionalObjectMatcher}
  * on long expressions with many optional elements.
  *
  * @param <R> root criteria type
