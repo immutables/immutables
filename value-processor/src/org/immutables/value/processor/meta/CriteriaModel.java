@@ -561,7 +561,7 @@ public class CriteriaModel {
       final String first = def.creator;
       final String second = def instanceof ContainerDef ? ((ContainerDef) def).element.creator : first;
 
-      final String withPath = String.format("context.newChild(%s.class, \"%s\", %s)", attribute.containingType.typeDocument().toString(),
+      final String withPath = String.format("context.appendPath(%s.class, \"%s\", %s)", attribute.containingType.typeDocument().toString(),
               attribute.originalElement().getSimpleName().toString(), second);
 
       return String.format("%s.create(%s)", first, withPath);

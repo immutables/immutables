@@ -194,7 +194,7 @@ public class CriteriaModelProcessorTest {
 
   @Test
   public void creatorDefinition() {
-    checkCreator("arrayList").contains("creator().create(context.newChild(");
+    checkCreator("arrayList").contains("creator().create(context.appendPath(");
   }
 
   @Test

@@ -105,9 +105,9 @@ public final class CriteriaContext implements Queryable {
   }
 
   /**
-   *  adds an intermediate path
+   *  adds an intermediate path to partial expression
    */
-  public <T> CriteriaContext newChild(Class<?> type, String pathAsString, CriteriaCreator<T> creator) {
+  public <T> CriteriaContext appendPath(Class<?> type, String pathAsString, CriteriaCreator<T> creator) {
     // first look for fields then methods
     final Member member = Stream.concat(ClassScanner.of(type).skipMethods().stream(), ClassScanner.of(type).skipFields().stream())
             .filter(m -> m.getName().equals(pathAsString))
