@@ -16,7 +16,7 @@
 package org.immutables.value.processor.encode;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -35,7 +35,7 @@ import org.immutables.value.processor.meta.Reporter.About;
 
 public final class Instantiator {
   private final Type.Factory typeFactory;
-  private final Multimap<Type, TemplateAnchor> anchors = HashMultimap.create();
+  private final Multimap<Type, TemplateAnchor> anchors = ArrayListMultimap.create();
 
   Instantiator(Type.Factory typeFactory, Set<EncodingInfo> encodings) {
     this.typeFactory = typeFactory;
