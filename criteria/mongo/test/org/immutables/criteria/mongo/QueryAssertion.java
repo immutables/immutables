@@ -48,7 +48,7 @@ class QueryAssertion {
     if (query.hasAggregations() || pipeline) {
       AggregationQuery agg = new AggregationQuery(query, pathNaming);
       this.actual =  agg.toPipeline().stream()
-              .map(b -> b.toBsonDocument(BsonDocument.class, MongoClientSettings.getDefaultCodecRegistry()))
+              .map(b -> b.toBsonDocument(BsonDocument.class, codecRegistry))
               .collect(Collectors.toList());
     } else {
       BsonDocument actual = query.filter().map(f -> f.accept(visitor)).orElseGet(BsonDocument::new)
@@ -85,7 +85,7 @@ class QueryAssertion {
     }
   }
 
-  static QueryAssertion of(Query query) {
+  static QueryAssertion ofFilter(Query query) {
     return new QueryAssertion(query, false);
   }
 
