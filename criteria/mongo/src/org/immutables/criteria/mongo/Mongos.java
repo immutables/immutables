@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.mongo;
 
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.ExpressionConverter;
@@ -37,8 +38,8 @@ final class Mongos {
   /**
    * Convert existing expression to Bson
    */
-  static ExpressionConverter<Bson> converter(PathNaming pathNaming) {
-    return expression -> expression.accept(new FindVisitor(pathNaming));
+  static ExpressionConverter<Bson> converter(PathNaming pathNaming, CodecRegistry codecRegistry) {
+    return expression -> expression.accept(new FindVisitor(pathNaming, codecRegistry));
   }
 
   /**

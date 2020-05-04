@@ -71,6 +71,25 @@ class FindVisitorTest {
     check(criteria.value.notEmpty()).matches("{value: {$nin: ['', null], $exists: true}}");
   }
 
+  @Test
+  void upperLower() {
+    check(criteria.value.toUpperCase().is("A")).matches("{$expr: {$eq:[{$toUpper: '$value'}, 'A']}}");
+    check(criteria.value.toLowerCase().is("a")).matches("{$expr: {$eq:[{$toLower: '$value'}, 'a']}}");
+    check(criteria.value.toLowerCase().isNot("a")).matches("{$expr: {$ne:[{$toLower: '$value'}, 'a']}}");
+    check(criteria.value.toLowerCase().in("a", "b")).matches("{$expr: {$in:[{$toLower: '$value'}, ['a', 'b']]}}");
+    // for aggregations / $expr,  $nin does not work
+    // use {$not: {$in: ... }} instead
+    check(criteria.value.toUpperCase().notIn("a", "b")).matches("{$expr: {$not: {$in:[{$toUpper: '$value'}, ['a', 'b']]}}}");
+
+    // chain toUpper.toLower.toUpper
+    check(criteria.value.toUpperCase().toLowerCase().is("A"))
+            .matches("{$expr: {$eq:[{$toLower: {$toUpper: '$value'}}, 'A']}}");
+
+    check(criteria.value.toLowerCase().toUpperCase().is("A"))
+            .matches("{$expr: {$eq:[{$toUpper: {$toLower: '$value'}}, 'A']}}");
+
+  }
+
   private static QueryAssertion check(StringHolderCriteria criteria) {
     return QueryAssertion.ofFilter(Criterias.toQuery(criteria));
   }

@@ -58,7 +58,7 @@ class AggregationQuery {
   private final PathNaming pathNaming;
   private final ExpressionNaming projectionNaming;
   private final BiMap<Expression, String> naming;
-  private final CodecRegistry registry;
+  private final CodecRegistry codecRegistry;
 
   AggregationQuery(Query query, PathNaming pathNaming) {
     this.query = maybeRewriteDistinctToGroupBy(query);
@@ -75,7 +75,7 @@ class AggregationQuery {
 
     this.projectionNaming = ExpressionNaming.from(UniqueCachedNaming.of(query.projections()));
     this.naming = ImmutableBiMap.copyOf(biMap);
-    this.registry = MongoClientSettings.getDefaultCodecRegistry();
+    this.codecRegistry = MongoClientSettings.getDefaultCodecRegistry();
   }
 
   /**
@@ -147,7 +147,7 @@ class AggregationQuery {
     @Override
     public void process(Consumer<Bson> consumer) {
       query.filter().ifPresent(expr -> {
-        Bson filter = expr.accept(new FindVisitor(pathNaming));
+        Bson filter = expr.accept(new FindVisitor(pathNaming, codecRegistry));
         Objects.requireNonNull(filter, "null filter");
         consumer.accept(Aggregates.match(filter));
       });
@@ -250,7 +250,7 @@ class AggregationQuery {
 
       BsonDocument sort = new BsonDocument();
       for (Collation collation: query.collations()) {
-        sort.putAll(toSortFn.apply(collation).toBsonDocument(BsonDocument.class, registry));
+        sort.putAll(toSortFn.apply(collation).toBsonDocument(BsonDocument.class, codecRegistry));
       }
 
       if (!sort.isEmpty()) {

@@ -84,7 +84,7 @@ class MongoSession implements Backend.Session {
       pathNaming = new MongoPathNaming(idProperty, pathNaming);
     }
     this.pathNaming = pathNaming;
-    this.converter = Mongos.converter(this.pathNaming);
+    this.converter = Mongos.converter(this.pathNaming, collection.getCodecRegistry());
   }
 
   private Bson toBsonFilter(Query query) {

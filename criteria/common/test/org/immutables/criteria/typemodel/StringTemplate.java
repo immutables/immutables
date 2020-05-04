@@ -406,6 +406,10 @@ public abstract class StringTemplate {
     ids(string.value.toUpperCase().in("A", "BC")).hasContentInAnyOrder("id2", "id3", "id4");
     ids(string.value.toLowerCase().in("", "a")).hasContentInAnyOrder("id1", "id2", "id3");
     ids(string.value.toUpperCase().notIn("BC", "A")).hasContentInAnyOrder("id1");
+
+    // chain upper/lower
+    ids(string.value.toUpperCase().toLowerCase().in("A", "BC")).isEmpty();
+    ids(string.value.toLowerCase().toUpperCase().in("A", "BC")).hasContentInAnyOrder("id2", "id3", "id4");
   }
 
   /**

@@ -19,18 +19,26 @@ package org.immutables.criteria.mongo;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.mongodb.client.model.Filters;
+import org.bson.BsonArray;
+import org.bson.BsonDocument;
+import org.bson.BsonNull;
+import org.bson.BsonString;
+import org.bson.BsonValue;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.ComparableOperators;
+import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.IterableOperators;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.OptionalOperators;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
@@ -49,10 +57,12 @@ import java.util.stream.Collectors;
 class FindVisitor extends AbstractExpressionVisitor<Bson> {
 
   private final PathNaming naming;
+  private final CodecRegistry codecRegistry;
 
-  FindVisitor(PathNaming naming) {
+  FindVisitor(PathNaming pathNaming, CodecRegistry codecRegistry) {
     super(e -> { throw new UnsupportedOperationException(); });
-    this.naming = Objects.requireNonNull(naming, "pathNaming");
+    this.naming = Objects.requireNonNull(pathNaming, "pathNaming");
+    this.codecRegistry = Objects.requireNonNull(codecRegistry, "codecRegistry");
   }
 
   @Override
@@ -98,8 +108,16 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
   private Bson binaryCall(Call call) {
     Preconditions.checkArgument(call.operator().arity() == Operator.Arity.BINARY, "%s is not binary", call.operator());
     final Operator op = call.operator();
-    final String field = naming.name(Visitors.toPath(call.arguments().get(0)));
-    final Object value = Visitors.toConstant(call.arguments().get(1)).value();
+    Expression left = call.arguments().get(0);
+    Expression right = call.arguments().get(1);
+
+    if (!(left instanceof Path && right instanceof Constant)) {
+      // special case when $expr has to be used
+      return call.accept(new MongoExpr(naming, codecRegistry)).asDocument();
+    }
+
+    final String field = naming.name(Visitors.toPath(left));
+    final Object value = Visitors.toConstant(right).value();
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       if ("".equals(value) && op == Operators.NOT_EQUAL) {
         // special case for empty string. string != "" should not return missing strings
@@ -123,12 +141,12 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     }
 
     if (op == Operators.IN || op == Operators.NOT_IN) {
-      final Collection<Object> values = ImmutableSet.copyOf(Visitors.toConstant(call.arguments().get(1)).values());
+      final Collection<Object> values = ImmutableSet.copyOf(Visitors.toConstant(right).values());
       Preconditions.checkNotNull(values, "not expected to be null for %s", op);
       if (values.size() == 1) {
         // optimization: convert IN, NIN (where argument is a list with single element) into EQ / NE
         Operators newOperator = op == Operators.IN ? Operators.EQUAL : Operators.NOT_EQUAL;
-        Call newCall = Expressions.call(newOperator, call.arguments().get(0), Expressions.constant(values.iterator().next()));
+        Call newCall = Expressions.call(newOperator, left, Expressions.constant(values.iterator().next()));
         return binaryCall(newCall);
       }
       return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);
@@ -173,10 +191,6 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       return Filters.regex(field, Pattern.compile(pattern));
     }
 
-    if (op == StringOperators.TO_LOWER_CASE || op == StringOperators.TO_UPPER_CASE) {
-      // $expr:{$eq:[ $toUpper: "$field", "value"]}
-      // probably needs special check for wrapping expression
-    }
 
     throw new UnsupportedOperationException(String.format("Unsupported binary call %s", call));
   }
@@ -213,6 +227,115 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
 
     // don't really know how to negate here
     return Filters.not(notCall.accept(this));
+  }
+
+  /**
+   * Visitor used when special {@code $expr} needs to be generated like {@code field1 == field2}
+   * in mongo it would look like:
+   *
+   * <pre>
+   *   {@code
+   *     $expr: {
+   *     $eq: [
+   *       "$field1",
+   *       "$field2"
+   *     ]
+   *   }
+   *   }
+   * </pre>
+   * @see <a href="https://docs.mongodb.com/manual/reference/operator/query/expr/">$expr</a>
+   */
+  private static class MongoExpr extends AbstractExpressionVisitor<BsonValue> {
+    private final PathNaming pathNaming;
+    private final CodecRegistry codecRegistry;
+
+    private MongoExpr(PathNaming pathNaming, CodecRegistry codecRegistry) {
+      super(e -> { throw new UnsupportedOperationException(); });
+      this.pathNaming = pathNaming;
+      this.codecRegistry = codecRegistry;
+    }
+
+    @Override
+    public BsonValue visit(Call call) {
+      Operator op = call.operator();
+      if (op.arity() == Operator.Arity.BINARY) {
+        return visitBinary(call, call.arguments().get(0), call.arguments().get(1));
+      }
+
+      if (op.arity() == Operator.Arity.UNARY) {
+        return visitUnary(call, call.arguments().get(0));
+      }
+
+
+      throw new UnsupportedOperationException("Don't know how to handle " + call);
+    }
+
+    private BsonValue visitBinary(Call call, Expression left, Expression right) {
+      Operator op = call.operator();
+
+      String mongoOp;
+      if (op == Operators.EQUAL) {
+        mongoOp = "$eq";
+      } else if (op == Operators.NOT_EQUAL) {
+        mongoOp = "$ne";
+      } else if (op == Operators.IN) {
+        mongoOp = "$in";
+      } else if (op == Operators.NOT_IN) {
+        mongoOp = "$in"; // will be wrapped in $not: {$not: {$in: ... }}
+      } else {
+        throw new UnsupportedOperationException(String.format("Unknown operator %s for call %s", op, call));
+      }
+
+      BsonArray args = new BsonArray();
+      args.add(left.accept(this));
+      args.add(right.accept(this));
+
+      BsonDocument expr = new BsonDocument(mongoOp, args);
+      if (op == Operators.NOT_IN) {
+        // for aggregations $nin does not work
+        // use {$not: {$in: ... }} instead
+        expr = new BsonDocument("$not", expr);
+      }
+
+      return Filters.expr(expr).toBsonDocument(BsonDocument.class, codecRegistry);
+    }
+
+    private BsonValue visitUnary(Call call, Expression arg) {
+      Operator op = call.operator();
+
+      if (op == StringOperators.TO_LOWER_CASE || op == StringOperators.TO_UPPER_CASE) {
+        String key = op == StringOperators.TO_LOWER_CASE ? "$toLower" : "$toUpper";
+        BsonValue value = arg.accept(this);
+        return new BsonDocument(key, value);
+      }
+
+      throw new UnsupportedOperationException("Unknown unary call " + call);
+    }
+
+    @Override
+    public BsonValue visit(Path path) {
+      // in mongo expressions fields are referenced as $field
+      return new BsonString('$' + pathNaming.name(path));
+    }
+
+    @Override
+    public BsonValue visit(Constant constant) {
+      Object value = constant.value();
+      if (value == null) {
+        return BsonNull.VALUE;
+      }
+
+      if (value instanceof Iterable) {
+        return Filters.in("ignore", (Iterable<?>) value)
+                .toBsonDocument(BsonDocument.class, codecRegistry)
+                .get("ignore").asDocument()
+                .get("$in").asArray();
+      }
+
+      return Filters.eq("ignore", value)
+              .toBsonDocument(BsonDocument.class, codecRegistry)
+              .get("ignore");
+    }
   }
 
 }
