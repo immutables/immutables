@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
-import java.util.List;
 
 import static org.immutables.check.Checkers.check;
 
@@ -87,7 +86,7 @@ class KeyLookupAnalyzerTest {
     Assertions.assertThrows(UnsupportedOperationException.class, result::values);
   }
 
-  private static List<String> ids(StringHolderCriteria crit) {
+  private static Iterable<String> ids(StringHolderCriteria crit) {
     Expression filter =Criterias.toQuery(crit).filter()
             .orElseThrow(() -> new AssertionError("No filter present"));
 
@@ -99,7 +98,7 @@ class KeyLookupAnalyzerTest {
       return Collections.emptyList();
     }
 
-    return (List<String>) result.values();
+    return (Iterable<String>) result.values();
   }
 
 }

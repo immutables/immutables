@@ -17,7 +17,7 @@
 package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Tries to detect if current filter is based only on keys (IDs) and extracts them if possible.
@@ -79,7 +80,7 @@ abstract class KeyLookupAnalyzer {
      * @return list of values (can be empty, with one or more elements)
      * @throws UnsupportedOperationException if keys could not be extracted
      */
-    List<?> values();
+    Set<?> values();
   }
 
   /**
@@ -159,7 +160,7 @@ abstract class KeyLookupAnalyzer {
       }
 
       // extract values
-      List<?> values = ImmutableList.copyOf(Visitors.toConstant(predicate.arguments().get(1)).values());
+      Set<?> values = ImmutableSet.copyOf(Visitors.toConstant(predicate.arguments().get(1)).values());
       return new Result() {
         @Override
         public boolean isOptimizable() {
@@ -167,7 +168,7 @@ abstract class KeyLookupAnalyzer {
         }
 
         @Override
-        public List<?> values() {
+        public Set<?> values() {
           return values;
         }
       };
@@ -184,7 +185,7 @@ abstract class KeyLookupAnalyzer {
     }
 
     @Override
-    public List<?> values() {
+    public Set<?> values() {
       throw new UnsupportedOperationException("Expression can not be optimized for key lookup." +
               " Did you check isOptimizable() method ? ");
     }
