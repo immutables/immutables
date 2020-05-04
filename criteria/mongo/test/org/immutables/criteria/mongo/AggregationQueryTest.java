@@ -16,28 +16,16 @@
 
 package org.immutables.criteria.mongo;
 
-import com.mongodb.MongoClientSettings;
-import org.bson.BsonDocument;
-import org.bson.json.JsonWriterSettings;
-import org.immutables.criteria.backend.KeyExtractor;
-import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ImmutableQuery;
-import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.expression.Visitors;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 class AggregationQueryTest {
 
@@ -141,26 +129,6 @@ class AggregationQueryTest {
   }
 
   private static void assertAgg(Query query, String ... lines) {
-    Path idPath = Visitors.toPath(KeyExtractor.defaultFactory().create(Person.class).metadata().keys().get(0));
-    AggregationQuery agg = new AggregationQuery(query, new MongoPathNaming(idPath, PathNaming.defaultNaming()));
-    List<BsonDocument> actual = agg.toPipeline().stream()
-            .map(b -> b.toBsonDocument(BsonDocument.class, MongoClientSettings.getDefaultCodecRegistry()))
-            .collect(Collectors.toList());
-    List<BsonDocument> expected = Arrays.stream(lines).map(BsonDocument::parse).collect(Collectors.toList());
-    if (!actual.equals(expected)) {
-      final JsonWriterSettings settings = JsonWriterSettings.builder().indent(true).build();
-      // outputs Bson in pretty Json format (with new lines)
-      // so output is human friendly in IDE diff tool
-      final Function<List<BsonDocument>, String> prettyFn = bsons -> bsons.stream()
-              .map(b -> b.toJson(settings)).collect(Collectors.joining("\n"));
-
-      // used to pretty print Assertion error
-      Assertions.assertEquals(
-              prettyFn.apply(expected),
-              prettyFn.apply(actual),
-              "expected and actual Mongo pipelines do not match");
-
-      Assertions.fail("Should have failed previously because expected != actual is known to be true");
-    }
+    QueryAssertion.ofPipeline(query).matchesMulti(lines);
   }
 }
