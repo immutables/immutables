@@ -391,6 +391,8 @@ public abstract class StringTemplate {
     ids(string.value.toUpperCase().is("A")).hasContentInAnyOrder("id2", "id3");
     ids(string.value.toUpperCase().is("a")).isEmpty();
     ids(string.value.toLowerCase().is("A")).isEmpty();
+    ids(string.value.toLowerCase().isNot("a")).hasContentInAnyOrder("id1", "id4");
+    ids(string.value.toUpperCase().isNot("A")).hasContentInAnyOrder("id1", "id4");
 
     // two letters
     ids(string.value.toUpperCase().is("BC")).isOf("id4");
@@ -399,6 +401,11 @@ public abstract class StringTemplate {
     ids(string.value.toUpperCase().is("bc")).isEmpty();
     ids(string.value.toUpperCase().is("bC")).isEmpty();
     ids(string.value.toUpperCase().is("Bc")).isEmpty();
+
+    // in / notIn
+    ids(string.value.toUpperCase().in("A", "BC")).hasContentInAnyOrder("id2", "id3", "id4");
+    ids(string.value.toLowerCase().in("", "a")).hasContentInAnyOrder("id1", "id2", "id3");
+    ids(string.value.toUpperCase().notIn("BC", "A")).hasContentInAnyOrder("id1");
   }
 
   /**
