@@ -22,6 +22,7 @@ import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanLogicTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.CompositeTemplate;
 import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
 import org.immutables.criteria.typemodel.DistinctLimitCountTemplate;
@@ -176,6 +177,18 @@ class GeodeIntegrationTest {
   class DistinctLimitCount extends DistinctLimitCountTemplate {
     private DistinctLimitCount() {
       super(backend);
+    }
+  }
+
+  @Nested
+  class Composite extends CompositeTemplate {
+    private Composite() {
+      super(backend);
+    }
+
+    @Disabled("optionals don't yet work in Geode backend")
+    @Override
+    protected void optional() {
     }
   }
 }

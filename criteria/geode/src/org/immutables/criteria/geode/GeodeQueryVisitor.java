@@ -116,8 +116,15 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
 
     Expression arg0 = args.get(0);
     if (op instanceof OptionalOperators) {
-      String isNull = op == OptionalOperators.IS_PRESENT ? "!= null" : "= null";
-      return oql(arg0.accept(this).oql() + " " + isNull);
+      // use IS_DEFINED / IS_UNDEFINED functions
+      String path = arg0.accept(this).oql();
+      String expr;
+      if (op == OptionalOperators.IS_PRESENT) {
+        expr = String.format("is_defined(%s) AND %s != null", path, path);
+      } else {
+        expr = String.format("is_undefined(%s) OR %s = null", path, path);
+      }
+      return oql(expr);
     } else if (op == Operators.NOT) {
       return oql("NOT (" + arg0.accept(this).oql() + ")");
     }  else if (op == IterableOperators.IS_EMPTY || op == StringOperators.TO_LOWER_CASE || op == StringOperators.TO_UPPER_CASE) {

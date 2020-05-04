@@ -21,6 +21,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanLogicTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.CompositeTemplate;
 import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
 import org.immutables.criteria.typemodel.DistinctLimitCountTemplate;
@@ -160,6 +161,13 @@ class MongoIntegrationTest {
   @Nested
   class DistinctLimitCount extends DistinctLimitCountTemplate {
     private DistinctLimitCount() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class Composite extends CompositeTemplate {
+    private Composite() {
       super(backend);
     }
   }

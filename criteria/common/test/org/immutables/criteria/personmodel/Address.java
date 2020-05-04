@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.criteria.Criteria;
 import org.immutables.value.Value;
 
+import java.util.Optional;
+
 @Value.Immutable
 @Criteria
 @JsonSerialize(as = ImmutableAddress.class)
@@ -35,6 +37,11 @@ public interface Address {
   State state();
 
   String zip();
+
+  /**
+   * Zip+4 format like {@code 12345-6789}
+   */
+  Optional<String> zip4();
 
   enum State {
     AK, NY, DC, WY

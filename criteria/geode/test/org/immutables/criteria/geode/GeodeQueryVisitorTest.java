@@ -27,9 +27,6 @@ class GeodeQueryVisitorTest {
         check(toOql(person.age.greaterThan(18))).is("age > 18");
 
         check(toOql(person.age.between(18, 21))).is("(age >= 18) AND (age <= 21)");
-
-        check(toOql(person.address.isPresent())).is("address != null");
-        check(toOql(person.address.isAbsent())).is("address = null");
     }
 
     @Test
@@ -45,11 +42,17 @@ class GeodeQueryVisitorTest {
 
         check(toOqlWithBindParams(person.age.between(18, 21))).is("(age >= $1) AND (age <= $2)");
 
-        check(toOqlWithBindParams(person.address.isPresent())).is("address != null");
-        check(toOqlWithBindParams(person.address.isAbsent())).is("address = null");
-
         check(toOqlWithBindParams(person.fullName.isEmpty())).is("fullName = $1");
         check(toOqlWithBindParams(person.fullName.notEmpty())).is("fullName != $1");
+    }
+
+    @Test
+    void definedUndefined() {
+        check(toOql(person.address.isPresent())).is("is_defined(address) AND address != null");
+        check(toOql(person.address.isAbsent())).is("is_undefined(address) OR address = null");
+
+        check(toOql(person.address.value().zip4.isPresent())).is("is_defined(address.zip4) AND address.zip4 != null");
+        check(toOql(person.address.value().zip4.isAbsent())).is("is_undefined(address.zip4) OR address.zip4 = null");
     }
 
     @Test

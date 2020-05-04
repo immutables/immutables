@@ -387,6 +387,44 @@ public interface TypeHolder {
     }
   }
 
+  @Value.Immutable
+  @Criteria
+  @Criteria.Repository
+  @JsonDeserialize(as = ImmutableCompositeHolder.class)
+  @JsonSerialize(as = ImmutableCompositeHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  interface CompositeHolder {
+    @Criteria.Id
+    String id();
+
+    BooleanHolder booleanHolder();
+    Optional<BooleanHolder> optionalBoolean();
+    @Nullable BooleanHolder nullableBoolean();
+
+    IntegerHolder integer();
+    Optional<IntegerHolder> optionalInteger();
+    @Nullable IntegerHolder nullableInteger();
+
+    StringHolder string();
+    Optional<StringHolder> optionalString();
+    @Nullable StringHolder nullableString();
+
+    static Supplier<ImmutableCompositeHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      Supplier<ImmutableBooleanHolder> bool = BooleanHolder.generator();
+      Supplier<ImmutableIntegerHolder> integer = IntegerHolder.generator();
+      Supplier<ImmutableStringHolder> string = StringHolder.generator();
+      return () -> {
+        String id = "id" + counter.incrementAndGet();
+        return ImmutableCompositeHolder.builder().id(id)
+                .booleanHolder(bool.get().withId(id))
+                .integer(integer.get().withId(id))
+                .string(string.get().withId(id))
+                .build();
+      };
+    }
+  }
+
 
   @Value.Immutable
   @Criteria
