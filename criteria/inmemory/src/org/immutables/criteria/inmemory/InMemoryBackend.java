@@ -25,10 +25,12 @@ import org.immutables.criteria.backend.KeyExtractor;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Collation;
+import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -97,6 +99,8 @@ public class InMemoryBackend implements Backend {
         return insert((StandardOperations.Insert) operation);
       } else if (operation instanceof StandardOperations.Update) {
         return update((StandardOperations.Update) operation);
+      } else if (operation instanceof StandardOperations.Delete) {
+        return delete((StandardOperations.Delete) operation);
       }
 
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
@@ -195,6 +199,29 @@ public class InMemoryBackend implements Backend {
       });
 
       return Flowable.just(WriteResult.unknown());
+    }
+
+    private Publisher<WriteResult> delete(StandardOperations.Delete op) {
+      if (!op.query().filter().isPresent()) {
+        // delete all
+        int deleted = store.size();
+        store.clear();
+        return Flowable.just(WriteResult.empty().withDeletedCount(deleted));
+      }
+
+      Expression filter = op.query().filter().orElseThrow(() -> new IllegalArgumentException("no filter"));
+
+      Predicate<Object> predicate = ExpressionInterpreter.of(filter).asPredicate();
+      int deleted = 0;
+      Iterator<Object> iter = store.values().iterator();
+      while (iter.hasNext()) {
+        if (predicate.test(iter.next())) {
+          deleted++;
+          iter.remove();
+        }
+      }
+
+      return Flowable.just(WriteResult.empty().withDeletedCount(deleted));
     }
   }
 }

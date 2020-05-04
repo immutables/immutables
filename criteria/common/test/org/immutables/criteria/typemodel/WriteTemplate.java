@@ -103,4 +103,19 @@ public abstract class WriteTemplate {
     check(all).hasSize(2);
     check(all.stream().map(TypeHolder.StringHolder::id).collect(Collectors.toList())).hasContentInAnyOrder("id1", "id2");
   }
+
+  @Test
+  void delete() {
+    repository.insert(generator.get().withId("id1").withValue("value1"));
+    repository.insert(generator.get().withId("id2").withValue("value2"));
+
+    repository.delete(stringHolder.value.is("__MISSING__"));
+    check(repository.findAll().fetch()).hasSize(2);
+
+    repository.delete(stringHolder.id.is("id1"));
+    check(repository.findAll().fetch()).hasSize(1);
+
+    repository.delete(stringHolder.value.in(Collections.singleton("value2")));
+    check(repository.findAll().fetch()).isEmpty();
+  }
 }
