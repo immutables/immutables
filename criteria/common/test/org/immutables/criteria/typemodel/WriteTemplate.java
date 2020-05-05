@@ -43,7 +43,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void insert() {
+  protected void insert() {
     ImmutableStringHolder holder1 = generator.get();
     repository.insert(holder1);
 
@@ -59,7 +59,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void update() {
+  protected void update() {
     ImmutableStringHolder holder1 = generator.get();
     repository.insert(holder1);
 
@@ -81,7 +81,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void upsert() {
+  protected void upsert() {
     ImmutableStringHolder holder1 = generator.get().withId("id1");
     repository.upsert(holder1);
 
@@ -105,7 +105,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void delete() {
+  protected void delete() {
     repository.insert(generator.get().withId("id1").withValue("value1"));
     repository.insert(generator.get().withId("id2").withValue("value2"));
 

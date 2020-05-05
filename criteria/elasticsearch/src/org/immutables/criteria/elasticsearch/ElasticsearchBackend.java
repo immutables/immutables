@@ -107,6 +107,8 @@ public class ElasticsearchBackend implements Backend {
         return DefaultResult.of(getByKey((StandardOperations.GetByKey) operation));
       } else if (operation instanceof StandardOperations.DeleteByKey) {
         return DefaultResult.of(deleteByKey((StandardOperations.DeleteByKey) operation));
+      } else if (operation instanceof StandardOperations.Delete) {
+        return DefaultResult.of(delete((StandardOperations.Delete) operation));
       }
 
       return DefaultResult.of(Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", operation))));
@@ -196,6 +198,13 @@ public class ElasticsearchBackend implements Backend {
       ObjectNode json = objectMapper.createObjectNode();
       ObjectNode query = QueryBuilders.idsQuery(op.keys()).toJson(objectMapper);
       json.set("query", query);
+      return ops.deleteByQuery(json).toFlowable();
+    }
+
+    private Flowable<WriteResult> delete(StandardOperations.Delete op) {
+      Query query = op.query();
+      ObjectNode json = objectMapper.createObjectNode();
+      query.filter().ifPresent(f -> json.set("query", Elasticsearch.toBuilder(f, pathNaming, idPredicate).toJson(objectMapper)));
       return ops.deleteByQuery(json).toFlowable();
     }
   }

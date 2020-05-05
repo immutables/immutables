@@ -35,6 +35,7 @@ import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
+import org.immutables.criteria.typemodel.WriteTemplate;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -173,6 +174,28 @@ class ElasticIntegrationTests {
   class DeleteByKey extends DeleteByKeyTemplate {
     private DeleteByKey() {
       super(backend);
+    }
+  }
+
+  @Nested
+  class WriteTest extends WriteTemplate {
+    private WriteTest() {
+      super(backend);
+    }
+
+    @Disabled
+    @Override
+    protected void insert() {
+    }
+
+    @Disabled
+    @Override
+    protected void update() {
+    }
+
+    @Disabled
+    @Override
+    protected void upsert() {
     }
   }
 
