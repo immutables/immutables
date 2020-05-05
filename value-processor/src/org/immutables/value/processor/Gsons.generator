@@ -78,7 +78,7 @@ import [starImport];
 [/if]
 [/if][/for]
 public final class [typeAdaptersName] implements TypeAdapterFactory {
-  @SuppressWarnings({"unchecked", "raw"}) // safe unchecked, types are verified in runtime
+  @SuppressWarnings({"unchecked", "rawtypes"}) // safe unchecked, types are verified in runtime
   @Override
   public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
     [for v in allValues]
@@ -134,7 +134,7 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
 [for allAttributes = type.allMarshalingAttributes, t = type.typeAbstract, im = type.typeImmutable]
 
 [atGenerated type]
-@SuppressWarnings({"unchecked", "raw"}) // safe unchecked, types are verified in runtime
+@SuppressWarnings({"unchecked", "rawtypes"}) // safe unchecked, types are verified in runtime
 private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[t]> {
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter and a.primitiveArrayType][-- no sample --]
