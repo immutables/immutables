@@ -4,6 +4,7 @@ import static org.immutables.check.Checkers.check;
 import static org.immutables.criteria.matcher.Matchers.toExpression;
 import static org.immutables.criteria.personmodel.PersonCriteria.person;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import org.immutables.criteria.backend.PathNaming;
@@ -154,6 +155,17 @@ class GeodeQueryVisitorTest {
         check(toOqlWithBindParams(person.age.greaterThan(18)
                 .address.value().city.is("London")
                 .or(person.isActive.isTrue()))).is("((age > $1) AND (address.city = $2)) OR (isActive = $3)");
+    }
+
+    @Test
+    void upperLower() {
+        check(toOql(person.fullName.toUpperCase().is("A"))).is("fullName.toUpperCase = 'A'");
+        check(toOql(person.fullName.toLowerCase().is("A"))).is("fullName.toLowerCase = 'A'");
+        check(toOql(person.fullName.toLowerCase().isNot("A"))).is("fullName.toLowerCase != 'A'");
+        check(toOql(person.fullName.toLowerCase().in(Arrays.asList("a", "b")))).is("fullName.toLowerCase IN SET('a', 'b')");
+        check(toOql(person.fullName.toLowerCase().notIn(Arrays.asList("a", "b")))).is("NOT (fullName.toLowerCase IN SET('a', 'b'))");
+        check(toOql(person.fullName.toLowerCase().toUpperCase().is("A"))).is("fullName.toLowerCase.toUpperCase = 'A'");
+        check(toOql(person.fullName.toLowerCase().endsWith("A"))).is("fullName.toLowerCase.endsWith('A')");
     }
 
     private static String toOqlWithBindParams(PersonCriteria personCriteria) {
