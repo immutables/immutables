@@ -103,6 +103,10 @@ public class GeodeBackend implements Backend {
         return Flowable.fromCallable(new SyncDelete(this, (StandardOperations.Delete) operation));
       } else if (operation instanceof StandardOperations.Watch) {
         return watch((StandardOperations.Watch) operation);
+      } else if (operation instanceof StandardOperations.DeleteByKey) {
+        return Flowable.fromCallable(new SyncDeleteByKey(this, (StandardOperations.DeleteByKey) operation));
+      } else if (operation instanceof StandardOperations.GetByKey) {
+        return Flowable.fromCallable(new SyncGetByKey(this, (StandardOperations.GetByKey) operation)).flatMapIterable(x -> x);
       }
 
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported by %s",

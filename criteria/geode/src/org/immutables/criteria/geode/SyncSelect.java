@@ -27,7 +27,6 @@ import org.immutables.criteria.expression.Query;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -86,10 +85,7 @@ class SyncSelect implements Callable<Iterable<Object>> {
     if (maybeGetById) {
       KeyLookupAnalyzer.Result result = session.keyLookupAnalyzer.analyze(query.filter().get());
       if (result.isOptimizable()) {
-        return session.region.getAll(result.values())
-                .values().stream()
-                .filter(Objects::nonNull) // skip missing keys (null values)
-                .collect(Collectors.toList());
+        return new SyncGetByKey(session, result.values()).call();
       }
     }
 

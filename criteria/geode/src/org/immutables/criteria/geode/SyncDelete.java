@@ -71,20 +71,7 @@ class SyncDelete implements Callable<WriteResult> {
    * @param keys list of keys to delete
    * @see Region#removeAll(Collection)
    */
-  private WriteResult deleteByKeys(Collection<?> keys) {
-    if (keys.isEmpty()) {
-      return WriteResult.empty();
-    }
-
-    // special case for single key delete
-    // Not using removeAll() because one can know if element was deleted based on return of remove()
-    // this return is used for WriteResult statistics
-    if (keys.size() == 1) {
-      boolean removed = region.remove(keys.iterator().next()) != null;
-      return WriteResult.empty().withDeletedCount(removed ? 1 :0);
-    }
-
-    region.removeAll(keys);
-    return WriteResult.unknown(); // can't really return keys.size()
+  private WriteResult deleteByKeys(Iterable<?> keys) throws Exception {
+    return new SyncDeleteByKey(session, keys).call();
   }
 }

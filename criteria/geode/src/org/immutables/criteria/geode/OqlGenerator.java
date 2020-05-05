@@ -17,7 +17,12 @@
 package org.immutables.criteria.geode;
 
 import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.expression.*;
+import org.immutables.criteria.expression.AggregationCall;
+import org.immutables.criteria.expression.Collation;
+import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Ordering;
+import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Query;
 import org.immutables.value.Value;
 
 import java.util.ArrayList;
