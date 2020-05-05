@@ -23,6 +23,7 @@ import org.elasticsearch.action.admin.cluster.node.info.NodeInfo;
 import org.elasticsearch.action.admin.cluster.node.info.NodesInfoResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.index.reindex.ReindexPlugin;
 import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeValidationException;
@@ -60,7 +61,7 @@ class EmbeddedElasticsearchNode implements Closeable {
    */
   private static EmbeddedElasticsearchNode create(Settings settings) {
     // ensure PainlessPlugin is installed or otherwise scripted fields would not work
-    Node node = new LocalNode(settings, Arrays.asList(Netty4Plugin.class, PainlessPlugin.class));
+    Node node = new LocalNode(settings, Arrays.asList(Netty4Plugin.class, PainlessPlugin.class, ReindexPlugin.class));
     return new EmbeddedElasticsearchNode(node);
   }
 

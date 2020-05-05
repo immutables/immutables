@@ -127,6 +127,17 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <!-- This plugin is used for testing _delete_by_query (bulk delete) API using embedded ES instance.
+                reindex-client is needed to enable '_delete_by_query' support.
+                See ElasticExtension junit extension for more details.
+                Added ReindexPlugin.class as startup plugin)
+            -->
+            <groupId>org.elasticsearch.plugin</groupId>
+            <artifactId>reindex-client</artifactId>
+            <version>${elasticsearch.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <!-- Elastic search doesn't export painless script artifact to maven central.
             Using 3rd party version (codelibs)
             This JAR is used only in tests
