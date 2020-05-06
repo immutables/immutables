@@ -145,6 +145,19 @@ public abstract class BooleanTemplate {
             .hasContentInAnyOrder("id=id1 value=true nullable=false optional=false", "id=id2 value=false nullable=true optional=true", "id=id3 value=false nullable=null optional=<empty>");
   }
 
+  @Test
+  void isNot() {
+    repository.insert(generator.get().withId("id1").withValue(true).withNullable(false).withBoxed(Boolean.TRUE).withOptional(Optional.of(false)));
+    repository.insert(generator.get().withId("id2").withValue(false).withNullable(null).withBoxed(Boolean.FALSE).withOptional(Optional.empty()));
+
+
+    ids(holder.value.isNot(true)).isOf("id2");
+    ids(holder.value.isNot(false)).isOf("id1");
+
+    ids(holder.nullable.isNot(true)).notEmpty();
+    ids(holder.nullable.isNot(false)).not().has("id1");
+  }
+
   private IterableChecker<List<String>, String> ids(BooleanHolderCriteria criteria) {
     return CriteriaChecker.<TypeHolder.BooleanHolder>ofReader(repository.find(criteria)).toList(TypeHolder.BooleanHolder::id);
   }

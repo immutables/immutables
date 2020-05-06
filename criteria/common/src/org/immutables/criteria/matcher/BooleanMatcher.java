@@ -20,22 +20,42 @@ import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
 /**
- * Very simple matcher for booleans just has {@code true} / {@code false} checks.
+ * Very simple matcher for booleans has just {@code true} / {@code false} checks.
  *
  * @param <R> root criteria type
  */
 public interface BooleanMatcher<R> extends Matcher {
 
+  /**
+   * Predicate {@code this == true}
+   */
   default R isTrue() {
     return is(true);
   }
 
+  /**
+   * Predicate {@code this == false}
+   */
   default R isFalse() {
     return is(false);
   }
 
+  /**
+   * Equivalent to {@code this == value}
+   * @param value boolean value
+   */
   default R is(boolean value) {
     return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.binaryCall(Operators.EQUAL, e, Expressions.constant(value)));
+  }
+
+  /**
+   * For some interpreters (backends) {@code value != false} is not equivalent to {@code value == true}
+   * (eg. Three-Valued-Logic). Creating separate method based on {@link Operators#NOT_EQUAL} operator.
+   *
+   * @see <a href="https://modern-sql.com/concept/three-valued-logic">Three Valued Logic</a>
+   */
+  default R isNot(boolean value) {
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.binaryCall(Operators.NOT_EQUAL, e, Expressions.constant(value)));
   }
 
   /**
