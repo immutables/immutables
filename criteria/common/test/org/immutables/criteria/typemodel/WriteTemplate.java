@@ -118,4 +118,19 @@ public abstract class WriteTemplate {
     repository.delete(stringHolder.value.in(Collections.singleton("value2")));
     check(repository.findAll().fetch()).isEmpty();
   }
+
+  /**
+   * Delete all records in bulk
+   */
+  @Test
+  void deleteAll() {
+    repository.insert(generator.get().withId("id1").withValue("value1"));
+    repository.insert(generator.get().withId("id2").withValue("value2"));
+    check(repository.findAll().fetch()).notEmpty();
+
+    // TODO add deleteAll method to repository ?
+    repository.delete(stringHolder);
+
+    check(repository.findAll().fetch()).isEmpty();
+  }
 }

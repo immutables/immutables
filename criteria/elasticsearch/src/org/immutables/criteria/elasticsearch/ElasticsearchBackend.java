@@ -204,7 +204,12 @@ public class ElasticsearchBackend implements Backend {
     private Flowable<WriteResult> delete(StandardOperations.Delete op) {
       Query query = op.query();
       ObjectNode json = objectMapper.createObjectNode();
-      query.filter().ifPresent(f -> json.set("query", Elasticsearch.toBuilder(f, pathNaming, idPredicate).toJson(objectMapper)));
+
+      QueryBuilders.QueryBuilder builder = query.filter()
+              .map(f ->Elasticsearch.toBuilder(f, pathNaming, idPredicate))
+              .orElse(QueryBuilders.matchAll());
+
+      json.set("query", builder.toJson(objectMapper));
       return ops.deleteByQuery(json).toFlowable();
     }
   }
