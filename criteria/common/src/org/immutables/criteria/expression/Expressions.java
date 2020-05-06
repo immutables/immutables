@@ -64,10 +64,6 @@ public final class Expressions {
     return ImmutableCall.of(Collections.singletonList(expression), operator, returnType);
   }
 
-  public static Query root(Class<?> entityClass) {
-    return Query.of(entityClass);
-  }
-
   private static  Expression reduce(Operator operator, Iterable<? extends Expression> expressions) {
     final int size = Iterables.size(expressions);
 
