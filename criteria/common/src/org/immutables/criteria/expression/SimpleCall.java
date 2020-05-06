@@ -60,6 +60,20 @@ class SimpleCall implements Call {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    SimpleCall that = (SimpleCall) o;
+    return Objects.equals(arguments, that.arguments) &&
+            Objects.equals(operator, that.operator);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(arguments, operator);
+  }
+
+  @Override
   public String toString() {
     final StringWriter writer = new StringWriter();
     final PrintWriter printer = new PrintWriter(writer);
