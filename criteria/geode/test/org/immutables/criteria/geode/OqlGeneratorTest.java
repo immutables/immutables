@@ -114,7 +114,7 @@ class OqlGeneratorTest {
 
     check(generator.withoutBindVariables().generate(Query.of(Person.class)
             .addProjections(type, value)
-            .withFilter(Expressions.call(Operators.EQUAL, select, Expressions.constant(42))))
+            .withFilter(Expressions.binaryCall(Operators.EQUAL, select, Expressions.constant(42))))
             .oql()).is("SELECT type1, value1 FROM /myRegion WHERE select1 = 42");
 
     check(generator.generate(Query.of(Person.class).addProjections(type, value).addGroupBy(type))

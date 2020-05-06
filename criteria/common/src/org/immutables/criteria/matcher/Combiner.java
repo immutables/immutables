@@ -97,7 +97,7 @@ interface Combiner {
     Objects.requireNonNull(operator, "operator");
     if (!(leftExpr instanceof Call && rightExpr instanceof Call)) {
       // regular call which can't be simplified
-      return Expressions.call(operator, leftExpr, rightExpr);
+      return Expressions.binaryCall(operator, leftExpr, rightExpr);
     }
 
     Call left = (Call) leftExpr;
@@ -110,7 +110,7 @@ interface Combiner {
         return Expressions.call(operator, args);
       }
 
-      return Expressions.call(operator, left, right);
+      return Expressions.binaryCall(operator, left, right);
     }
 
     // combine expressions with same operator (AND / OR) into single expression

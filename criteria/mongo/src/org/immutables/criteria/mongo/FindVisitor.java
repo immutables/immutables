@@ -146,7 +146,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       if (values.size() == 1) {
         // optimization: convert IN, NIN (where argument is a list with single element) into EQ / NE
         Operators newOperator = op == Operators.IN ? Operators.EQUAL : Operators.NOT_EQUAL;
-        Call newCall = Expressions.call(newOperator, left, Expressions.constant(values.iterator().next()));
+        Call newCall = Expressions.binaryCall(newOperator, left, Expressions.constant(values.iterator().next()));
         return binaryCall(newCall);
       }
       return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);

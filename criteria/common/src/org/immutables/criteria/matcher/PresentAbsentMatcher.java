@@ -29,12 +29,12 @@ import java.util.function.UnaryOperator;
 public interface PresentAbsentMatcher<R> extends Matcher {
 
   default R isPresent() {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(OptionalOperators.IS_PRESENT, e);
+    final UnaryOperator<Expression> expr = e -> Expressions.unaryCall(OptionalOperators.IS_PRESENT, e);
     return Matchers.extract(this).applyAndCreateRoot(expr);
   }
 
   default R isAbsent() {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(OptionalOperators.IS_ABSENT, e);
+    final UnaryOperator<Expression> expr = e -> Expressions.unaryCall(OptionalOperators.IS_ABSENT, e);
     return Matchers.extract(this).applyAndCreateRoot(expr);
   }
 }

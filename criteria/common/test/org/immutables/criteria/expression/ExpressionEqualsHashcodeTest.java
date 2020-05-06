@@ -70,12 +70,12 @@ class ExpressionEqualsHashcodeTest {
     Path id1 = Path.ofMember(Person.class.getDeclaredMethod("id"));
     Path id2 = Path.ofMember(Person.class.getDeclaredMethod("id"));
 
-    Expression e1 = Expressions.call(Operators.EQUAL, id1, Expressions.constant("1"));
-    Expression e2 = Expressions.call(Operators.EQUAL, id2, Expressions.constant("1"));
-    Expression e3 = Expressions.call(Operators.EQUAL, id1, Expressions.constant("2"));
+    Expression e1 = Expressions.binaryCall(Operators.EQUAL, id1, Expressions.constant("1"));
+    Expression e2 = Expressions.binaryCall(Operators.EQUAL, id2, Expressions.constant("1"));
+    Expression e3 = Expressions.binaryCall(Operators.EQUAL, id1, Expressions.constant("2"));
 
     Path fullName = Path.ofMember(Person.class.getDeclaredMethod("fullName"));
-    Expression e4 = Expressions.call(Operators.EQUAL, fullName, Expressions.constant("1"));
+    Expression e4 = Expressions.binaryCall(Operators.EQUAL, fullName, Expressions.constant("1"));
 
     new EqualsTester()
             .addEqualityGroup(e1, e2)

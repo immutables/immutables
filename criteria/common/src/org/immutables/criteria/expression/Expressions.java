@@ -97,7 +97,14 @@ public final class Expressions {
   }
 
   public static Call unaryCall(Operator operator, Expression arg) {
+    Objects.requireNonNull(arg, "arg");
     return call(operator, ImmutableSet.of(arg));
+  }
+
+  public static Call binaryCall(final Operator operator, Expression left, Expression right) {
+    Objects.requireNonNull(left, "left");
+    Objects.requireNonNull(right, "right");
+    return call(operator, ImmutableList.of(left, right));
   }
 
   public static Call call(final Operator operator, Expression ... operands) {

@@ -35,7 +35,7 @@ public interface BooleanMatcher<R> extends Matcher {
   }
 
   default R is(boolean value) {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.binaryCall(Operators.EQUAL, e, Expressions.constant(value)));
   }
 
   /**
