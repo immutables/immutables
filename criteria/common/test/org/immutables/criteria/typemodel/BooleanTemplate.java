@@ -87,6 +87,22 @@ public abstract class BooleanTemplate {
     ids(holder.optional.is(Optional.empty())).isOf("id3");
     ids(holder.optional.is(Optional.of(true))).isOf("id2");
     ids(holder.optional.is(Optional.of(false))).isOf("id1");
+
+    // isNot for optional
+    ids(holder.optional.isNot(Optional.empty())).hasContentInAnyOrder("id1", "id2");
+    ids(holder.optional.isNot(Optional.of(false))).not().has("id1");
+    ids(holder.optional.isNot(Optional.of(true))).not().has("id2");
+  }
+
+  @Test
+  void nullableIsNot() {
+    repository.insert(generator.get().withId("id1").withValue(false).withNullable(false).withOptional(false));
+    repository.insert(generator.get().withId("id2").withValue(true).withNullable(true).withOptional(true));
+    repository.insert(generator.get().withId("id3").withValue(true).withNullable(null).withOptional(Optional.empty()));
+
+    ids(holder.nullable.isNot(Optional.empty())).hasContentInAnyOrder("id1", "id2");
+    ids(holder.nullable.isNot(Optional.of(false))).not().has("id1");
+    ids(holder.nullable.isNot(Optional.of(true))).not().has("id2");
   }
 
   @Test
