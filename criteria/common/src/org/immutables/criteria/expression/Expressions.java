@@ -107,6 +107,14 @@ public final class Expressions {
     return call(operator, ImmutableList.of(left, right));
   }
 
+
+  /**
+   * Create generic call with given arguments
+   *
+   * @deprecated prefer using {@link #call(Operator, Iterable)} iterable variant of this function
+   *             or more specific {@link #binaryCall(Operator, Expression, Expression)}
+   */
+  @Deprecated
   public static Call call(final Operator operator, Expression ... operands) {
     return call(operator, ImmutableList.copyOf(operands));
   }
