@@ -16,13 +16,14 @@
 
 package org.immutables.criteria.expression;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -44,36 +45,28 @@ public final class Expressions {
     return Constant.ofType(value, type);
   }
 
-  public static Expression and(Expression first, Expression second) {
-    return and(Arrays.asList(first, second));
+  public static Call and(Expression first, Expression second) {
+    return and(ImmutableList.of(first, second));
   }
 
-  public static  Expression and(Iterable<? extends Expression> expressions) {
-    return reduce(Operators.AND, expressions);
+  public static Call and(Iterable<? extends Expression> expressions) {
+    List<Expression> args = ImmutableList.copyOf(expressions);
+    Preconditions.checkArgument(args.size() >= 2, "expected at least 2 arguments for %s but got %s", Operators.AND, args.size());
+    return call(Operators.AND, expressions);
   }
 
-  public static Expression or(Expression first, Expression second) {
-    return or(Arrays.asList(first ,second));
+  public static Call or(Expression first, Expression second) {
+    return or(ImmutableList.of(first, second));
   }
 
-  public static Expression or(Iterable<? extends Expression> expressions) {
-    return reduce(Operators.OR, expressions);
+  public static Call or(Iterable<? extends Expression> expressions) {
+    List<Expression> args = ImmutableList.copyOf(expressions);
+    Preconditions.checkArgument(args.size() >= 2, "expected at least 2 arguments for %s but got %s", Operators.OR, args.size());
+    return call(Operators.OR, expressions);
   }
 
   public static Expression aggregation(AggregationOperators operator, Type returnType, Expression expression) {
     return ImmutableCall.of(Collections.singletonList(expression), operator, returnType);
-  }
-
-  private static  Expression reduce(Operator operator, Iterable<? extends Expression> expressions) {
-    final int size = Iterables.size(expressions);
-
-    if (size == 0) {
-      throw new IllegalArgumentException("Empty iterator");
-    } else if (size == 1) {
-      return expressions.iterator().next();
-    }
-
-    return call(operator, expressions);
   }
 
   /**
@@ -100,7 +93,11 @@ public final class Expressions {
   }
 
   public static Call not(Expression call) {
-    return Expressions.call(Operators.NOT, call);
+    return unaryCall(Operators.NOT, call);
+  }
+
+  public static Call unaryCall(Operator operator, Expression arg) {
+    return call(operator, ImmutableSet.of(arg));
   }
 
   public static Call call(final Operator operator, Expression ... operands) {
