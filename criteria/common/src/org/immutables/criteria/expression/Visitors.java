@@ -89,7 +89,7 @@ public final class Visitors {
 
   public static Call toCall(Expression expression) {
     Objects.requireNonNull(expression, "expression");
-    return maybeCall(expression).orElseThrow(() -> ERROR_FN.apply(expression, Path.class));
+    return maybeCall(expression).orElseThrow(() -> ERROR_FN.apply(expression, Call.class));
   }
 
   public static boolean isAggregationCall(Expression expression) {
