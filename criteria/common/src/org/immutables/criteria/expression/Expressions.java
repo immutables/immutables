@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * A set of predefined utilities and factories for expressions like {@link Constant} or {@link Call}
@@ -30,8 +31,16 @@ public final class Expressions {
 
   private Expressions() {}
 
-  public static Constant constant(final Object value) {
-    return Constant.of(value);
+  public static Constant constant(Object value) {
+    if (value == null) {
+      throw new NullPointerException(String.format("value argument is null. Use method %s.constantOfType(Object, Type)", Expressions.class.getSimpleName()));
+    }
+    return constantOfType(value, value.getClass());
+  }
+
+  public static Constant constantOfType(Object value, Type type) {
+    Objects.requireNonNull(type, "type");
+    return Constant.ofType(value, type);
   }
 
   public static Expression and(Expression first, Expression second) {

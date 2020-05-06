@@ -16,8 +16,10 @@
 
 package org.immutables.criteria.expression;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.immutables.value.Value;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
@@ -28,22 +30,17 @@ import java.util.Set;
 /**
  * A constant. {@code true}, {@code 1}, {@code "foo"}, {@code null} etc.
  */
-public final class Constant implements Expression {
+@Value.Immutable(lazyhash = true)
+@Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
+public abstract class Constant implements Expression {
 
-  private final Object value;
-  private final Class<?> type;
-
-  private Constant(Object value, Class<?> type) {
-    this.value = value;
-    this.type = Objects.requireNonNull(type, "type");
-  }
+  Constant() {}
 
   /**
    * Value of current constant (can be {@code null})
    */
-  public Object value() {
-    return value;
-  }
+  @Nullable
+  public abstract Object value();
 
   /**
    * Converts current value to collection (if it is not already). If value
@@ -52,10 +49,12 @@ public final class Constant implements Expression {
    * @return singleton list with current value or immutable list of values depending on type
    * of current value.
    */
-  public Collection<Object> values() {
+  public Collection<?> values() {
+    Object value = value();
     if (value instanceof Iterable) {
-      if (value instanceof Set) {
-        return ImmutableSet.copyOf((Set<Object>) value);
+      if (value instanceof Collection) {
+        // already immutable collection
+        return (Collection<?>) value;
       }
       // most likely ImmutableList already (if Iterable)
       return ImmutableList.copyOf((Iterable<?>) value);
@@ -65,15 +64,23 @@ public final class Constant implements Expression {
     return ImmutableSet.of(value);
   }
 
-  public static Constant of(Object value, Class<?> type) {
-    return new Constant(value, type);
+  static Constant ofType(@Nullable Object value, Type type) {
+    Object newValue = value;
+    if (value instanceof Iterable) {
+      if (value instanceof Set) {
+        newValue = ImmutableSet.copyOf((Set<?>) value);
+      } else {
+        newValue = ImmutableList.copyOf((Iterable<?>) value);
+      }
+    }
+    return ImmutableConstant.builder().value(newValue).returnType(type).build();
   }
 
-  public static Constant of(Object value) {
+  static Constant of(Object value) {
     if (value == null) {
-      throw new NullPointerException(String.format("value is null. Use %s.of(Object, Class<?>)", Constant.class.getSimpleName()));
+      throw new NullPointerException(String.format("value is null. Use %s.ofType(Object, Class<?>)", Constant.class.getSimpleName()));
     }
-    return of(value, value.getClass());
+    return ofType(value, value.getClass());
   }
 
   @Nullable
@@ -83,29 +90,11 @@ public final class Constant implements Expression {
   }
 
   @Override
-  public Type returnType() {
-    return type;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    Constant constant = (Constant) o;
-    return Objects.equals(value, constant.value) &&
-            Objects.equals(type, constant.type);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(value, type);
-  }
-
-  @Override
   public String toString() {
-    return "Constant{" +
-            "value=" + value +
-            ", type=" + type.getCanonicalName() +
-            '}';
+    return MoreObjects.toStringHelper(getClass().getSimpleName())
+            .add("value", value())
+            .add("type", returnType().getTypeName())
+            .toString();
+
   }
 }

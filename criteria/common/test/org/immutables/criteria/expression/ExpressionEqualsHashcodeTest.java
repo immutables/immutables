@@ -27,8 +27,8 @@ class ExpressionEqualsHashcodeTest {
   void constant() {
     // null
     new EqualsTester()
-            .addEqualityGroup(Constant.of(null, String.class), Constant.of(null, String.class))
-            .addEqualityGroup(Constant.of(null, Boolean.class))
+            .addEqualityGroup(Expressions.constantOfType(null, String.class), Constant.ofType(null, String.class))
+            .addEqualityGroup(Constant.ofType(null, Boolean.class))
             .testEquals();
 
     // string
