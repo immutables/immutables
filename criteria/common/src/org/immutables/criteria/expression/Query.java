@@ -76,7 +76,7 @@ public abstract class Query {
    * Check if current query has any aggregation calls
    */
   public boolean hasAggregations() {
-    return !groupBy().isEmpty() || projections().stream().anyMatch(p -> p instanceof AggregationCall);
+    return !groupBy().isEmpty() || projections().stream().anyMatch(Visitors::isAggregationCall);
   }
 
   public ImmutableQuery addCollations(Iterable<Collation> collations) {

@@ -17,7 +17,6 @@
 package org.immutables.criteria.expression;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
 
 public enum AggregationOperators implements Operator {
 
@@ -44,11 +43,7 @@ public enum AggregationOperators implements Operator {
   }
 
   public static boolean isAggregation(Operator operator) {
-    if (!(operator instanceof AggregationOperators)) {
-      return false;
-    }
-
-    return Arrays.asList(values()).contains(operator);
+    return operator instanceof AggregationOperators;
   }
 
 }

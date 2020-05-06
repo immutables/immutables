@@ -17,12 +17,13 @@
 package org.immutables.criteria.geode;
 
 import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.expression.AggregationCall;
+import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Ordering;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Visitors;
 import org.immutables.value.Value;
 
 import java.util.ArrayList;
@@ -128,8 +129,8 @@ abstract class OqlGenerator {
   }
 
   private String toProjection(Expression expression) {
-    if (expression instanceof AggregationCall) {
-      AggregationCall aggregation = (AggregationCall) expression;
+    if (Visitors.isAggregationCall(expression)) {
+      Call aggregation = Visitors.toCall(expression);
       return String.format("%s(%s)", aggregation.operator().name(), toProjection(aggregation.arguments().get(0)));
     }
 

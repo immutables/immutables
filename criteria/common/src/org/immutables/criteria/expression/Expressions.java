@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -38,7 +39,7 @@ public final class Expressions {
     return constantOfType(value, value.getClass());
   }
 
-  public static Constant constantOfType(Object value, Type type) {
+  public static Constant constantOfType(@Nullable Object value, Type type) {
     Objects.requireNonNull(type, "type");
     return Constant.ofType(value, type);
   }
@@ -60,7 +61,7 @@ public final class Expressions {
   }
 
   public static Expression aggregation(AggregationOperators operator, Type returnType, Expression expression) {
-    return new AggregationCall(ImmutableList.of(expression), operator, returnType);
+    return ImmutableCall.of(Collections.singletonList(expression), operator, returnType);
   }
 
   public static Query root(Class<?> entityClass) {
@@ -111,7 +112,7 @@ public final class Expressions {
   }
 
   public static Call call(final Operator operator, final Iterable<? extends Expression> operands) {
-    return new SimpleCall(ImmutableList.copyOf(operands), operator);
+    return Call.of(operator, operands);
   }
 
 }

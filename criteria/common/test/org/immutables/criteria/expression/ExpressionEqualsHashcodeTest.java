@@ -20,6 +20,9 @@ import com.google.common.testing.EqualsTester;
 import org.immutables.criteria.personmodel.Person;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Validate equals / hashCode behaviour for {@link Expression} implementations
+ */
 @SuppressWarnings("UnstableApiUsage")
 class ExpressionEqualsHashcodeTest {
 
@@ -27,7 +30,7 @@ class ExpressionEqualsHashcodeTest {
   void constant() {
     // null
     new EqualsTester()
-            .addEqualityGroup(Expressions.constantOfType(null, String.class), Constant.ofType(null, String.class))
+            .addEqualityGroup(Constant.ofType(null, String.class), Constant.ofType(null, String.class))
             .addEqualityGroup(Constant.ofType(null, Boolean.class))
             .testEquals();
 
@@ -35,6 +38,7 @@ class ExpressionEqualsHashcodeTest {
     new EqualsTester()
             .addEqualityGroup(Constant.of("a"), Constant.of("a"))
             .addEqualityGroup(Constant.of(""))
+            .addEqualityGroup(Constant.ofType(null, String.class))
             .testEquals();
     // int
     new EqualsTester()

@@ -77,4 +77,25 @@ public final class Visitors {
             .orElseThrow(() -> ERROR_FN.apply(expression, Constant.class));
   }
 
+  public static Optional<Call> maybeCall(Expression expression) {
+    Objects.requireNonNull(expression, "expression");
+    return expression.accept(new AbstractExpressionVisitor<Optional<Call>>(Optional.empty()) {
+      @Override
+      public Optional<Call> visit(Call call) {
+        return Optional.of(call);
+      }
+    });
+  }
+
+  public static Call toCall(Expression expression) {
+    Objects.requireNonNull(expression, "expression");
+    return maybeCall(expression).orElseThrow(() -> ERROR_FN.apply(expression, Path.class));
+  }
+
+  public static boolean isAggregationCall(Expression expression) {
+    return maybeCall(expression)
+            .map(c -> AggregationOperators.isAggregation(c.operator()))
+            .orElse(false);
+  }
+
 }
