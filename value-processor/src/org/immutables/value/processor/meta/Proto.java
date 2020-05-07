@@ -325,12 +325,16 @@ public class Proto {
     public boolean hasGsonLib() {
       return hasElement("com.google.gson.Gson");
     }
+    
+    @Value.Lazy
+    public boolean hasDatatypesModule() {
+      return hasElement(DataMirror.qualifiedName());
+    }
 
     @Value.Lazy
     public boolean hasJacksonLib() {
       return hasElement(Proto.JACKSON_DESERIALIZE);
     }
-
 
     @Value.Lazy
     public boolean hasCriteriaModule() {
@@ -502,6 +506,11 @@ public class Proto {
     @Value.Lazy
     public Optional<OkTypeAdaptersMirror> okTypeAdapters() {
       return OkTypeAdaptersMirror.find(element());
+    }
+    
+    @Value.Lazy
+    public Optional<DataMirror> datatypeMarker() {
+      return DataMirror.find(element());
     }
 
     @Value.Lazy
@@ -884,6 +893,20 @@ public class Proto {
         parent.get().collectEncodings(encodings);
       }
       super.collectEncodings(encodings);
+    }
+    
+    @Override
+    @Value.Lazy
+    public Optional<DataMirror> datatypeMarker() {
+      Optional<DataMirror> datatypeMarker = super.datatypeMarker();
+      if (datatypeMarker.isPresent()) {
+        return datatypeMarker;
+      }
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        return parent.get().datatypeMarker();
+      }
+      return Optional.absent();
     }
   }
 
@@ -1348,6 +1371,45 @@ public class Proto {
               .annotationNamed(OkTypeAdaptersMirror.simpleName())
               .warning("@%s is also used on the package, this type level annotation is ignored",
                   OkTypeAdaptersMirror.simpleName());
+        }
+        return Optional.<AbstractDeclaring>of(packageOf());
+      }
+
+      return typeDefined.isPresent()
+          ? Optional.<AbstractDeclaring>of(typeDefining.get())
+          : Optional.<AbstractDeclaring>absent();
+    }
+    
+    @Value.Lazy
+    public Optional<DataMirror> datatypeMarker() {
+      Optional<AbstractDeclaring> provider = datatypeProvider();
+      if (provider.isPresent()) {
+        return provider.get().datatypeMarker();
+      }
+      return Optional.absent();
+    }
+
+    @Value.Lazy
+    public Optional<AbstractDeclaring> datatypeProvider() {
+      Optional<DeclaringType> typeDefining =
+          declaringType().isPresent()
+              ? Optional.of(declaringType().get().associatedTopLevel())
+              : Optional.<DeclaringType>absent();
+
+      Optional<DataMirror> typeDefined =
+          typeDefining.isPresent()
+              ? typeDefining.get().datatypeMarker()
+              : Optional.<DataMirror>absent();
+
+      Optional<DataMirror> packageDefined = packageOf().datatypeMarker();
+
+      if (packageDefined.isPresent()) {
+        if (typeDefined.isPresent()) {
+          report()
+              .withElement(typeDefining.get().element())
+              .annotationNamed(DataMirror.simpleName())
+              .warning("@%s is also used on the package, this type level annotation is ignored",
+                  DataMirror.simpleName());
         }
         return Optional.<AbstractDeclaring>of(packageOf());
       }

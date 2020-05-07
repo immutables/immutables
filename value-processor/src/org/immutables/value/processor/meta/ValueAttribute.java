@@ -209,6 +209,22 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
             && !typeKind.isMultimap());
   }
 
+  public boolean isSettable() {
+    return isGenerateAbstract
+        || isGenerateDefault;
+  }
+
+  public boolean isGettable() {
+    return isGenerateAbstract
+        || isGenerateDefault
+        || isGenerateDerived
+        || isGenerateLazy;
+  }
+
+  public boolean isIgnorable() {
+    return isGenerateLazy || isJsonIgnore() || isGsonOther();
+  }
+
   public boolean isMandatory() {
     return isGenerateAbstract
         && !isGenerateDefault // is the case for defaulted abstract annotation attribute
@@ -1127,8 +1143,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   boolean isIdAttribute() {
     return isMarkedAsMongoId()
-            || isMarkedAsCriteriaId()
-            || ID_ATTRIBUTE_NAME.equals(getSerializedName());
+        || isMarkedAsCriteriaId()
+        || ID_ATTRIBUTE_NAME.equals(getSerializedName());
   }
 
   private boolean isRedacted() {
@@ -1681,13 +1697,14 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       return;
     }
 
-    // JavaBeans have nullable attributes by default (except for primitives / optionals / collections / criteria)
+    // JavaBeans have nullable attributes by default (except for primitives / optionals /
+    // collections / criteria)
     // allow only scalar types to be nullable (by default) for JavaBeans
     // override nullability if not set
     if (this.nullability == null
-            && !isPrimitive()
-            && !isOptionalType()
-            && !isCollectionType()) {
+        && !isPrimitive()
+        && !isOptionalType()
+        && !isCollectionType()) {
       this.nullability = NullabilityAnnotationInfo.forTypeUse();
     }
   }
@@ -1860,6 +1877,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   enum ToName implements Function<ValueAttribute, String> {
     FUNCTION;
+
     @Override
     public String apply(ValueAttribute input) {
       return input.name();

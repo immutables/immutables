@@ -43,6 +43,7 @@
     <module>criteria</module>
     <module>mongo</module>
     <module>func</module>
+    <module>data</module>
     <module>value-processor</module>
     <module>processor-testlib</module>
     <module>value-annotations</module>
@@ -66,16 +67,10 @@
       <timezone>-8</timezone>
     </developer>
     <developer>
-      <id>ivysharev</id>
-      <name>Ilya Vysharev</name>
-      <email>ivysharev@gmail.com</email>
-      <timezone>+2</timezone>
-    </developer>
-    <developer>
-      <id>augustotravillio</id>
-      <name>Augusto Travillio</name>
-      <email>augusto.travillio@gmail.com</email>
-      <timezone>-8</timezone>
+      <id>asereda</id>
+      <name>Andrei Sereda</name>
+      <email>andrei@sereda.cc</email>
+      <timezone>-5</timezone>
     </developer>
   </developers>
 
