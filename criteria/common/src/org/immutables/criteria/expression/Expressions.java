@@ -45,8 +45,8 @@ public final class Expressions {
     return Constant.ofType(value, type);
   }
 
-  public static Call and(Expression first, Expression second) {
-    return and(ImmutableList.of(first, second));
+  public static Call and(Expression left, Expression right) {
+    return and(ImmutableList.of(left, right));
   }
 
   public static Call and(Iterable<? extends Expression> expressions) {
@@ -98,7 +98,7 @@ public final class Expressions {
 
   public static Call unaryCall(Operator operator, Expression arg) {
     Objects.requireNonNull(arg, "arg");
-    return call(operator, ImmutableSet.of(arg));
+    return call(operator, ImmutableList.of(arg));
   }
 
   public static Call binaryCall(final Operator operator, Expression left, Expression right) {
@@ -106,7 +106,6 @@ public final class Expressions {
     Objects.requireNonNull(right, "right");
     return call(operator, ImmutableList.of(left, right));
   }
-
 
   /**
    * Create generic call with given arguments
