@@ -49,10 +49,13 @@ public interface BooleanMatcher<R> extends Matcher {
   }
 
   /**
-   * For some interpreters (backends) {@code value != false} is not equivalent to {@code value == true}
-   * (eg. Three-Valued-Logic). Creating separate method based on {@link Operators#NOT_EQUAL} operator.
+   * Equivalent to {@code this != value}. Prefer using {@link #is(boolean)} (non-negation) when possible.
    *
-   * @see <a href="https://modern-sql.com/concept/three-valued-logic">Three Valued Logic</a>
+   * <p>For some interpreters (backends) {@code value != false} is not equivalent to {@code value == true}
+   * since boolean type can have three values {@code true}, {@code false} and {@code undefined} (or {@code null})
+   * (see <a href="https://modern-sql.com/concept/three-valued-logic">Three Valued Logic in SQL</a> also known as 3VL).
+   *
+   * @see <a href="https://en.wikipedia.org/wiki/Three-valued_logic">Three Valued Logic</a>
    */
   default R isNot(boolean value) {
     return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.binaryCall(Operators.NOT_EQUAL, e, Expressions.constant(value)));

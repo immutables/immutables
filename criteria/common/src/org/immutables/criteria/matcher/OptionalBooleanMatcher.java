@@ -42,7 +42,7 @@ public interface OptionalBooleanMatcher<R> extends BooleanMatcher<R>, PresentAbs
 
   /**
    * Do not match current optional boolean attribute. For empty
-   * optional matching is equivalent to {@link #isPresent()} (is not absent), otherwise standard
+   * optional matching is equivalent to {@link #isPresent()} (not absent), otherwise standard
    * {@link #isNot(boolean)} (boolean)} matching is used.
    *
    * @param optional optional boolean to match with

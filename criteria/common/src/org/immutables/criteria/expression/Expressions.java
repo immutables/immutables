@@ -18,7 +18,6 @@ package org.immutables.criteria.expression;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
