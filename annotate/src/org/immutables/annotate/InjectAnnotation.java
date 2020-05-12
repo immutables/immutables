@@ -92,6 +92,7 @@ import java.lang.annotation.*;
  */
 @Documented
 @Target(ElementType.ANNOTATION_TYPE)
+@Repeatable(InjectManyAnnotations.class)
 public @interface InjectAnnotation {
   /**
    * Used to specify whole source code for the annotation. Can specify whole target annotation(s)

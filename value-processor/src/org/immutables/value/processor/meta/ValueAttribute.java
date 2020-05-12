@@ -1581,8 +1581,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       MetaAnnotated metaAnnotated = MetaAnnotated.from(annotation, environment);
 
-      if (metaAnnotated.injectAnnotation().isPresent()) {
-        InjectionInfo info = metaAnnotated.injectAnnotation().get();
+      for (InjectionInfo info : metaAnnotated.injectAnnotation()) {
         if (annotationInjections == null) {
           annotationInjections = ImmutableList.builder();
         }

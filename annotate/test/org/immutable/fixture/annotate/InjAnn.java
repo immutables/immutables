@@ -40,6 +40,11 @@ public interface InjAnn {
   @interface Bn2 {
     int a();
   }
+   
+  @Retention(RetentionPolicy.RUNTIME)
+  @InjectAnnotation(code = "(a=1)", type = ToInj.class, target = Where.IMMUTABLE_TYPE)
+  @InjectAnnotation(code = "(a=2)", type = ToInj.class, target = Where.BUILDER_TYPE)
+  @interface Rr8 {}
 
   @Retention(RetentionPolicy.RUNTIME)
   @InjectAnnotation(
@@ -114,4 +119,9 @@ public interface InjAnn {
   @Value.Modifiable
   @ImB
   interface OnTypeAndBuilder {}
+  
+  @Value.Immutable
+  @Value.Modifiable
+  @Rr8
+  interface OnTypeAndBuilderMany {}
 }

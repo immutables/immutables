@@ -60,6 +60,11 @@ public final class AnnotationInjections {
       CONSTRUCTOR
     }
   }
+  
+  @Mirror.Annotation("org.immutables.annotate.InjectManyAnnotations")
+  public @interface InjectManyAnnotations {
+    InjectAnnotation[] value();
+  }
 
   private static String emptyIfDefault(String annotationType) {
     if (annotationType.equals("org.immutables.annotate.InjectAnnotation") // original default
