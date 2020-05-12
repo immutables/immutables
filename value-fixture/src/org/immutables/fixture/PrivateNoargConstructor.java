@@ -35,6 +35,21 @@ interface PrivateNoargConstructorNominal {
   String z();
 }
 
+@Value.Immutable
+@Style(protectedNoargConstructor = true)
+interface ProtectedNoargConstructorNominal {
+  boolean is();
+  byte b();
+  short s();
+  int i();
+  long l();
+  char c();
+  float f();
+  double d();
+  Object o();
+  String z();
+}
+
 @Value.Immutable(prehash = true)
 @Style(privateNoargConstructor = true)
 interface PrivateNoargConstructorOverridePrehash {

@@ -180,6 +180,8 @@ public final class ValueMirrors {
     boolean generateSuppressAllWarnings() default true;
 
     boolean privateNoargConstructor() default false;
+    
+    boolean protectedNoargConstructor() default false;
 
     boolean attributelessSingleton() default false;
 

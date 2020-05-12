@@ -16,9 +16,9 @@
 package org.immutables.fixture;
 
 import org.junit.jupiter.api.Test;
-
+import static org.immutables.check.Checkers.check;
 import java.lang.reflect.Field;
-
+import java.lang.reflect.Modifier;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -26,7 +26,14 @@ public class PrivateDefaultConstructorTest {
 
   @Test
   public void testNominal() throws Exception {
-    ImmutablePrivateNoargConstructorNominal.class.getDeclaredConstructor();
+    int modifiers = ImmutablePrivateNoargConstructorNominal.class.getDeclaredConstructor().getModifiers();
+    check(Modifier.isPrivate(modifiers));
+  }
+  
+  @Test
+  public void testProtectedNoargConstructor() throws Exception {
+    int modifiers = ImmutableProtectedNoargConstructorNominal.class.getDeclaredConstructor().getModifiers();
+    check(Modifier.isProtected(modifiers));
   }
 
   @SuppressWarnings("CheckReturnValue")

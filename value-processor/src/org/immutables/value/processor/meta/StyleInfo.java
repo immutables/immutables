@@ -215,6 +215,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   @Override
   public abstract boolean privateNoargConstructor();
+  
+  @Value.Parameter
+  @Override
+  public abstract boolean protectedNoargConstructor();
 
   @Value.Parameter
   @Override
@@ -439,6 +443,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.optionalAcceptNullable(),
         input.generateSuppressAllWarnings(),
         input.privateNoargConstructor(),
+        input.protectedNoargConstructor(),
         input.attributelessSingleton(),
         input.unsafeDefaultAndDerived(),
         input.clearBuilder(),
