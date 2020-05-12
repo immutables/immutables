@@ -852,7 +852,8 @@ public @interface Value {
     boolean privateNoargConstructor() default false;
 
     /**
-     * Generate a protected no-argument constructor, mainly for reflective usage by advanced toolkits.
+     * Generate a protected no-argument constructor, mainly for reflective usage by advanced
+     * toolkits.
      * Note that this one overrides {@link #privateNoargConstructor()} if both are set to
      * {@code true}. This property will be ignored if {@link Immutable#singleton()} returns
      * <code>true</code>.
@@ -1234,6 +1235,13 @@ public @interface Value {
      * @return default is {@code true} for backward compatibility. Set to {@code false} to disable
      */
     boolean transientDerivedFields() default true;
+
+    /**
+     * Disable final fields only if there are no other way, considered unsafe. This is only about instance fields of
+     * Immutable implementation class, will not apply to a lot of ther places/generators.
+     * @return default is {@code true}, do not switch off.
+     */
+    boolean finalInstanceFields() default true;
 
     /**
      * String to substitute value of the attribute in a generated {@code toString} implementation

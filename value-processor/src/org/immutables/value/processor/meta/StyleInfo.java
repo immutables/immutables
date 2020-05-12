@@ -308,6 +308,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   @Override
   public abstract boolean transientDerivedFields();
+  
+  @Value.Parameter
+  @Override
+  public abstract boolean finalInstanceFields();
 
   @Value.Parameter
   @Override
@@ -467,6 +471,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.beanFriendlyModifiables(),
         input.allMandatoryParameters(),
         input.transientDerivedFields(),
+        input.finalInstanceFields(),
         input.redactedMask(),
         input.attributeBuilderDetection(),
         input.attributeBuilder(),

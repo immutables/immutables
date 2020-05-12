@@ -2472,7 +2472,7 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [anj]
   [/for]
   [jsonIgnore type]
-  private [if v.generateTransientDerived]transient [/if]final [v.atNullability][immutableImplementationType v] [v.name];
+  private [if v.generateTransientDerived]transient [/if][if type.style.finalInstanceFields]final [/if][v.atNullability][immutableImplementationType v] [v.name];
   [/if]
 [/for]
 [if type.cacheHash]

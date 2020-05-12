@@ -232,6 +232,8 @@ public final class ValueMirrors {
     boolean attributeBuilderDetection() default false;
 
     boolean transientDerivedFields() default true;
+    
+    boolean finalInstanceFields() default true;
 
     String[] attributeBuilder() default {"Builder", "*Builder", "builder", "from", "build", "*Build", "new"};
 
