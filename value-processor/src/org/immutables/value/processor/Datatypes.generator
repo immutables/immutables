@@ -136,7 +136,7 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
   private [v.name]_([grefl].TypeToken<[tT]> type) {
     this.type = type;
     [for a in all]
-    this.[a.name]_ = [dtt].Datatype.Feature.of([for.index], NAME, [toConstant a.name]_, [constructTypeToken a], [a.nullable], [a.gettable], [a.settable], [a.mandatory], [a.ignorable]);
+    this.[a.name]_ = [dtt].Datatype.Feature.of([for.index], NAME, [toConstant a.name]_, [constructTypeToken a], [a.nullable], [a.gettable], [a.settable], [not a.mandatory], [a.ignorable]);
     [/for]
     this.features = [gimm]List.of([for a in all][if not for.first], [/if][a.name]_[/for]);
   }

@@ -1,6 +1,10 @@
 package org.immutables.data;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import javax.annotation.Nullable;
 import org.immutables.value.Value.Enclosing;
 import org.immutables.value.Value.Immutable;
@@ -46,4 +50,13 @@ public interface Dtt {
 
   @Immutable(builder = false, singleton = true)
   public interface Sin {}
+  
+  @Immutable
+  public interface Opt<O> {
+    Optional<O> o();
+    OptionalInt i();
+    OptionalLong l();
+    OptionalDouble d();
+    class Builder<O> extends ImmutableDtt.Opt.Builder<O> {}
+  }
 }
