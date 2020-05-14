@@ -43,7 +43,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void insert() {
+  protected void insert() {
     ImmutableStringHolder holder1 = generator.get();
     repository.insert(holder1);
 
@@ -59,7 +59,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void update() {
+  protected void update() {
     ImmutableStringHolder holder1 = generator.get();
     repository.insert(holder1);
 
@@ -81,7 +81,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void upsert() {
+  protected void upsert() {
     ImmutableStringHolder holder1 = generator.get().withId("id1");
     repository.upsert(holder1);
 
@@ -105,7 +105,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void delete() {
+  protected void delete() {
     repository.insert(generator.get().withId("id1").withValue("value1"));
     repository.insert(generator.get().withId("id2").withValue("value2"));
 
@@ -116,6 +116,21 @@ public abstract class WriteTemplate {
     check(repository.findAll().fetch()).hasSize(1);
 
     repository.delete(stringHolder.value.in(Collections.singleton("value2")));
+    check(repository.findAll().fetch()).isEmpty();
+  }
+
+  /**
+   * Delete all records in bulk
+   */
+  @Test
+  void deleteAll() {
+    repository.insert(generator.get().withId("id1").withValue("value1"));
+    repository.insert(generator.get().withId("id2").withValue("value2"));
+    check(repository.findAll().fetch()).notEmpty();
+
+    // TODO add deleteAll method to repository ?
+    repository.delete(stringHolder);
+
     check(repository.findAll().fetch()).isEmpty();
   }
 }

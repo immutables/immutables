@@ -23,9 +23,11 @@ import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.CompositeTemplate;
 import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
+import org.immutables.criteria.typemodel.DeleteByKeyTemplate;
 import org.immutables.criteria.typemodel.DistinctLimitCountTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
+import org.immutables.criteria.typemodel.GetByKeyTemplate;
 import org.immutables.criteria.typemodel.InstantTemplate;
 import org.immutables.criteria.typemodel.IntegerTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
@@ -147,6 +149,20 @@ class InMemoryIntegrationTest {
   @Nested
   class Composite extends CompositeTemplate {
     private Composite() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class GetByKey extends GetByKeyTemplate {
+    private GetByKey() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class DeleteByKey extends DeleteByKeyTemplate {
+    private DeleteByKey() {
       super(backend);
     }
   }

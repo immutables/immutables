@@ -88,6 +88,18 @@ class ElasticsearchOps {
     return Single.defer(() -> insertBulkInternal(documents));
   }
 
+  /**
+   * Delete documents using query API
+   * @see <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-delete-by-query.html">Delete by query API</a>
+   */
+  Single<WriteResult> deleteByQuery(ObjectNode query) {
+    Objects.requireNonNull(query, "query");
+    Request request = new Request("POST", String.format("/%s/_delete_by_query", index));
+    request.addParameter("refresh", "true");
+    request.setJsonEntity(query.toString());
+    return transport.execute(request).map(x -> WriteResult.unknown());
+  }
+
   private Single<WriteResult> insertBulkInternal(List<ObjectNode> documents) throws JsonProcessingException {
     Objects.requireNonNull(documents, "documents");
 

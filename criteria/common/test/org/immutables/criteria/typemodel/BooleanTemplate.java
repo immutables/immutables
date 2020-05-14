@@ -87,6 +87,22 @@ public abstract class BooleanTemplate {
     ids(holder.optional.is(Optional.empty())).isOf("id3");
     ids(holder.optional.is(Optional.of(true))).isOf("id2");
     ids(holder.optional.is(Optional.of(false))).isOf("id1");
+
+    // isNot for optional
+    ids(holder.optional.isNot(Optional.empty())).hasContentInAnyOrder("id1", "id2");
+    ids(holder.optional.isNot(Optional.of(false))).not().has("id1");
+    ids(holder.optional.isNot(Optional.of(true))).not().has("id2");
+  }
+
+  @Test
+  void nullableIsNot() {
+    repository.insert(generator.get().withId("id1").withValue(false).withNullable(false).withOptional(false));
+    repository.insert(generator.get().withId("id2").withValue(true).withNullable(true).withOptional(true));
+    repository.insert(generator.get().withId("id3").withValue(true).withNullable(null).withOptional(Optional.empty()));
+
+    ids(holder.nullable.isNot(Optional.empty())).hasContentInAnyOrder("id1", "id2");
+    ids(holder.nullable.isNot(Optional.of(false))).not().has("id1");
+    ids(holder.nullable.isNot(Optional.of(true))).not().has("id2");
   }
 
   @Test
@@ -143,6 +159,19 @@ public abstract class BooleanTemplate {
     check(repository.findAll().select(holder.id, holder.value, holder.nullable, holder.optional)
             .map((id, value, nullable, optional) -> String.format("id=%s value=%s nullable=%s optional=%s", id, value, nullable, optional.map(Objects::toString).orElse("<empty>"))).fetch())
             .hasContentInAnyOrder("id=id1 value=true nullable=false optional=false", "id=id2 value=false nullable=true optional=true", "id=id3 value=false nullable=null optional=<empty>");
+  }
+
+  @Test
+  void isNot() {
+    repository.insert(generator.get().withId("id1").withValue(true).withNullable(false).withBoxed(Boolean.TRUE).withOptional(Optional.of(false)));
+    repository.insert(generator.get().withId("id2").withValue(false).withNullable(null).withBoxed(Boolean.FALSE).withOptional(Optional.empty()));
+
+
+    ids(holder.value.isNot(true)).isOf("id2");
+    ids(holder.value.isNot(false)).isOf("id1");
+
+    ids(holder.nullable.isNot(true)).notEmpty();
+    ids(holder.nullable.isNot(false)).not().has("id1");
   }
 
   private IterableChecker<List<String>, String> ids(BooleanHolderCriteria criteria) {

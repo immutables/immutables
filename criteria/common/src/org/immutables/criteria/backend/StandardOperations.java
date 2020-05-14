@@ -29,6 +29,7 @@ import org.immutables.value.Value;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Common operations which can be executed on a backend.
@@ -142,9 +143,7 @@ public final class StandardOperations {
       Preconditions.checkArgument(!values.isEmpty(), "no values");
       return ImmutableUpdateByQuery.of(query, values);
     }
-
   }
-
 
   /**
    * Delete documents using some criteria
@@ -158,6 +157,37 @@ public final class StandardOperations {
       return ImmutableDelete.of(Criterias.toQuery(criteria));
     }
   }
+
+  /**
+   * Low-level delete operation when key can not be expressed as a query (or queried). For instance
+   * when key is not present on the entity itself (eg. generic key defined by a
+   * function).
+   */
+  @Value.Immutable
+  public interface DeleteByKey extends Backend.Operation {
+
+    /**
+     * Keys to delete
+     */
+    @Value.Parameter
+    Set<?> keys();
+  }
+
+  /**
+   * Key lookup operation. Used when lookup can not be
+   * expressed as a query (eg. there is no field representing
+   * ID). The order of returned entities is not deterministic and
+   * is not guaranteed to be same as the input order of keys.
+   */
+  @Value.Immutable
+  public interface GetByKey extends Backend.Operation {
+    /**
+     * Keys to perform the lookup operation
+     */
+    @Value.Parameter
+    Set<?> keys();
+  }
+
 
   @Value.Immutable
   public interface Watch extends Backend.Operation {

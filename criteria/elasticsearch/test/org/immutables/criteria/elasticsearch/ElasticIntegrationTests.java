@@ -25,14 +25,17 @@ import org.immutables.criteria.typemodel.BooleanLogicTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.CountTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
+import org.immutables.criteria.typemodel.DeleteByKeyTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
+import org.immutables.criteria.typemodel.GetByKeyTemplate;
 import org.immutables.criteria.typemodel.InstantTemplate;
 import org.immutables.criteria.typemodel.IntegerTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
+import org.immutables.criteria.typemodel.WriteTemplate;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -157,6 +160,42 @@ class ElasticIntegrationTests {
   class Count extends CountTemplate {
     private Count() {
       super(backend);
+    }
+  }
+
+  @Nested
+  class GetByKey extends GetByKeyTemplate {
+    private GetByKey() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class DeleteByKey extends DeleteByKeyTemplate {
+    private DeleteByKey() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class WriteTest extends WriteTemplate {
+    private WriteTest() {
+      super(backend);
+    }
+
+    @Disabled
+    @Override
+    protected void insert() {
+    }
+
+    @Disabled
+    @Override
+    protected void update() {
+    }
+
+    @Disabled
+    @Override
+    protected void upsert() {
     }
   }
 

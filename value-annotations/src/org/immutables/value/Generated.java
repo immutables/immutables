@@ -20,10 +20,13 @@ import java.lang.annotation.Target;
 import org.immutables.value.Value.Style;
 
 /**
- * Annotation to mark generated classes. This annotations was introduced as class and
- * runtime retained annotation is often needed to differentiate to include exclude generated
- * classes when processing class files or by using reflection. Can be disabled by
- * {@link Style#allowedClasspathAnnotations()}.
+ * Annotation to mark generated classes. This annotations was introduced as class retained
+ * annotation and is often needed to differentiate to include exclude generated
+ * classes when processing class files, in particular to exclude during code coverage instrumentation
+ * and similar. It is not made runtime-retailed because problems were reported with some systems.
+ * In order to introduce custom runtime-retained annotation, please try to
+ * use {@code org.immutables:annotate} module to inject annotations at various places in generated code.
+ * Can be disabled by {@link Style#allowedClasspathAnnotations()}.
  */
 @Target(ElementType.TYPE)
 public @interface Generated {

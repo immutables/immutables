@@ -29,25 +29,25 @@ import java.util.function.UnaryOperator;
 public interface IterableMatcher<R, S, V> extends Matcher {
 
   default R contains(V value) {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.CONTAINS, e, Expressions.constant(value)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.binaryCall(IterableOperators.CONTAINS, e, Expressions.constant(value)));
   }
 
   /**
    * Match iterable attribute to be empty (equivalent to {@code iterable.size() == 0})
    */
   default R isEmpty() {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.IS_EMPTY, e));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.unaryCall(IterableOperators.IS_EMPTY, e));
   }
 
   /**
    * Match iterable attribute to be NOT empty (equivalent to {@code iterable.size() > 0})
    */
   default R notEmpty() {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.NOT_EMPTY, e));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.unaryCall(IterableOperators.NOT_EMPTY, e));
   }
 
   default R hasSize(int size) {
-    UnaryOperator<Expression> expr = e -> Expressions.call(IterableOperators.HAS_SIZE, e, Expressions.constant(size));
+    UnaryOperator<Expression> expr = e -> Expressions.binaryCall(IterableOperators.HAS_SIZE, e, Expressions.constant(size));
     return Matchers.extract(this).applyAndCreateRoot(expr);
 
   }

@@ -27,12 +27,7 @@ public interface OptionalStringMatcher<R> extends StringMatcher<R>, OptionalValu
   interface Self extends Template<Self, Void>, Disjunction<OptionalStringMatcher<Self>> {}
 
   interface Template<R, P> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<P>, Aggregation.ComparableTemplate<Optional<String>> {}
-
-  /**
-   * Similar to main {@link OptionalStringMatcher.Template} but with {@code @Nullable} projections and aggregations
-   */
-  interface NullableTemplate<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<String>, Aggregation.ComparableTemplate<String> {}
-
+  
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
     class Local extends AbstractContextHolder implements Self {

@@ -84,7 +84,7 @@ class MongoSession implements Backend.Session {
       pathNaming = new MongoPathNaming(idProperty, pathNaming);
     }
     this.pathNaming = pathNaming;
-    this.converter = Mongos.converter(this.pathNaming);
+    this.converter = Mongos.converter(this.pathNaming, collection.getCodecRegistry());
   }
 
   private Bson toBsonFilter(Query query) {
@@ -120,6 +120,10 @@ class MongoSession implements Backend.Session {
       publisher = updateByQuery((StandardOperations.UpdateByQuery) operation);
     } else if (operation instanceof StandardOperations.Update) {
       publisher = update((StandardOperations.Update) operation);
+    } else if (operation instanceof StandardOperations.GetByKey) {
+      publisher = getByKey((StandardOperations.GetByKey) operation);
+    } else if (operation instanceof StandardOperations.DeleteByKey) {
+      publisher = deleteByKey((StandardOperations.DeleteByKey) operation);
     } else {
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
     }
@@ -224,7 +228,7 @@ class MongoSession implements Backend.Session {
     }
 
     List<ReplaceOneModel<Object>> docs =  operation.values().stream()
-            .map(value -> new ReplaceOneModel<>(new BsonDocument("_id", toBsonValue(keyExtractor.extract(value))), value, options))
+            .map(value -> new ReplaceOneModel<>(new BsonDocument(Mongos.ID_FIELD_NAME, toBsonValue(keyExtractor.extract(value))), value, options))
             .collect(Collectors.toList());
 
     Publisher<BulkWriteResult> publisher = ((MongoCollection<Object>) collection).bulkWrite(docs);
@@ -255,13 +259,28 @@ class MongoSession implements Backend.Session {
   private Publisher<WriteResult> delete(StandardOperations.Delete delete) {
     final Bson filter = toBsonFilter(delete.query());
     return Flowable.fromPublisher(collection.deleteMany(filter))
-            .map(r -> WriteResult.unknown());
+            .map(r -> WriteResult.empty().withDeletedCount(r.getDeletedCount()));
+  }
+
+  private Publisher<WriteResult> deleteByKey(StandardOperations.DeleteByKey deleteByKey) {
+    if (deleteByKey.keys().isEmpty()) {
+      return Flowable.just(WriteResult.empty());
+    }
+
+    Bson filter = Mongos.filterById(deleteByKey.keys());
+    return Flowable.fromPublisher(collection.deleteMany(filter))
+            .map(r -> WriteResult.empty().withDeletedCount(r.getDeletedCount()));
   }
 
   private Publisher<WriteResult> insert(StandardOperations.Insert insert) {
     final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
     final List<Object> values = insert.values();
     return Flowable.fromPublisher(collection.insertMany(values)).map(r -> WriteResult.unknown());
+  }
+
+  private Publisher<?> getByKey(StandardOperations.GetByKey getByKey) {
+    Bson filter = Mongos.filterById(getByKey.keys());
+    return Flowable.fromPublisher(collection.find(filter));
   }
 
   private <X> Publisher<X> watch(StandardOperations.Watch operation) {

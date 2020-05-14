@@ -29,8 +29,10 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -101,6 +103,10 @@ public class InMemoryBackend implements Backend {
         return update((StandardOperations.Update) operation);
       } else if (operation instanceof StandardOperations.Delete) {
         return delete((StandardOperations.Delete) operation);
+      } else if (operation instanceof StandardOperations.DeleteByKey) {
+        return deleteByKey((StandardOperations.DeleteByKey) operation);
+      } else if (operation instanceof StandardOperations.GetByKey) {
+        return getByKey((StandardOperations.GetByKey) operation);
       }
 
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
@@ -199,6 +205,29 @@ public class InMemoryBackend implements Backend {
       });
 
       return Flowable.just(WriteResult.unknown());
+    }
+
+    private Publisher<WriteResult> deleteByKey(StandardOperations.DeleteByKey op) {
+      int deleted = 0;
+      for(Object key: op.keys()) {
+        if (store.remove(key) != null) {
+          deleted++;
+        }
+      }
+
+      return Flowable.just(WriteResult.empty().withDeletedCount(deleted));
+    }
+
+    private Publisher<?> getByKey(StandardOperations.GetByKey op) {
+      List<Object> result = new ArrayList<>();
+      for (Object key: op.keys()) {
+        Object value = store.get(key);
+        if (value != null) {
+          result.add(value);
+        }
+      }
+
+      return Flowable.fromIterable(result);
     }
 
     private Publisher<WriteResult> delete(StandardOperations.Delete op) {

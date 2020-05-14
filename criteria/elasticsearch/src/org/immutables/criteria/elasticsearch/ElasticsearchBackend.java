@@ -97,15 +97,21 @@ public class ElasticsearchBackend implements Backend {
     }
 
     @Override
-    public Result execute(Operation query) {
-      Objects.requireNonNull(query, "query");
-      if (query instanceof StandardOperations.Insert) {
-        return DefaultResult.of(insert((StandardOperations.Insert) query));
-      } else if (query instanceof StandardOperations.Select) {
-        return DefaultResult.of(select((StandardOperations.Select) query));
+    public Result execute(Operation operation) {
+      Objects.requireNonNull(operation, "operation");
+      if (operation instanceof StandardOperations.Insert) {
+        return DefaultResult.of(insert((StandardOperations.Insert) operation));
+      } else if (operation instanceof StandardOperations.Select) {
+        return DefaultResult.of(select((StandardOperations.Select) operation));
+      } else if (operation instanceof StandardOperations.GetByKey) {
+        return DefaultResult.of(getByKey((StandardOperations.GetByKey) operation));
+      } else if (operation instanceof StandardOperations.DeleteByKey) {
+        return DefaultResult.of(deleteByKey((StandardOperations.DeleteByKey) operation));
+      } else if (operation instanceof StandardOperations.Delete) {
+        return DefaultResult.of(delete((StandardOperations.Delete) operation));
       }
 
-      return DefaultResult.of(Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", query))));
+      return DefaultResult.of(Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", operation))));
     }
 
     private Flowable<ProjectedTuple> aggregate(StandardOperations.Select op) {
@@ -179,6 +185,32 @@ public class ElasticsearchBackend implements Backend {
               .collect(Collectors.toList());
 
       return ops.insertBulk(docs).toFlowable();
+    }
+
+    private Flowable<?> getByKey(StandardOperations.GetByKey op) {
+      ObjectNode json = objectMapper.createObjectNode();
+      ObjectNode query = QueryBuilders.idsQuery(op.keys()).toJson(objectMapper);
+      json.set("query", query);
+      return ops.scrolledSearch(json, converter);
+    }
+
+    private Flowable<WriteResult> deleteByKey(StandardOperations.DeleteByKey op) {
+      ObjectNode json = objectMapper.createObjectNode();
+      ObjectNode query = QueryBuilders.idsQuery(op.keys()).toJson(objectMapper);
+      json.set("query", query);
+      return ops.deleteByQuery(json).toFlowable();
+    }
+
+    private Flowable<WriteResult> delete(StandardOperations.Delete op) {
+      Query query = op.query();
+      ObjectNode json = objectMapper.createObjectNode();
+
+      QueryBuilders.QueryBuilder builder = query.filter()
+              .map(f ->Elasticsearch.toBuilder(f, pathNaming, idPredicate))
+              .orElse(QueryBuilders.matchAll());
+
+      json.set("query", builder.toJson(objectMapper));
+      return ops.deleteByQuery(json).toFlowable();
     }
   }
 }

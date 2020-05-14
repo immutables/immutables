@@ -87,4 +87,13 @@ public class StyleTest {
     check(ImmutableSer.class.getDeclaredField("def").getModifiers() & Modifier.TRANSIENT).is(0);
     check(ImmutableStrSer.class.getDeclaredField("def").getModifiers() & Modifier.TRANSIENT).is(Modifier.TRANSIENT);
   }
+  
+  @Test
+  public void nonFinalInstanceFields()throws Exception {
+      Class<ImmutableNonFinalInstanceFields> c = ImmutableNonFinalInstanceFields.class;
+      check(c.getDeclaredConstructor().getModifiers() & Modifier.PROTECTED).is(Modifier.PROTECTED);
+      check(c.getDeclaredField("a").getModifiers() & Modifier.FINAL).is(0);
+      check(c.getDeclaredField("b").getModifiers() & Modifier.FINAL).is(0);
+      check(c.getDeclaredField("c").getModifiers() & Modifier.FINAL).is(0);
+  }
 }

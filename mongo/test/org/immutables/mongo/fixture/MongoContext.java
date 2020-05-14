@@ -67,35 +67,15 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
     Preconditions.checkNotNull(client, "client");
     Preconditions.checkNotNull(closer, "closer");
 
-    closer.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        client.close();
-      }
-    });
-
-    // drop database if exists (to have a clean test)
-    if (Iterables.contains(client.listDatabaseNames(), DBNAME)) {
-      client.getDatabase(DBNAME).drop();
-    }
+    closer.register(client::close);
 
     this.database = client.getDatabase(DBNAME);
+    clearDatabase(database);
 
-    closer.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        database.drop();
-      }
-    });
+    closer.register(() -> clearDatabase(database));
 
     final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
-
-    closer.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        MoreExecutors.shutdownAndAwaitTermination(executor, 100, TimeUnit.MILLISECONDS);
-      }
-    });
+    closer.register(() -> MoreExecutors.shutdownAndAwaitTermination(executor, 100, TimeUnit.MILLISECONDS));
 
     this.setup = RepositorySetup.builder()
             .gson(createGson())
@@ -104,6 +84,15 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
             .build();
 
     this.closer = closer;
+  }
+
+  /**
+   * Drops all collections from a mongo database
+   */
+  private static void clearDatabase(MongoDatabase database) {
+    for (String name: database.listCollectionNames()) {
+      database.getCollection(name).drop();
+    }
   }
 
   public MongoDatabase database() {

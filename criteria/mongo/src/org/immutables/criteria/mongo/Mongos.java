@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.mongo;
 
+import com.mongodb.client.model.Filters;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.ExpressionConverter;
@@ -32,13 +34,21 @@ import java.util.OptionalLong;
  */
 final class Mongos {
 
-  private Mongos() {}
+  /**
+   * Primary key of a mongo document {@code _id}. It is expected
+   * to be unique in a mongo collection
+   */
+  static final String ID_FIELD_NAME = "_id";
 
   /**
    * Convert existing expression to Bson
    */
-  static ExpressionConverter<Bson> converter(PathNaming pathNaming) {
-    return expression -> expression.accept(new FindVisitor(pathNaming));
+  static ExpressionConverter<Bson> converter(PathNaming pathNaming, CodecRegistry codecRegistry) {
+    return expression -> expression.accept(new FindVisitor(pathNaming, codecRegistry));
+  }
+
+  static Bson filterById(Iterable<?> ids) {
+    return Filters.in(ID_FIELD_NAME, ids);
   }
 
   /**
@@ -48,4 +58,5 @@ final class Mongos {
     return type == Optional.class || type == OptionalDouble.class || type == OptionalLong.class || type == OptionalInt.class || (type instanceof ParameterizedType && ((ParameterizedType) type).getRawType() == Optional.class);
   }
 
+  private Mongos() {}
 }

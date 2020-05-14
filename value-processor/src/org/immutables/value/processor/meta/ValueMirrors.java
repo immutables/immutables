@@ -180,6 +180,8 @@ public final class ValueMirrors {
     boolean generateSuppressAllWarnings() default true;
 
     boolean privateNoargConstructor() default false;
+    
+    boolean protectedNoargConstructor() default false;
 
     boolean attributelessSingleton() default false;
 
@@ -230,6 +232,8 @@ public final class ValueMirrors {
     boolean attributeBuilderDetection() default false;
 
     boolean transientDerivedFields() default true;
+    
+    boolean finalInstanceFields() default true;
 
     String[] attributeBuilder() default {"Builder", "*Builder", "builder", "from", "build", "*Build", "new"};
 

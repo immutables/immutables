@@ -43,8 +43,8 @@ class QueryAssertion {
     this.query = Objects.requireNonNull(query, "query");
     Path idPath = Visitors.toPath(KeyExtractor.defaultFactory().create(query.entityClass()).metadata().keys().get(0));
     PathNaming pathNaming = new MongoPathNaming(idPath, PathNaming.defaultNaming());
-    FindVisitor visitor = new FindVisitor(pathNaming);
     CodecRegistry codecRegistry = MongoClientSettings.getDefaultCodecRegistry();
+    FindVisitor visitor = new FindVisitor(pathNaming, codecRegistry);
     if (query.hasAggregations() || pipeline) {
       AggregationQuery agg = new AggregationQuery(query, pathNaming);
       this.actual =  agg.toPipeline().stream()

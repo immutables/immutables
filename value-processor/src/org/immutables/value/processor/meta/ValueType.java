@@ -638,7 +638,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isUsePrehashed() {
     return immutableFeatures.prehash()
-        && !isGeneratePrivateNoargConstructor()
+        && !isGenerateNoargConstructor()
         && !getEquivalenceAttributes().isEmpty()
         && !simpleSerializableWithoutCopy();
   }
@@ -1058,8 +1058,9 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return telescopicBuild;
   }
 
-  public boolean isGeneratePrivateNoargConstructor() {
-    return style().privateNoargConstructor();
+  public boolean isGenerateNoargConstructor() {
+    return style().privateNoargConstructor()
+        || style().protectedNoargConstructor();
   }
 
   private @Nullable ThrowForInvalidImmutableState throwForInvalidImmutableState;

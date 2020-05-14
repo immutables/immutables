@@ -37,7 +37,7 @@ class MongoPathNaming implements PathNaming {
 
   @Override
   public String name(Path path) {
-    return idProperty.equals(path) ? "_id" : delegate.name(path);
+    return idProperty.equals(path) ? Mongos.ID_FIELD_NAME : delegate.name(path);
   }
 
   ExpressionNaming toExpression() {

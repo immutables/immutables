@@ -112,4 +112,12 @@ public class AnnotateTest {
     check(x.a()).is(31);
     check(x.b()).is("UO");
   }
+  
+  @Test
+	public void manyRepeatableAnnotationInjections() {
+    ToInj t = ImmutableOnTypeAndBuilderMany.class.getAnnotation(ToInj.class);
+    check(t.a()).is(1);
+    ToInj b = ImmutableOnTypeAndBuilderMany.Builder.class.getAnnotation(ToInj.class);
+    check(b.a()).is(2);
+	}
 }

@@ -2472,7 +2472,7 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [anj]
   [/for]
   [jsonIgnore type]
-  private [if v.generateTransientDerived]transient [/if]final [v.atNullability][immutableImplementationType v] [v.name];
+  private [if v.generateTransientDerived]transient [/if][if type.style.finalInstanceFields]final [/if][v.atNullability][immutableImplementationType v] [v.name];
   [/if]
 [/for]
 [if type.cacheHash]
@@ -2502,9 +2502,9 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
     [generateDerivedConstruction type noAttributes]
     [generateAfterConstruction type false]
   [/output.collapsible]}
-[else if type.generatePrivateNoargConstructor]
+[else if type.generateNoargConstructor]
 
-  private [type.typeImmutable.simple]() {[output.collapsible]
+  [if type.style.protectedNoargConstructor]protected[else]private[/if] [type.typeImmutable.simple]() {[output.collapsible]
     [generateConstructorNoAttributes type type.implementedAttributes]
     [generateAfterConstruction type false]
   [/output.collapsible]}
@@ -3391,7 +3391,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
 [else]
   [immutableImplementationType v] newValue = [optionalOf v]([maybeCopyOf v]value[/maybeCopyOf]);
   [if v.hasSimpleScalarElementType andnot v.enumType]
-    [if type.generatePrivateNoargConstructor]
+    [if type.generateNoargConstructor]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
     [else]
   if (this.[v.name].equals(newValue)) return this;
@@ -3429,7 +3429,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
   [/if]
 [else]
   [if v.hasSimpleScalarElementType]
-    [if type.generatePrivateNoargConstructor]
+    [if type.generateNoargConstructor]
   if ([objectsEqual type](this.[v.name], value)) return this;
     [else]
   if (this.[v.name].equals(value)) return this;
@@ -3499,7 +3499,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
     [else if v.nullable]
     [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
-      [if v.nullable or type.generatePrivateNoargConstructor]
+      [if v.nullable or type.generateNoargConstructor]
   if ([objectsEqual type](this.[v.name], value)) return this;
       [else]
   if (this.[v.name].equals(value)) return this;
@@ -3510,7 +3510,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
     [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
-      [if v.nullable or type.generatePrivateNoargConstructor]
+      [if v.nullable or type.generateNoargConstructor]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
       [else]
   if (this.[v.name].equals(newValue)) return this;

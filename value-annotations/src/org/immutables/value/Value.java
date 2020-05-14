@@ -99,7 +99,8 @@ public @interface Value {
     boolean prehash() default false;
 
     /**
-     * If {@code lazyhash=true} then internal {@code hashCode} will be computed (and cached) on first {@code hashCode()}
+     * If {@code lazyhash=true} then internal {@code hashCode} will be computed (and cached) on
+     * first {@code hashCode()}
      * method call.
      * For eager {@code hashCode} computation (in constructor) use {@link #prehash()}.
      * @return to lazily compute the {@code hashCode}
@@ -664,7 +665,8 @@ public @interface Value {
     String typeModifiable() default "Modifiable*";
 
     /**
-     * Inner builder class name which will be matched to be extend/super for generated Modifiable class.
+     * Inner builder class name which will be matched to be extend/super for generated Modifiable
+     * class.
      * @return naming template
      */
     String typeInnerModifiable() default "Modifiable";
@@ -824,7 +826,8 @@ public @interface Value {
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     /**
-     * Specify whether init, copy and factory methods and constructors for an unwrapped {@code X} of {@code Optional<X>}
+     * Specify whether init, copy and factory methods and constructors for an unwrapped {@code X} of
+     * {@code Optional<X>}
      * should accept {@code null} values as empty value. By default nulls are rejected in favor of
      * explicit conversion using {@code Optional.ofNullable}. Please note that initializers that
      * take explicit {@code Optional} value always reject nulls regardless of this setting.
@@ -842,11 +845,22 @@ public @interface Value {
     boolean generateSuppressAllWarnings() default true;
 
     /**
-     * Generate a default no argument constructor in generated code. Note that this property will
+     * Generate a private no-argument constructor in generated code. Note that this property will
      * be ignored if {@link Immutable#singleton()} returns <code>true</code>.
      * @return {@code true} if will generate a default no argument constructor, disabled by default.
      */
     boolean privateNoargConstructor() default false;
+
+    /**
+     * Generate a protected no-argument constructor, mainly for reflective usage by advanced
+     * toolkits.
+     * Note that this one overrides {@link #privateNoargConstructor()} if both are set to
+     * {@code true}. This property will be ignored if {@link Immutable#singleton()} returns
+     * <code>true</code>.
+     * @return {@code true} if will generate a no argument constructor with protected visibility,
+     *         disabled by default.
+     */
+    boolean protectedNoargConstructor() default false;
 
     /**
      * Enabling {@code attributelessSingleton} switches to old behavior of 2.0.x version when
@@ -1223,6 +1237,13 @@ public @interface Value {
     boolean transientDerivedFields() default true;
 
     /**
+     * Disable final fields only if there are no other way, considered unsafe. This is only about instance fields of
+     * Immutable implementation class, will not apply to a lot of ther places/generators.
+     * @return default is {@code true}, do not switch off.
+     */
+    boolean finalInstanceFields() default true;
+
+    /**
      * String to substitute value of the attribute in a generated {@code toString} implementation
      * when {@link Redacted} annotation is applied to the attribute.
      * <p>
@@ -1295,7 +1316,6 @@ public @interface Value {
      * <em>This is detection pattern, not formatting pattern. It defines how to recognize a nested
      * builder.</em>
      * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
-     *
      * @return naming template
      */
     String[] attributeBuilder() default {"Builder", "*Builder", "builder", "from", "build", "*Build", "new"};

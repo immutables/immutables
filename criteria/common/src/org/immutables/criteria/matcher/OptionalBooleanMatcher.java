@@ -31,13 +31,27 @@ public interface OptionalBooleanMatcher<R> extends BooleanMatcher<R>, PresentAbs
    * empty, matching is equivalent to {@link #isAbsent()} otherwise standard
    * {@link #is(boolean)} matching is used.
    *
-   * @param optional argument to match with
+   * @param optional optional boolean to match with
    * @throws NullPointerException if argument is null
    */
   @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
   default R is(Optional<Boolean> optional) {
     Objects.requireNonNull(optional, "optional");
     return optional.map(this::is).orElseGet(this::isAbsent);
+  }
+
+  /**
+   * Do not match current optional boolean attribute. For empty
+   * optional matching is equivalent to {@link #isPresent()} (not absent), otherwise standard
+   * {@link #isNot(boolean)} (boolean)} matching is used.
+   *
+   * @param optional optional boolean to match with
+   * @throws NullPointerException if argument is null
+   */
+  @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+  default R isNot(Optional<Boolean> optional) {
+    Objects.requireNonNull(optional, "optional");
+    return optional.map(this::isNot).orElseGet(this::isPresent);
   }
 
   interface Self extends Template<Self, Void> {}

@@ -204,12 +204,22 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
-    public Optional<InjectionInfo> injectAnnotation() {
+    public ImmutableList<InjectionInfo> injectAnnotation() {
       if (environment().hasAnnotateModule()) {
-        return InjectAnnotationMirror.find(element())
-            .transform(ToInjectionInfo.FUNCTION);
+        ImmutableList.Builder<InjectionInfo> builder = ImmutableList.builder();
+        Optional<InjectAnnotationMirror> injectAnnotation = InjectAnnotationMirror.find(element());
+        if (injectAnnotation.isPresent()) {
+          builder.add(ToInjectionInfo.FUNCTION.apply(injectAnnotation.get()));
+        }
+        Optional<InjectManyAnnotationsMirror> injectMany = InjectManyAnnotationsMirror.find(element());
+        if (injectMany.isPresent()) {
+          for (InjectAnnotationMirror m : injectMany.get().value()) {
+            builder.add(ToInjectionInfo.FUNCTION.apply(m));
+          }
+        }
+        return builder.build();
       }
-      return Optional.absent();
+      return ImmutableList.of();
     }
 
     public static MetaAnnotated from(AnnotationMirror mirror, Environment environment) {
@@ -294,15 +304,16 @@ public class Proto {
     }
 
     /**
-     * Try to find Guava's object util classes if they're available. First lookup for {@code base.MoreObjects} then {@code base.Objects}.
+     * Try to find Guava's object util classes if they're available. First lookup for
+     * {@code base.MoreObjects} then {@code base.Objects}.
      * Return {@code null} if not found.
-     *
-     * @return full class name for Guava's {@code MoreObjects} / {@code Objects} or {@code null} if such class doesn't exists in classpath
+     * @return full class name for Guava's {@code MoreObjects} / {@code Objects} or {@code null} if
+     *         such class doesn't exists in classpath
      */
     @Nullable
     @Value.Lazy
     String typeMoreObjects() {
-      for (String shortName: Arrays.asList("base.MoreObjects", "base.Objects")) {
+      for (String shortName : Arrays.asList("base.MoreObjects", "base.Objects")) {
         final String name = UnshadeGuava.typeString(shortName);
         if (hasElement(name)) {
           return name;
@@ -593,9 +604,8 @@ public class Proto {
     }
 
     private void registerAnnotationInjection(AnnotationMirror mirror, MetaAnnotated meta) {
-      if (meta.injectAnnotation().isPresent()) {
-        AnnotationInjection injection =
-            meta.injectAnnotation().get().injectionFor(mirror, environment());
+      for (InjectionInfo info : meta.injectAnnotation()) {
+        AnnotationInjection injection = info.injectionFor(mirror, environment());
         synchronized (annotationInjections) {
           annotationInjections.add(injection);
         }
@@ -1074,12 +1084,16 @@ public class Proto {
     @Value.Derived
     @Value.Auxiliary
     public boolean isJavaBean() {
-      return element().getKind().isClass() &&
-             element().getKind() != ElementKind.ENUM &&
-             !element().getModifiers().contains(Modifier.PRIVATE) &&
-             !element().getModifiers().contains(Modifier.ABSTRACT) &&
-              // restrict to Criteria and Repository annotations for now
-              (CriteriaMirror.find(element()).isPresent() || CriteriaRepositoryMirror.find(element()).isPresent());
+      return element().getKind().isClass()
+          &&
+          element().getKind() != ElementKind.ENUM
+          &&
+          !element().getModifiers().contains(Modifier.PRIVATE)
+          &&
+          !element().getModifiers().contains(Modifier.ABSTRACT)
+          &&
+          // restrict to Criteria and Repository annotations for now
+          (CriteriaMirror.find(element()).isPresent() || CriteriaRepositoryMirror.find(element()).isPresent());
     }
 
     public boolean isImmutable() {
@@ -1271,8 +1285,8 @@ public class Proto {
         return Optional.absent();
       }
       return kind().isIncluded() || kind().isDefinedValue() || kind().isJavaBean()
-              ? declaringType().get().criteria()
-              : Optional.<CriteriaMirror>absent();
+          ? declaringType().get().criteria()
+          : Optional.<CriteriaMirror>absent();
     }
 
     @Value.Lazy
@@ -1291,10 +1305,9 @@ public class Proto {
         return Optional.absent();
       }
       return kind().isIncluded() || kind().isDefinedValue() || kind().isJavaBean()
-              ? declaringType().get().criteriaRepository()
-              : Optional.<CriteriaRepositoryMirror>absent();
+          ? declaringType().get().criteriaRepository()
+          : Optional.<CriteriaRepositoryMirror>absent();
     }
-
 
     @Value.Lazy
     public Optional<TypeAdaptersMirror> gsonTypeAdapters() {

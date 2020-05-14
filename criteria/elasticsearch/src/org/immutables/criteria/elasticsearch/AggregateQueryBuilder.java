@@ -28,12 +28,13 @@ import com.google.common.collect.Maps;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.UniqueCachedNaming;
-import org.immutables.criteria.expression.AggregationCall;
 import org.immutables.criteria.expression.AggregationOperators;
+import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Visitors;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -134,8 +135,8 @@ class AggregateQueryBuilder {
     }
 
     for (Expression expr: query.projections()) {
-      if (expr instanceof AggregationCall) {
-        AggregationCall call = (AggregationCall) expr;
+      if (Visitors.isAggregationCall(expr)) {
+        Call call = Visitors.toCall(expr);
         ObjectNode agg = nodeFactory.objectNode();
         String field = ((Path) call.arguments().get(0)).toStringPath();
         agg.with(toElasticAggregate(call)).put("field", field);
@@ -205,7 +206,7 @@ class AggregateQueryBuilder {
    * function. But currently only one-to-one mapping is supported between sql agg and elastic
    * aggregation.
    */
-  private static String toElasticAggregate(AggregationCall call) {
+  private static String toElasticAggregate(Call call) {
     final AggregationOperators kind = (AggregationOperators) call.operator();
     switch (kind) {
       case COUNT:

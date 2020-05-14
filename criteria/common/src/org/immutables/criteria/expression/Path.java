@@ -46,11 +46,13 @@ public class Path implements Expression {
   private final Path parent;
   private final AnnotatedElement annotatedElement;
   private final Type returnType;
+  private final int hashCode;
 
   private Path(Path parent, AnnotatedElement annotatedElement) {
     this.parent = parent;
     this.annotatedElement = Objects.requireNonNull(annotatedElement, "annotatedElement");
     this.returnType = extractReturnType(annotatedElement);
+    this.hashCode = Objects.hash(parent, annotatedElement);
   }
 
   private static Type extractReturnType(AnnotatedElement element) {
@@ -142,7 +144,7 @@ public class Path implements Expression {
 
   @Override
   public int hashCode() {
-    return Objects.hash(parent, annotatedElement);
+    return hashCode;
   }
 
   @Override
@@ -150,7 +152,10 @@ public class Path implements Expression {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Path path = (Path) o;
-    return Objects.equals(parent, path.parent) &&
-            Objects.equals(annotatedElement, path.annotatedElement);
+    if (hashCode != path.hashCode) {
+      return false;
+    }
+    return Objects.equals(annotatedElement, path.annotatedElement)
+            && Objects.equals(parent, path.parent);
   }
 }
