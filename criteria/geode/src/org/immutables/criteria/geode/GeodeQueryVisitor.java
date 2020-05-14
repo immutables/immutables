@@ -33,6 +33,7 @@ import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -182,7 +183,14 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
 
   @Override
   public Oql visit(Path path) {
-    return oql(pathNaming.name(path));
+    String name = pathNaming.name(path);
+    Type type = path.returnType();
+    if (!useBindVariables && (type instanceof Class<?>) && ((Class<?>) type).isEnum()) {
+      // for enums we need to add ".name" function (queries without bind variables)
+      // OQL should be "enum.name = 'VALUE'"
+      name = name + ".name";
+    }
+    return oql(name);
   }
 
   @Override
@@ -230,16 +238,22 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
   }
 
   private static String valueToString(Object value) {
-    if (value instanceof CharSequence) {
+    if (value == null) {
+      return Objects.toString(null);
+    } else if (value instanceof CharSequence) {
       return "'" + Geodes.escapeOql((CharSequence) value) + "'";
     } else if (value instanceof Pattern) {
       return "'" + Geodes.escapeOql(((Pattern) value).pattern()) + "'";
     } else if (value instanceof Iterable) {
-      @SuppressWarnings("unchecked")
-      final Set<Object> set = ImmutableSet.copyOf((Iterable<Object>) value);
+      @SuppressWarnings("unchecked") final Set<Object> set = ImmutableSet.copyOf((Iterable<Object>) value);
       String asString = set.stream().map(GeodeQueryVisitor::valueToString).collect(Collectors.joining(", "));
       return "SET(" + asString + ")";
+    } else if (value.getClass().isEnum()) {
+      // convert enum value to string representation. 'ENUM_NAME' (as string)
+      Enum<?> enumValue = (Enum<?>) value;
+      return valueToString(enumValue.name());
     } else {
+      // probably string is best representation in OQL (without bind variables)
       return Objects.toString(value);
     }
   }

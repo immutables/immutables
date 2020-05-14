@@ -1,18 +1,21 @@
 package org.immutables.criteria.geode;
 
-import static org.immutables.check.Checkers.check;
-import static org.immutables.criteria.matcher.Matchers.toExpression;
-import static org.immutables.criteria.personmodel.PersonCriteria.person;
+import org.immutables.criteria.Criterias;
+import org.immutables.criteria.Criterion;
+import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.personmodel.ImmutablePet;
+import org.immutables.criteria.typemodel.EnumHolderCriteria;
+import org.immutables.criteria.typemodel.TypeHolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.personmodel.ImmutablePet;
-import org.immutables.criteria.personmodel.PersonCriteria;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import static org.immutables.check.Checkers.check;
+import static org.immutables.criteria.personmodel.PersonCriteria.person;
 
 class GeodeQueryVisitorTest {
 
@@ -60,6 +63,32 @@ class GeodeQueryVisitorTest {
     void filterNested() {
         check(toOql(person.address.value().city.is("London")))
                 .is("address.city = 'London'");
+    }
+
+    /**
+     * When not using bind variables enum shouold be converted to {@code enum.name == 'value'}
+     */
+    @Test
+    void enumWithoutBindVariable() {
+        EnumHolderCriteria holder = EnumHolderCriteria.enumHolder;
+        check(toOql(holder.value.is(TypeHolder.Foo.ONE))).is("value.name = 'ONE'");
+        check(toOql(holder.value.isNot(TypeHolder.Foo.ONE))).is("value.name != 'ONE'");
+        check(toOql(holder.value.in(Arrays.asList(TypeHolder.Foo.ONE, TypeHolder.Foo.TWO)))).is("value.name IN SET('ONE', 'TWO')");
+        check(toOql(holder.value.notIn(Arrays.asList(TypeHolder.Foo.ONE, TypeHolder.Foo.TWO)))).is("NOT (value.name IN SET('ONE', 'TWO'))");
+
+        // nullable
+        check(toOql(holder.nullable.is(TypeHolder.Foo.ONE))).is("nullable.name = 'ONE'");
+        check(toOql(holder.nullable.isNot(TypeHolder.Foo.ONE))).is("nullable.name != 'ONE'");
+        check(toOql(holder.nullable.in(Arrays.asList(TypeHolder.Foo.ONE, TypeHolder.Foo.TWO)))).is("nullable.name IN SET('ONE', 'TWO')");
+        check(toOql(holder.nullable.notIn(Arrays.asList(TypeHolder.Foo.ONE, TypeHolder.Foo.TWO)))).is("NOT (nullable.name IN SET('ONE', 'TWO'))");
+    }
+
+    @Test
+    void booleanWithoutBindVariable() {
+        check(toOql(person.isActive.is(true))).is("isActive = true");
+        check(toOql(person.isActive.is(false))).is("isActive = false");
+        check(toOql(person.isActive.isNot(true))).is("isActive != true");
+        check(toOql(person.isActive.isNot(false))).is("isActive != false");
     }
 
     @Test
@@ -168,18 +197,19 @@ class GeodeQueryVisitorTest {
         check(toOql(person.fullName.toLowerCase().endsWith("A"))).is("fullName.toLowerCase.endsWith('A')");
     }
 
-    private static String toOqlWithBindParams(PersonCriteria personCriteria) {
-        return toOql(personCriteria, true);
+    private static String toOqlWithBindParams(Criterion<?> criteria) {
+        return toOql(criteria, true);
     }
 
-    private static String toOql(PersonCriteria personCriteria) {
-        return toOql(personCriteria, false);
+    private static String toOql(Criterion<?> criteria) {
+        return toOql(criteria, false);
     }
 
-    private static String toOql(PersonCriteria personCriteria, boolean useBindVariables) {
+    private static String toOql(Criterion<?> criteria, boolean useBindVariables) {
         final PathNaming pathNaming = ReservedWordNaming.of(PathNaming.defaultNaming());
         final GeodeQueryVisitor queryVisitor = new GeodeQueryVisitor(useBindVariables, pathNaming);
-        return toExpression(personCriteria).accept(queryVisitor).oql();
+        Expression filter = Criterias.toQuery(criteria).filter().orElseThrow(() -> new IllegalStateException("no filter"));
+        return filter.accept(queryVisitor).oql();
     }
 
 }
