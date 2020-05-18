@@ -147,8 +147,6 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
   public final [dtt].Datatype.Feature<[tT], [a.wrapperType]> [a.name]_;
 [/for]
   private final [gimm]List<[dtt].Datatype.Feature<[tT], ?>> features;
-  // SUBS --- [v.casesContextual.knownSubtypes v]
-  // SUBS --- [v.casesContextual.subtyping]
 [if subtypes]
   private final java.util.Set<[dtt].Datatype<?>> cases;
 [/if]
