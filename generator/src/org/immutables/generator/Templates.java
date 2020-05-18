@@ -127,7 +127,7 @@ public final class Templates {
     final CharConsumer consumer;
     private final Object[] params;
 
-    static Invokation initial() {
+    public static Invokation initial() {
       return new Invokation(new CharConsumer(), "");
     }
 

@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
 import org.immutables.extgenerator.GeneratedImportsModifier;
 import org.immutables.generator.SourceExtraction.Imports;
 
-final class PostprocessingMachine {
+public final class PostprocessingMachine {
   private static final char ASCII_MAX = '\u007f';
 
   private static final Joiner JOINER = Joiner.on("");
@@ -47,7 +47,7 @@ final class PostprocessingMachine {
 
   private PostprocessingMachine() {}
 
-  static CharSequence rewrite(CharSequence content) {
+  public static CharSequence rewrite(CharSequence content) {
     try {
       return rewrite(content, new ImportsBuilder(), ScanAtMost.ALL);
     } catch (UnsupportedEncodingException ex) {
@@ -55,7 +55,7 @@ final class PostprocessingMachine {
     }
   }
 
-  static CharSequence collectHeader(CharSequence content) {
+  public static CharSequence collectHeader(CharSequence content) {
     try {
       return rewrite(content, new ImportsBuilder(), ScanAtMost.HEADER);
     } catch (UnsupportedEncodingException ex) {
@@ -63,7 +63,7 @@ final class PostprocessingMachine {
     }
   }
 
-  static Imports collectImports(CharSequence content) {
+  public static Imports collectImports(CharSequence content) {
     try {
       ImportsBuilder importsBuilder = new ImportsBuilder();
       rewrite(content, importsBuilder, ScanAtMost.IMPORTS);
