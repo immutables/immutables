@@ -25,6 +25,8 @@ import javax.lang.model.element.TypeElement;
  * by {@literal @}{@link Generator.Template}
  */
 public abstract class AbstractTemplate extends Builtins {
+  public final Output output = new Output();
+  public final ClasspathAvailability classpath = new ClasspathAvailability();
 
   protected final ProcessingEnvironment processing() {
     return StaticEnvironment.processing();

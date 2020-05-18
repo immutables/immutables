@@ -35,9 +35,6 @@ public class Builtins {
   public final boolean $$false = false;
   public final Void $$null = null;
 
-  public final Output output = new Output();
-  public final ClasspathAvailability classpath = new ClasspathAvailability();
-
   public final Predicate<Object> not =
       new Predicate<Object>() {
         @Override
