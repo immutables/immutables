@@ -11,11 +11,17 @@ public interface Datatype<T> {
   String name();
 
   TypeToken<T> type();
-
+  
   List<Feature<T, ?>> features();
 
   <F> F get(Feature<T, F> feature, T instance);
+  
+  boolean isInstantiable();
 
+  default Set<Datatype<? extends T>> cases() {
+    return ImmutableSet.of();
+  }
+  
   Builder<T> builder();
 
   interface Builder<T> {
@@ -108,14 +114,6 @@ public interface Datatype<T> {
         }
       };
     }
-  }
-
-  default Optional<Datatype<? super T>> caseOf() {
-    return Optional.empty();
-  }
-
-  default Set<Datatype<? extends T>> cases() {
-    return ImmutableSet.of();
   }
 
   @SuppressWarnings("unchecked") // runtime token check

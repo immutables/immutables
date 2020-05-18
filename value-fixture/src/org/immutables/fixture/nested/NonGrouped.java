@@ -25,7 +25,7 @@ public abstract class NonGrouped {
   @Value.Immutable
   abstract static class Abra {}
 
-  @Value.Immutable(builder = false)
+  @Value.Immutable(builder = false, singleton = true)
   public interface Cadabra {}
 
   @Value.Immutable(builder = false)

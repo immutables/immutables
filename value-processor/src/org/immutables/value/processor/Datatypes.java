@@ -25,10 +25,10 @@ import org.immutables.value.processor.meta.ValueType;
 abstract class Datatypes extends ValuesTemplate {
   // renderers for encoding elements
   final Renderers rr = new Generator_Renderers();
-  
+
   @Generator.Typedef
   DatatypeTypes Datatypes;
-  
+
   @Value.Immutable
   abstract static class DatatypeTypes {
     abstract AbstractDeclaring definedBy();
@@ -45,10 +45,10 @@ abstract class Datatypes extends ValuesTemplate {
       return null;
     }
   };
-  
+
   ValueType currentType;
   private Map<ValueAttribute, Integer> attributeIndexMap;
-  
+
   final Function<ValueType, Void> setCurrentType = new Function<ValueType, Void>() {
     @Override
     public Void apply(ValueType input) {
@@ -61,7 +61,7 @@ abstract class Datatypes extends ValuesTemplate {
       return null;
     }
   };
-  
+
   final Function<ValueAttribute, Integer> attributeIndex = new Function<ValueAttribute, Integer>() {
     @Override
     public Integer apply(ValueAttribute input) {
@@ -73,7 +73,7 @@ abstract class Datatypes extends ValuesTemplate {
     Multimap<AbstractDeclaring, ValueType> byDeclaring = ArrayListMultimap.create();
     for (ValueType value : values.values()) {
       Protoclass protoclass = value.constitution.protoclass();
-      if (protoclass.kind().isValue()) {
+      if (protoclass.kind().isValue() || protoclass.kind().isEnclosing()) {
         Optional<AbstractDeclaring> typeAdaptersProvider = protoclass.datatypeProvider();
         if (typeAdaptersProvider.isPresent()) {
           byDeclaring.put(typeAdaptersProvider.get(), value);

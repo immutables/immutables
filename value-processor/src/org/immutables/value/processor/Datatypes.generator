@@ -87,12 +87,12 @@ public final class [typeDatatypeName] {
   [for v in allValues]
     [if v.generics.empty]
 
-  public static[v.generics.def] [v.name]_ [toLower v.name]() {
+  public static[v.generics.def] [v.name]_ _[v.name]() {
     return [v.name]_.INSTANCE;
   }
     [else]
 
-  public static[v.generics.def] [v.name]_[v.generics] [toLower v.name]([for g in v.generics][if not for.first], [/if][grefl].TypeToken<[g]> [toLower g]Arg[/for]) {
+  public static[v.generics.def] [v.name]_[v.generics] _[v.name]([for g in v.generics][if not for.first], [/if][grefl].TypeToken<[g]> [toLower g]Arg[/for]) {
     return new [v.name]_[v.generics.diamond](new [grefl].TypeToken<[v.typeAbstract.relative]>() {}[for g in v.generics]
           .where(new [grefl].TypeParameter<[g]>(){}, [toLower g]Arg)[/for]);
   }
@@ -107,13 +107,26 @@ public final class [typeDatatypeName] {
 
 [template generateDatatypeClass Type v]
 [setCurrentType v]
-[for all = v.allAccessibleAttributes]
+[for all = v.allAccessibleAttributes,
+    cases = v.casesContextual,
+    Type... subtypes = cases.knownSubtypes v]
 [let tT][v.typeAbstract.relative][/let]
+[let tR][v.typeAbstract.relativeRaw][/let]
 
 @SuppressWarnings({"unchecked", "raw"})
 public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> {
 [if v.generics.empty]
-  private static final [v.name]_ INSTANCE = new [v.name]_([grefl].TypeToken.of([tT].class));
+  private static final [v.name]_ INSTANCE = new [v.name]_([grefl].TypeToken.of([tR].class));
+[else]
+  [for g in v.generics]
+  private static final java.lang.reflect.Type [g]_TYPE_PARAM;
+  [/for]
+  static { try {
+    java.lang.reflect.TypeVariable<?>['[]'] vars = [tR].class.getTypeParameters();
+    [for g in v.generics]
+    [g]_TYPE_PARAM = vars['['][for.index][']'];
+    [/for]
+  } catch (java.lang.Exception e) { throw new java.lang.AssertionError(e); }}
 [/if]
   public static final String NAME = [literal.string v.name];
 [for a in all]
@@ -124,21 +137,38 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
   static { try {
     // TODO support non-public methods
     [toConstant a.name]_T = [v.typeAbstract.relativeRaw].class.getMethod([literal.string a.names.get]).getGenericReturnType();
-    } catch (java.lang.Exception e) { throw new java.lang.AssertionError(e); }
-  }
+  } catch (java.lang.Exception e) { throw new java.lang.AssertionError(e); }}
 [/for]
-  private [grefl].TypeToken<[tT]> type;
+  private final [grefl].TypeToken<[tT]> type;
+[for g in v.generics]
+  private final [grefl].TypeToken<?> [g]_typeArg;
+[/for]
 [for a in all]
   public final [dtt].Datatype.Feature<[tT], [a.wrapperType]> [a.name]_;
 [/for]
   private final [gimm]List<[dtt].Datatype.Feature<[tT], ?>> features;
+  // SUBS --- [v.casesContextual.knownSubtypes v]
+  // SUBS --- [v.casesContextual.subtyping]
+[if subtypes]
+  private final java.util.Set<[dtt].Datatype<?>> cases;
+[/if]
 
   private [v.name]_([grefl].TypeToken<[tT]> type) {
     this.type = type;
+    [for g in v.generics]
+    this.[g]_typeArg = type.resolveType([g]_TYPE_PARAM);
+    [/for]
     [for a in all]
     this.[a.name]_ = [dtt].Datatype.Feature.of([for.index], NAME, [toConstant a.name]_, [constructTypeToken a], [a.nullable], [a.gettable], [a.settable], [not a.mandatory], [a.ignorable]);
     [/for]
     this.features = [gimm]List.of([for a in all][if not for.first], [/if][a.name]_[/for]);
+    [if subtypes]
+    this.cases = [gimm]Set.<[dtt].Datatype<?>>builder()
+       [for s in subtypes]
+         .add(_[s.name]([for g in s.generics][if not for.first], [/if][g]_typeArg[/for]))
+       [/for]
+         .build();
+    [/if]
   }
 
   @Override public <FEATURE_T_> FEATURE_T_ get([dtt].Datatype.Feature<[tT], FEATURE_T_> feature, [tT] instance) {
@@ -160,6 +190,13 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
   @Override public [grefl].TypeToken<[tT]> type() { return type; }
   @Override public java.util.List<[dtt].Datatype.Feature<[tT], ?>> features() { return features; }
   @Override public String toString() { return "datatype<" + type + ">"; }
+[if not v.kind.value]
+  @Override public boolean isInstantiable() { return false; }
+  @Override public [dtt].Datatype.Builder<[tT]> builder() {
+    throw new UnsupportedOperationException("Not a value, cannot build");
+  }
+[else]
+  @Override public boolean isInstantiable() { return true; }
   @Override public [dtt].Datatype.Builder<[tT]> builder() {
     return new [dtt].Datatype.Builder<[tT]>() {
       [-- the array will be sparse for gettable but not settable values,
@@ -226,6 +263,14 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
       [buildInstance tT v]
     };
   }
+[/if]
+[if subtypes]
+
+  @Override
+  public java.util.Set<[dtt].Datatype<? extends [tT]>> cases() {
+    return (java.util.Set<[dtt].Datatype<? extends [tT]>>) (java.lang.Object) cases;
+  }
+[/if]
 }
 [/for]
 [/template]

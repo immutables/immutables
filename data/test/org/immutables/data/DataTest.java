@@ -8,13 +8,13 @@ import org.immutables.data.Datatype.Violation;
 import org.immutables.data.Datatypes_Dtt.Dtt_;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
-import static org.immutables.data.Datatypes_Dtt.dtt;
-import static org.immutables.data.Datatypes_Dtt.sin;
+import static org.immutables.data.Datatypes_Dtt._Dtt;
+import static org.immutables.data.Datatypes_Dtt._Sin;
 
 public class DataTest {
   @Test
   public void simpleBuild() {
-    Dtt_ dtt = dtt();
+    Dtt_ dtt = _Dtt();
     Builder<Dtt> b = dtt.builder();
     b.set(dtt.a_, 44);
     b.set(dtt.b_, "xyz");
@@ -23,12 +23,12 @@ public class DataTest {
     check((Object) dtt.get(dtt.feature(Dtt_.A_), d)).is(44);
     check((Object) dtt.get(dtt.feature(Dtt_.B_), d)).is("xyz");
 
-    check(sin().builder().build()).same(ImmutableDtt.Sin.of());
+    check(_Sin().builder().build()).same(ImmutableDtt.Sin.of());
   }
 
   @Test
   public void verifyAndBuild() {
-    Dtt_ dtt = dtt();
+    Dtt_ dtt = _Dtt();
     Builder<Dtt> b = dtt.builder();
     check(b.verify()).hasSize(2);
 
@@ -48,7 +48,7 @@ public class DataTest {
   @SuppressWarnings("unchecked")
   @Test
   public void violationRules() {
-    Dtt_ dtt = dtt();
+    Dtt_ dtt = _Dtt();
     Builder<Dtt> b = dtt.builder();
     b.set((Feature<Dtt, Object>) dtt.feature("b"), 445);
     List<Violation> vs = b.verify();

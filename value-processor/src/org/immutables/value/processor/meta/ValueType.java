@@ -440,8 +440,11 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   /**
-   * Check if criteria repository should be generated. Usually means {@code @Criteria.Repository} annotation is present.
-   * This type of repository is different from (legacy) mongo repository identified by {@code @Mongo.Repository} (see {@link #isGenerateRepository()}.
+   * Check if criteria repository should be generated. Usually means {@code @Criteria.Repository}
+   * annotation is present.
+   * This type of repository is different from (legacy) mongo repository identified by
+   * {@code @Mongo.Repository}
+   * (see {@link #isGenerateRepository()}.
    */
   public boolean isGenerateCriteriaRepository() {
     return constitution.protoclass().criteriaRepository().isPresent();
@@ -478,6 +481,13 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
       caseStructure = new CaseStructure(allKnownValuesInContext());
     }
     return caseStructure;
+  }
+
+  public CaseStructure getCasesContextual() {
+    if (enclosingValue != null) {
+      return enclosingValue.getCases();
+    }
+    return getCases();
   }
 
   private Iterable<ValueType> allKnownValuesInContext() {
@@ -609,10 +619,9 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isUseSingleton() {
-    return generics().isEmpty()
-        && (immutableFeatures.singleton()
-            || useAttributelessSingleton()
-            || useSingletonNoOtherWay());
+    return immutableFeatures.singleton()
+        || useAttributelessSingleton()
+        || useSingletonNoOtherWay();
   }
 
   public boolean isUseInterned() {
@@ -734,7 +743,11 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isUseConstructor() {
-    return !getConstructorArguments().isEmpty();
+    return !getConstructorArguments().isEmpty()
+        || (getSettableAttributes().isEmpty()
+            && !isUseBuilder()
+            && !immutableFeatures.singleton()
+            && !style().attributelessSingleton());  // don't use !isUseSingleton() to avoid unresolvable recursion
   }
 
   public boolean requiresAlternativeStrictConstructor() {
@@ -1377,11 +1390,11 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   private boolean noAttributeInitializerIsNamedAsFrom() {
     for (ValueAttribute a : getSettableAttributes()) {
       if (a.names.init.equals(names().from)) {
-        a.report().warning(
-            About.FROM,
-            "Attribute initializer named '%s' clashes with special builder method, "
-                + "which will not be generated to not have ambiguous overload or conflict",
-            names().from);
+        a.report()
+            .warning(About.FROM,
+                "Attribute initializer named '%s' clashes with special builder method, "
+                    + "which will not be generated to not have ambiguous overload or conflict",
+                names().from);
         return false;
       }
     }
@@ -1392,11 +1405,12 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   private boolean noAttributeSetterIsNamedAsFrom() {
     for (ValueAttribute a : getSettableAttributes()) {
       if (a.names.set().equals(names().from)) {
-        a.report().warning(
-            About.FROM,
-            "Attribute setter named '%s' clashes with special builder method, "
-                + "which will not be generated to not have ambiguous overload or conflict",
-            names().from);
+        a.report()
+            .warning(
+                About.FROM,
+                "Attribute setter named '%s' clashes with special builder method, "
+                    + "which will not be generated to not have ambiguous overload or conflict",
+                names().from);
         return false;
       }
     }

@@ -130,13 +130,18 @@ public final class ValueTypeComposer {
   }
 
   private void checkStyleConflicts(ValueType type, Protoclass protoclass) {
-    if (protoclass.features().singleton() || protoclass.features().intern()) {
-      if (!protoclass.constitution().generics().isEmpty()) {
-        protoclass.report()
-            .annotationNamed(ImmutableMirror.simpleName())
-            .warning(About.INCOMPAT,
-                "'singleton' or 'intern' features are automatically turned off when a type have generic parameters");
-      }
+    if (protoclass.features().singleton() && !protoclass.constitution().generics().isEmpty()) {
+      protoclass.report()
+          .annotationNamed(ImmutableMirror.simpleName())
+          .warning(About.INCOMPAT,
+              "'singleton' feature contains potentially unsafe cast with generics %s."
+              + " Can be safe if immutable covariant conversion is possible", type.generics().def());
+    }
+    if (protoclass.features().intern() && !protoclass.constitution().generics().isEmpty()) {
+      protoclass.report()
+          .annotationNamed(ImmutableMirror.simpleName())
+          .warning(About.INCOMPAT,
+              "'intern' feature is automatically turned off when a type have generic parameters");
     }
     if (protoclass.features().prehash()) {
       if (protoclass.styles().style().privateNoargConstructor()) {

@@ -811,15 +811,23 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [template generateSingletonInstance Type type]
 [if type.useSingleton]
 
-  private static final [type.typeImmutable.relative] INSTANCE = [validated type false]new [type.typeImmutable.relativeRaw]()[/validated];
+  [if not type.generics.empty]@SuppressWarnings("raw")[/if]
+  private static final [type.typeImmutable.relativeRaw] INSTANCE = [validated type false]new [type.typeImmutable.relativeRaw]()[/validated];
 
   /**
    * Returns the default immutable singleton value of {@code [type.name]}
    * @return An immutable instance of [type.name]
    */
+  [if type.generics.empty]
   public static [type.typeValue.relative] [type.names.instance]() {
     return INSTANCE;
   }
+  [else]
+  @SuppressWarnings("unchecked")
+  public static[type.generics.def] [type.typeValue.relative] [type.names.instance]() {
+    return ([type.typeValue.relative]) INSTANCE;
+  }
+  [/if]
 [/if]
 [/template]
 

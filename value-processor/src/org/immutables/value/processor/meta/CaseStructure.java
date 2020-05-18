@@ -17,11 +17,14 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -30,7 +33,7 @@ public class CaseStructure {
   public final List<ValueType> implementedTypes;
   public final SetMultimap<String, ValueType> subtypeUsages = HashMultimap.create();
   private final Set<String> implementedTypeNames;
-  private final SetMultimap<String, ValueType> subtyping;
+  public final SetMultimap<String, ValueType> subtyping;
 
   CaseStructure(Iterable<ValueType> types) {
     this.implementedTypes = ImmutableList.copyOf(types);
@@ -79,16 +82,28 @@ public class CaseStructure {
     }
   };
 
-  public final Function<String, Iterable<ValueType>> knownSubtypes =
-      new Function<String, Iterable<ValueType>>() {
+  public final Function<Object, Iterable<ValueType>> knownSubtypes =
+      new Function<Object, Iterable<ValueType>>() {
         @Override
-        public Iterable<ValueType> apply(@Nullable String typeName) {
-          Set<ValueType> subtypes = subtyping.get(typeName);
+        public Iterable<ValueType> apply(@Nullable Object typeOrName) {
+          @Nullable String typeName = null;
+          if (typeOrName instanceof ValueType) {
+            typeName = ((ValueType) typeOrName).typeAbstract().toString();
+          } else if (typeOrName instanceof CharSequence) {
+            typeName = typeOrName.toString();
+          } else {
+            return Collections.emptySet();
+          }
+
+          Set<ValueType> subtypes = knownSubtypesOf(typeName);
           subtypeUsages.putAll(typeName, subtypes);
           /*
           for (ValueType subtype : subtypes) {
             subtypeUsages.put(subtype.typeAbstract().toString(), subtype);
           }*/
+          if (typeOrName instanceof ValueType) {
+            return Sets.filter(subtypes, Predicates.not(Predicates.equalTo(typeOrName)));
+          }
           return subtypes;
         }
       };
