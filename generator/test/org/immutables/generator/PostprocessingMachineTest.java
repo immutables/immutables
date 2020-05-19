@@ -21,484 +21,505 @@ import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
 public class PostprocessingMachineTest {
-  private static final Joiner LINES = Joiner.on('\n');
-
-  @Test
-  public void imports() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        LINES.join("package start;",
-            "import java.util.List;",
-            "import org.junit.*;",
-            "import some.Some.Nested;",
-            "final class My extends java.util.Set {",
-            "  private java.util.Map<java.lang.String, Integer> map = com.google.common.collect.Maps.newHashMap();",
-            "}"));
-
-    check(rewrited).hasToString(
-        LINES.join("package start;",
-            "",
-            "import com.google.common.collect.Maps;",
-            "import java.util.List;",
-            "import java.util.Map;",
-            "import java.util.Set;",
-            "import org.junit.*;",
-            "import some.Some.Nested;",
-            "final class My extends Set {",
-            "  private Map<String, Integer> map = Maps.newHashMap();",
-            "}"));
-  }
-
-  @Test
-  public void lineComment() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        LINES.join("package start;",
-            "import java.util.List;",
-            "// comment with fully qualified class name java.util.Map",
-            "class My extends java.util.Set {",
-            "// comment",
-            "// comment with fully qualified class name java.util.Map",
-            "}"));
-
-    check(rewrited).hasToString(
-        LINES.join("package start;",
-            "",
-            "import java.util.List;",
-            "import java.util.Set;",
-            "// comment with fully qualified class name java.util.Map",
-            "class My extends Set {",
-            "// comment",
-            "// comment with fully qualified class name java.util.Map",
-            "}"));
-  }
-
-  @Test
-  public void blockComment() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        LINES.join("package start;",
-            "import java.util.List;",
-            "/**",
-            "class name in block comment java.util.Map.get()",
-            "**/",
-            "class My extends java.util.Set {",
-            "/* class name in block comment java.util.Map.get()*/",
-            "/**",
-            "class name in block comment java.util.Map.get()",
-            "**/",
-            "}"));
-
-    check(rewrited).hasToString(
-        LINES.join("package start;",
-            "",
-            "import java.util.List;",
-            "import java.util.Set;",
-            "/**",
-            "class name in block comment java.util.Map.get()",
-            "**/",
-            "class My extends Set {",
-            "/* class name in block comment java.util.Map.get()*/",
-            "/**",
-            "class name in block comment java.util.Map.get()",
-            "**/",
-            "}"));
-  }
-
-  @Test
-  public void stringLiteral() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        LINES.join("package start;",
-            "import java.util.List;",
-            "class My extends java.util.Set {",
-            "\" class name in string literal java.util.Map.get() \"",
-            "}"));
-
-    check(rewrited).hasToString(
-        LINES.join("package start;",
-            "",
-            "import java.util.List;",
-            "import java.util.Set;",
-            "class My extends Set {",
-            "\" class name in string literal java.util.Map.get() \"",
-            "}"));
-  }
-
-  @Test
-  public void javaLangImports() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        LINES.join("package start;",
-            "class My extends java.lang.Throwable {}"));
-
-    check(rewrited).hasToString(
-        LINES.join("package start;",
-            "",
-            "class My extends Throwable {}"));
-
-    rewrited = PostprocessingMachine.rewrite(
-        LINES.join("package start;",
-            "class Throwable extends java.lang.Throwable {}"));
-
-    check(rewrited).hasToString(
-        LINES.join("package start;",
-            "",
-            "class Throwable extends java.lang.Throwable {}"));
-
-    rewrited = PostprocessingMachine.rewrite(
-        LINES.join("package start;",
-            "class Throwable extends java.lang.annotation.Retention {}"));
-
-    check(rewrited).hasToString(
-        LINES.join("package start;",
-            "",
-            "import java.lang.annotation.Retention;",
-            "class Throwable extends Retention {}"));
-  }
-
-  @Test
-  public void javaLangInOriginalImports() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "import java.lang.String;",
-        "class X {",
-        "  java.lang.String method(String s);",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "class X {",
-        "  String method(String s);",
-        "}"));
-
-  }
-
-  @Test
-  public void currentPackageImport() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        LINES.join("package start;",
-            "class My extends start.Utils {}"));
-
-    check(rewrited).hasToString(
-        LINES.join("package start;",
-            "",
-            "class My extends Utils {}"));
-
-    rewrited = PostprocessingMachine.rewrite(
-        LINES.join("package start;",
-            "class Throwable extends start.Utils {",
-            "  private class Utils {}",
-            "}"));
-
-    // Maybe this will end up wrong way, but following test was rewritten to still
-    // cut current package even in presense inner class Utils.
-    check(rewrited).hasToString(
-        LINES.join("package start;",
-            "",
-            "class Throwable extends Utils {",
-            "  private class Utils {}",
-            "}"));
-  }
-
-  @Test
-  public void currentPackageInOriginalImports() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "package my.pack;",
-        "import my.pack.Y;",
-        "class X {",
-        "  my.pack.Y method(Y s);",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "package my.pack;",
-        "",
-        "class X {",
-        "  Y method(Y s);",
-        "}"));
-
-  }
-
-  @Test
-  public void staticImport() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "import static org.immutables.check.Checkers.*;",
-        "class My extends java.util.Set {}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import java.util.Set;",
-        "import static org.immutables.check.Checkers.*;",
-        "class My extends Set {}"));
-  }
-
-  @Test
-  public void annotationImportInsideClass() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        "class Set { @javax.annotation.Generated int x; }");
-
-    check(rewrited).hasToString(LINES.join(
-        "import javax.annotation.Generated;",
-        "class Set { @Generated int x; }"));
-  }
-
-  @Test
-  public void annotationTypeImport() {
-    check(PostprocessingMachine.rewrite(
-        "@interface Set { @javax.annotation.Generated int x; }"))
-        .hasToString(LINES.join(
-            "import javax.annotation.Generated;",
-            "@interface Set { @Generated int x; }"));
-  }
-
-  @Test
-  public void annotationBeforeClass() {
-    check(PostprocessingMachine.rewrite(
-        "@javax.annotation.Generated class Set {}"))
-        .hasToString(LINES.join(
-            "import javax.annotation.Generated;",
-            "@Generated class Set {}"));
-  }
-
-  @Test
-  public void conflictResolution() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        "class Set extends java.util.Set {}");
-
-    check(rewrited).hasToString(
-        "class Set extends java.util.Set {}");
-
-    rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "import my.Set;",
-        "class X {",
-        "  my.Set same(Set set);",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import my.Set;",
-        "class X {",
-        "  Set same(Set set);",
-        "}"));
-  }
-
-  @Test
-  public void noConflictInDifferentPackages() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "import my.other.Set;",
-        "class X {",
-        "  my.Set same(Set set);",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import my.other.Set;",
-        "class X {",
-        "  my.Set same(Set set);",
-        "}"));
-  }
-
-  @Test
-  public void fullyQualifiedWithSpaces() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "class X {",
-        "  private java.util.Map<java.lang.String, Integer> map = ",
-        "    com.google.common.collect",
-        "      .Maps.newHashMap();",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import java.util.Map;",
-        "class X {",
-        "  private Map<String, Integer> map = ",
-        "    com.google.common.collect",
-        "      .Maps.newHashMap();",
-        "}"));
-
-  }
-
-  @Test
-  public void classNameInImportHasUnderscores() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "import b.PAYMENT_TYPE;",
-        "  public interface SomeValue { ",
-        "    PAYMENT_TYPE getPaymentType();",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import b.PAYMENT_TYPE;",
-        "  public interface SomeValue { ",
-        "    PAYMENT_TYPE getPaymentType();",
-        "}"));
-  }
-
-  @Test
-  public void keepClassModifiers() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "package mypack;",
-        "private final class My{}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "package mypack;",
-        "",
-        "private final class My{}"));
-
-    rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "import java.util.List;",
-        "abstract class My{}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import java.util.List;",
-        "abstract class My{}"));
-
-    rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "package mypack;",
-        "import java.util.List;",
-        "abstract class My{}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "package mypack;",
-        "",
-        "import java.util.List;",
-        "abstract class My{}"));
-
-    rewrited = PostprocessingMachine.rewrite("public final class My{}");
-
-    check(rewrited).hasToString("public final class My{}");
-  }
-
-  @Test
-  public void multipleOccurrences() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "import java.utils.Set;",
-        "class X extends java.utils.List {",
-        "  java.utils.List add(int key);",
-        "  my.List add(int key);",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import java.utils.List;",
-        "import java.utils.Set;",
-        "class X extends List {",
-        "  List add(int key);",
-        "  my.List add(int key);",
-        "}"));
-  }
-
-  @Test
-  public void nestedClass() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "import com.google.common.collect.ImmutableList;",
-        "class X {",
-        "ImmutableList.Builder<Mirror> builder = ImmutableList.builder();",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import com.google.common.collect.ImmutableList;",
-        "class X {",
-        "ImmutableList.Builder<Mirror> builder = ImmutableList.builder();",
-        "}"));
-
-    rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "class X {",
-        "com.google.common.collect.ImmutableList.Builder<Mirror> builder = ",
-        "  com.google.common.collect.ImmutableList.builder();",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import com.google.common.collect.ImmutableList;",
-        "class X {",
-        "ImmutableList.Builder<Mirror> builder = ",
-        "  ImmutableList.builder();",
-        "}"));
-
-    rewrited = PostprocessingMachine.rewrite(LINES.join(
-        "import com.google.common.collect.ImmutableList;",
-        "class X {",
-        "com.google.common.collect.ImmutableList.Builder<Mirror> builder = ",
-        "  com.google.common.collect.ImmutableList.builder();",
-        "}"));
-
-    check(rewrited).hasToString(LINES.join(
-        "import com.google.common.collect.ImmutableList;",
-        "class X {",
-        "ImmutableList.Builder<Mirror> builder = ",
-        "  ImmutableList.builder();",
-        "}"));
-  }
-
-  @Test
-  public void onlyCollectHeader() {
-    String header = PostprocessingMachine.collectHeader(
-        LINES.join("// sdsd",
-            "/* sdsd",
-            " * * * */",
-            "//!",
-            "/** */",
-            "package start;",
-            "import java.util.List;",
-            "import org.junit.*;",
-            "import static org.junit.My.*;",
-            "import some.Some.Nested;",
-            "final class My extends java.util.Set {",
-            "}")).toString();
-
-    check(header).startsWith("// sdsd");
-    check(header).endsWith("/** */");
-  }
-
-  @Test
-  public void onlyCollectImports() {
-    SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
-        LINES.join("package start;",
-            "import java.util.List;",
-            "import org.junit.*;",
-            "import static org.junit.My.*;",
-            "import some.Some.Nested;",
-            "final class My extends java.util.Set {",
-            "  private java.util.Map<java.lang.String, Integer> map = com.google.common.collect.Maps.newHashMap();",
-            "}"));
-
-    check(imports.classes.keySet()).hasContentInAnyOrder("List", "Nested");
-    check(imports.classes.values()).hasContentInAnyOrder("java.util.List", "some.Some.Nested");
-  }
-
-  @Test
-  public void importsHaveUnderscores() {
-    SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
-        LINES.join("package start;",
-            "import b.PAYMENT_STATUS_TYPE;",
-            "final class B {",
-            "}"));
-
-    check(imports.classes.values()).hasContentInAnyOrder("b.PAYMENT_STATUS_TYPE");
-  }
-
-  @Test
-  public void safelySkipImportStartsWithUnderscore() {
-    SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
-        LINES.join(
-            "import b._TYPE;",
-            "class B { _TYPE b; }"));
-    check(imports.all).has("b._TYPE");
-
-    check(PostprocessingMachine.rewrite(
-        "class B { b._STATUS_TYPE s; }"))
-        .hasToString(
-            "class B { b._STATUS_TYPE s; }");
-  }
-
-  @Test
-  public void safelySkipPackagesStartsWithUnderscore() {
-    check(PostprocessingMachine.rewrite(
-        "class B { a_._b.STATUS_TYPE s; }"))
-        .hasToString(LINES.join(
-            "import a_._b.STATUS_TYPE;",
-            "class B { STATUS_TYPE s; }"));
-  }
-
-  @Test
-  public void underscoreNamesImport() {
-    check(PostprocessingMachine.rewrite(
-        "class X { a.SET_OPT s; }"))
-        .hasToString(LINES.join(
-            "import a.SET_OPT;",
-            "class X { SET_OPT s; }"));
-
-    check(PostprocessingMachine.rewrite(
-        "class X { a.T.SET_OPT s; }"))
-        .hasToString(LINES.join(
-            "import a.T;",
-            "class X { T.SET_OPT s; }"));
-  }
+	private static final Joiner LINES = Joiner.on('\n');
+
+	@Test
+	public void interfaceImportsBug() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package here;",
+						"import java.lang.String;",
+						"public interface TimeoDanaosAtDonaFerentes extends java.util.Set {",
+						"  java.lang.String value();",
+						"  java.util.Set<String> s();",
+						"}"));
+
+		check(rewrited).hasToString(
+				LINES.join("package here;",
+						"",
+						"import java.util.Set;",
+						"public interface TimeoDanaosAtDonaFerentes extends Set {",
+						"  String value();",
+						"  Set<String> s();",
+						"}"));
+	}
+
+	@Test
+	public void imports() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package start;",
+						"import java.util.List;",
+						"import org.junit.*;",
+						"import some.Some.Nested;",
+						"final class My extends java.util.Set {",
+						"  private java.util.Map<java.lang.String, Integer> map = com.google.common.collect.Maps.newHashMap();",
+						"}"));
+
+		check(rewrited).hasToString(
+				LINES.join("package start;",
+						"",
+						"import com.google.common.collect.Maps;",
+						"import java.util.List;",
+						"import java.util.Map;",
+						"import java.util.Set;",
+						"import org.junit.*;",
+						"import some.Some.Nested;",
+						"final class My extends Set {",
+						"  private Map<String, Integer> map = Maps.newHashMap();",
+						"}"));
+	}
+
+	@Test
+	public void lineComment() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package start;",
+						"import java.util.List;",
+						"// comment with fully qualified class name java.util.Map",
+						"class My extends java.util.Set {",
+						"// comment",
+						"// comment with fully qualified class name java.util.Map",
+						"}"));
+
+		check(rewrited).hasToString(
+				LINES.join("package start;",
+						"",
+						"import java.util.List;",
+						"import java.util.Set;",
+						"// comment with fully qualified class name java.util.Map",
+						"class My extends Set {",
+						"// comment",
+						"// comment with fully qualified class name java.util.Map",
+						"}"));
+	}
+
+	@Test
+	public void blockComment() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package start;",
+						"import java.util.List;",
+						"/**",
+						"class name in block comment java.util.Map.get()",
+						"**/",
+						"class My extends java.util.Set {",
+						"/* class name in block comment java.util.Map.get()*/",
+						"/**",
+						"class name in block comment java.util.Map.get()",
+						"**/",
+						"}"));
+
+		check(rewrited).hasToString(
+				LINES.join("package start;",
+						"",
+						"import java.util.List;",
+						"import java.util.Set;",
+						"/**",
+						"class name in block comment java.util.Map.get()",
+						"**/",
+						"class My extends Set {",
+						"/* class name in block comment java.util.Map.get()*/",
+						"/**",
+						"class name in block comment java.util.Map.get()",
+						"**/",
+						"}"));
+	}
+
+	@Test
+	public void stringLiteral() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package start;",
+						"import java.util.List;",
+						"class My extends java.util.Set {",
+						"\" class name in string literal java.util.Map.get() \"",
+						"}"));
+
+		check(rewrited).hasToString(
+				LINES.join("package start;",
+						"",
+						"import java.util.List;",
+						"import java.util.Set;",
+						"class My extends Set {",
+						"\" class name in string literal java.util.Map.get() \"",
+						"}"));
+	}
+
+	@Test
+	public void javaLangImports() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package start;",
+						"class My extends java.lang.Throwable {}"));
+
+		check(rewrited).hasToString(
+				LINES.join("package start;",
+						"",
+						"class My extends Throwable {}"));
+
+		rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package start;",
+						"class Throwable extends java.lang.Throwable {}"));
+
+		check(rewrited).hasToString(
+				LINES.join("package start;",
+						"",
+						"class Throwable extends java.lang.Throwable {}"));
+
+		rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package start;",
+						"class Throwable extends java.lang.annotation.Retention {}"));
+
+		check(rewrited).hasToString(
+				LINES.join("package start;",
+						"",
+						"import java.lang.annotation.Retention;",
+						"class Throwable extends Retention {}"));
+	}
+
+	@Test
+	public void javaLangInOriginalImports() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"import java.lang.String;",
+				"class X {",
+				"  java.lang.String method(String s);",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"class X {",
+				"  String method(String s);",
+				"}"));
+
+	}
+
+	@Test
+	public void currentPackageImport() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package start;",
+						"class My extends start.Utils {}"));
+
+		check(rewrited).hasToString(
+				LINES.join("package start;",
+						"",
+						"class My extends Utils {}"));
+
+		rewrited = PostprocessingMachine.rewrite(
+				LINES.join("package start;",
+						"class Throwable extends start.Utils {",
+						"  private class Utils {}",
+						"}"));
+
+		// Maybe this will end up wrong way, but following test was rewritten to still
+		// cut current package even in presense inner class Utils.
+		check(rewrited).hasToString(
+				LINES.join("package start;",
+						"",
+						"class Throwable extends Utils {",
+						"  private class Utils {}",
+						"}"));
+	}
+
+	@Test
+	public void currentPackageInOriginalImports() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"package my.pack;",
+				"import my.pack.Y;",
+				"class X {",
+				"  my.pack.Y method(Y s);",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"package my.pack;",
+				"",
+				"class X {",
+				"  Y method(Y s);",
+				"}"));
+
+	}
+
+	@Test
+	public void staticImport() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"import static org.immutables.check.Checkers.*;",
+				"class My extends java.util.Set {}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import java.util.Set;",
+				"import static org.immutables.check.Checkers.*;",
+				"class My extends Set {}"));
+	}
+
+	@Test
+	public void annotationImportInsideClass() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(
+				"class Set { @javax.annotation.Generated int x; }");
+
+		check(rewrited).hasToString(LINES.join(
+				"import javax.annotation.Generated;",
+				"class Set { @Generated int x; }"));
+	}
+
+	@Test
+	public void annotationTypeImport() {
+		check(PostprocessingMachine.rewrite(
+				"@interface Set { @javax.annotation.Generated int x; }"))
+						.hasToString(LINES.join(
+								"import javax.annotation.Generated;",
+								"@interface Set { @Generated int x; }"));
+	}
+
+	@Test
+	public void annotationBeforeClass() {
+		check(PostprocessingMachine.rewrite(
+				"@javax.annotation.Generated class Set {}"))
+						.hasToString(LINES.join(
+								"import javax.annotation.Generated;",
+								"@Generated class Set {}"));
+	}
+
+	@Test
+	public void conflictResolution() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(
+				"class Set extends java.util.Set {}");
+
+		check(rewrited).hasToString(
+				"class Set extends java.util.Set {}");
+
+		rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"import my.Set;",
+				"class X {",
+				"  my.Set same(Set set);",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import my.Set;",
+				"class X {",
+				"  Set same(Set set);",
+				"}"));
+	}
+
+	@Test
+	public void noConflictInDifferentPackages() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"import my.other.Set;",
+				"class X {",
+				"  my.Set same(Set set);",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import my.other.Set;",
+				"class X {",
+				"  my.Set same(Set set);",
+				"}"));
+	}
+
+	@Test
+	public void fullyQualifiedWithSpaces() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"class X {",
+				"  private java.util.Map<java.lang.String, Integer> map = ",
+				"    com.google.common.collect",
+				"      .Maps.newHashMap();",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import java.util.Map;",
+				"class X {",
+				"  private Map<String, Integer> map = ",
+				"    com.google.common.collect",
+				"      .Maps.newHashMap();",
+				"}"));
+
+	}
+
+	@Test
+	public void classNameInImportHasUnderscores() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"import b.PAYMENT_TYPE;",
+				"  public interface SomeValue { ",
+				"    PAYMENT_TYPE getPaymentType();",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import b.PAYMENT_TYPE;",
+				"  public interface SomeValue { ",
+				"    PAYMENT_TYPE getPaymentType();",
+				"}"));
+	}
+
+	@Test
+	public void keepClassModifiers() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"package mypack;",
+				"private final class My{}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"package mypack;",
+				"",
+				"private final class My{}"));
+
+		rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"import java.util.List;",
+				"abstract class My{}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import java.util.List;",
+				"abstract class My{}"));
+
+		rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"package mypack;",
+				"import java.util.List;",
+				"abstract class My{}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"package mypack;",
+				"",
+				"import java.util.List;",
+				"abstract class My{}"));
+
+		rewrited = PostprocessingMachine.rewrite("public final class My{}");
+
+		check(rewrited).hasToString("public final class My{}");
+	}
+
+	@Test
+	public void multipleOccurrences() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"import java.utils.Set;",
+				"class X extends java.utils.List {",
+				"  java.utils.List add(int key);",
+				"  my.List add(int key);",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import java.utils.List;",
+				"import java.utils.Set;",
+				"class X extends List {",
+				"  List add(int key);",
+				"  my.List add(int key);",
+				"}"));
+	}
+
+	@Test
+	public void nestedClass() {
+		CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"import com.google.common.collect.ImmutableList;",
+				"class X {",
+				"ImmutableList.Builder<Mirror> builder = ImmutableList.builder();",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import com.google.common.collect.ImmutableList;",
+				"class X {",
+				"ImmutableList.Builder<Mirror> builder = ImmutableList.builder();",
+				"}"));
+
+		rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"class X {",
+				"com.google.common.collect.ImmutableList.Builder<Mirror> builder = ",
+				"  com.google.common.collect.ImmutableList.builder();",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import com.google.common.collect.ImmutableList;",
+				"class X {",
+				"ImmutableList.Builder<Mirror> builder = ",
+				"  ImmutableList.builder();",
+				"}"));
+
+		rewrited = PostprocessingMachine.rewrite(LINES.join(
+				"import com.google.common.collect.ImmutableList;",
+				"class X {",
+				"com.google.common.collect.ImmutableList.Builder<Mirror> builder = ",
+				"  com.google.common.collect.ImmutableList.builder();",
+				"}"));
+
+		check(rewrited).hasToString(LINES.join(
+				"import com.google.common.collect.ImmutableList;",
+				"class X {",
+				"ImmutableList.Builder<Mirror> builder = ",
+				"  ImmutableList.builder();",
+				"}"));
+	}
+
+	@Test
+	public void onlyCollectHeader() {
+		String header = PostprocessingMachine.collectHeader(
+				LINES.join("// sdsd",
+						"/* sdsd",
+						" * * * */",
+						"//!",
+						"/** */",
+						"package start;",
+						"import java.util.List;",
+						"import org.junit.*;",
+						"import static org.junit.My.*;",
+						"import some.Some.Nested;",
+						"final class My extends java.util.Set {",
+						"}"))
+				.toString();
+
+		check(header).startsWith("// sdsd");
+		check(header).endsWith("/** */");
+	}
+
+	@Test
+	public void onlyCollectImports() {
+		SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
+				LINES.join("package start;",
+						"import java.util.List;",
+						"import org.junit.*;",
+						"import static org.junit.My.*;",
+						"import some.Some.Nested;",
+						"final class My extends java.util.Set {",
+						"  private java.util.Map<java.lang.String, Integer> map = com.google.common.collect.Maps.newHashMap();",
+						"}"));
+
+		check(imports.classes.keySet()).hasContentInAnyOrder("List", "Nested");
+		check(imports.classes.values()).hasContentInAnyOrder("java.util.List", "some.Some.Nested");
+	}
+
+	@Test
+	public void importsHaveUnderscores() {
+		SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
+				LINES.join("package start;",
+						"import b.PAYMENT_STATUS_TYPE;",
+						"final class B {",
+						"}"));
+
+		check(imports.classes.values()).hasContentInAnyOrder("b.PAYMENT_STATUS_TYPE");
+	}
+
+	@Test
+	public void safelySkipImportStartsWithUnderscore() {
+		SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
+				LINES.join(
+						"import b._TYPE;",
+						"class B { _TYPE b; }"));
+		check(imports.all).has("b._TYPE");
+
+		check(PostprocessingMachine.rewrite(
+				"class B { b._STATUS_TYPE s; }"))
+						.hasToString(
+								"class B { b._STATUS_TYPE s; }");
+	}
+
+	@Test
+	public void safelySkipPackagesStartsWithUnderscore() {
+		check(PostprocessingMachine.rewrite(
+				"class B { a_._b.STATUS_TYPE s; }"))
+						.hasToString(LINES.join(
+								"import a_._b.STATUS_TYPE;",
+								"class B { STATUS_TYPE s; }"));
+	}
+
+	@Test
+	public void underscoreNamesImport() {
+		check(PostprocessingMachine.rewrite(
+				"class X { a.SET_OPT s; }"))
+						.hasToString(LINES.join(
+								"import a.SET_OPT;",
+								"class X { SET_OPT s; }"));
+
+		check(PostprocessingMachine.rewrite(
+				"class X { a.T.SET_OPT s; }"))
+						.hasToString(LINES.join(
+								"import a.T;",
+								"class X { T.SET_OPT s; }"));
+	}
 }

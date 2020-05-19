@@ -348,8 +348,13 @@ public final class PostprocessingMachine {
           }
         }
       } else {
+      	if (wordIndex == 1 && charIndex == 0 && c == 'n') {
+        	// very dirty hack to parse 'interface' instead of 'import'
+      		wordIndex = 3;
+      	}
         if (vocabulary[wordIndex].length == 1) {
           newState = finalState[wordIndex];
+          
           resetWord();
         } else if (vocabulary[wordIndex][charIndex + 1] == c) {
           charIndex++;
