@@ -5,13 +5,17 @@ import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.personmodel.ImmutablePet;
+import org.immutables.criteria.typemodel.DateHolderCriteria;
 import org.immutables.criteria.typemodel.EnumHolderCriteria;
 import org.immutables.criteria.typemodel.TypeHolder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 import static org.immutables.check.Checkers.check;
@@ -115,6 +119,15 @@ class GeodeQueryVisitorTest {
         check(toOql(person.interests.notEmpty())).is("NOT (interests.isEmpty)");
         check(toOql(person.interests.hasSize(1))).is("interests.size = 1");
         check(toOql(person.interests.contains("OSS"))).is("interests.contains('OSS')");
+    }
+
+    @Test
+    void dates() throws ParseException {
+        String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
+        SimpleDateFormat format = new SimpleDateFormat(pattern);
+        DateHolderCriteria date = DateHolderCriteria.dateHolder;
+        Date value = format.parse("2020-01-22 23:00:00.000");
+        check(toOql(date.value.is(value))).is("value = to_date('2020-01-22 23:00:00.000', 'yyyy-MM-dd HH:mm:ss.SSS')");
     }
 
     @Test

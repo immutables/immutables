@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -238,24 +237,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
   }
 
   private static String valueToString(Object value) {
-    if (value == null) {
-      return Objects.toString(null);
-    } else if (value instanceof CharSequence) {
-      return "'" + Geodes.escapeOql((CharSequence) value) + "'";
-    } else if (value instanceof Pattern) {
-      return "'" + Geodes.escapeOql(((Pattern) value).pattern()) + "'";
-    } else if (value instanceof Iterable) {
-      @SuppressWarnings("unchecked") final Set<Object> set = ImmutableSet.copyOf((Iterable<Object>) value);
-      String asString = set.stream().map(GeodeQueryVisitor::valueToString).collect(Collectors.joining(", "));
-      return "SET(" + asString + ")";
-    } else if (value.getClass().isEnum()) {
-      // convert enum value to string representation. 'ENUM_NAME' (as string)
-      Enum<?> enumValue = (Enum<?>) value;
-      return valueToString(enumValue.name());
-    } else {
-      // probably string is best representation in OQL (without bind variables)
-      return Objects.toString(value);
-    }
+    return OqlLiterals.fromObject(value);
   }
 
 }
