@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 
 import static org.immutables.check.Checkers.check;
@@ -76,6 +78,36 @@ class OqlLiteralsTest {
   void enums() {
     literalOf(Foo.A).is("'A'");
     literalOf(Foo.B).is("'B'");
+  }
+
+  @Test
+  void iterable() {
+    literalOf(Collections.emptySet()).is("SET()");
+
+    // list of strings
+    literalOf(Collections.singleton("a")).is("SET('a')");
+    literalOf(Arrays.asList("a", "b")).is("SET('a', 'b')");
+    literalOf(Arrays.asList("a", "b", "c")).is("SET('a', 'b', 'c')");
+
+    literalOf(Collections.singleton(1)).is("SET(1)");
+    literalOf(Arrays.asList(1, 2)).is("SET(1, 2)");
+    literalOf(Arrays.asList(1, 2, 3)).is("SET(1, 2, 3)");
+
+    // list of longs
+    literalOf(Collections.singleton(1L)).is("SET(1L)");
+    literalOf(Arrays.asList(1L, 2L)).is("SET(1L, 2L)");
+    literalOf(Arrays.asList(1L, 2L, 3L)).is("SET(1L, 2L, 3L)");
+
+    // list of booleans
+    literalOf(Collections.singleton(true)).is("SET(true)");
+    literalOf(Arrays.asList(true, false)).is("SET(true, false)");
+
+    // list of enums
+    literalOf(Collections.singleton(Foo.A)).is("SET('A')");
+    literalOf(Arrays.asList(Foo.A, Foo.B)).is("SET('A', 'B')");
+
+    // mixed types
+    literalOf(Arrays.asList("a", true, 1)).is("SET('a', true, 1)");
   }
 
   @Test
