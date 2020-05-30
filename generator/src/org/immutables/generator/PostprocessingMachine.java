@@ -15,7 +15,6 @@
  */
 package org.immutables.generator;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -26,6 +25,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,8 +48,12 @@ public final class PostprocessingMachine {
   private PostprocessingMachine() {}
 
   public static CharSequence rewrite(CharSequence content) {
+  	return rewrite(content, true);
+  }
+
+  public static CharSequence rewrite(CharSequence content, boolean useSemicolon) {
     try {
-      return rewrite(content, new ImportsBuilder(), ScanAtMost.ALL);
+      return rewrite(content, new ImportsBuilder(useSemicolon), ScanAtMost.ALL);
     } catch (UnsupportedEncodingException ex) {
       return content;
     }
@@ -57,7 +61,7 @@ public final class PostprocessingMachine {
 
   public static CharSequence collectHeader(CharSequence content) {
     try {
-      return rewrite(content, new ImportsBuilder(), ScanAtMost.HEADER);
+      return rewrite(content, new ImportsBuilder(true), ScanAtMost.HEADER);
     } catch (UnsupportedEncodingException ex) {
       return "";
     }
@@ -65,7 +69,7 @@ public final class PostprocessingMachine {
 
   public static Imports collectImports(CharSequence content) {
     try {
-      ImportsBuilder importsBuilder = new ImportsBuilder();
+      ImportsBuilder importsBuilder = new ImportsBuilder(true);
       rewrite(content, importsBuilder, ScanAtMost.IMPORTS);
       return Imports.of(importsBuilder.imports, importsBuilder.originalImports);
     } catch (UnsupportedEncodingException ex) {
@@ -149,7 +153,7 @@ public final class PostprocessingMachine {
         if (c == ' ') {
           packageFrom = i + 1;
         }
-        if (c == ';') {
+        if (c == ';' || c== '\n') {
           nextPartFrom = i + 2;
           currentPackage = content.subSequence(packageFrom, i).toString();
           importsBuilder.setCurrentPackage(currentPackage);
@@ -171,7 +175,7 @@ public final class PostprocessingMachine {
           importFrom = i + 1;
           importStarts = true;
         }
-        if (c == ';') {
+        if (c == ';' || c== '\n') {
           nextPartFrom = i + 2;
           if (importsQualifiedNameMachine.isFinished()) {
             String simpleName = content.subSequence(
@@ -267,7 +271,10 @@ public final class PostprocessingMachine {
     if (!currentPackage.isEmpty()) {
       headerParts.add("package ");
       headerParts.add(currentPackage);
-      headerParts.add(";\n\n");
+      if (importsBuilder.useSemicolon) {
+      	headerParts.add(";");
+      }
+      headerParts.add("\n\n");
     }
 
     // imports
@@ -354,7 +361,7 @@ public final class PostprocessingMachine {
       	}
         if (vocabulary[wordIndex].length == 1) {
           newState = finalState[wordIndex];
-          
+
           resetWord();
         } else if (vocabulary[wordIndex][charIndex + 1] == c) {
           charIndex++;
@@ -396,7 +403,13 @@ public final class PostprocessingMachine {
 
     private String currentPackage;
 
-    void addImportCandidate(String name, String qualifiedName, int importFrom, int importTo, int packageTo) {
+		final boolean useSemicolon;
+
+    ImportsBuilder(boolean useSemicolon) {
+			this.useSemicolon = useSemicolon;
+		}
+
+		void addImportCandidate(String name, String qualifiedName, int importFrom, int importTo, int packageTo) {
       @Nullable String foundQualified = nameToQualified.get(name);
       if (foundQualified != null && !foundQualified.equals(qualifiedName)) {
         return;
@@ -469,7 +482,16 @@ public final class PostprocessingMachine {
 
     String build() {
       invokeImportModifiers();
-      return JOINER.join(Iterables.transform(imports, ToImportStatement.FUNCTION));
+      List<String> generatedImports = new ArrayList<>();
+      for (String i : imports) {
+      	generatedImports.add("import ");
+      	generatedImports.add(i);
+        if (useSemicolon) {
+        	generatedImports.add(";");
+        }
+      	generatedImports.add("\n");
+			}
+      return JOINER.join(generatedImports);
     }
 
     private void invokeImportModifiers() {
@@ -480,15 +502,6 @@ public final class PostprocessingMachine {
 
     List<ImportCandidate> candidates() {
       return Ordering.natural().sortedCopy(importCandidates.values());
-    }
-  }
-
-  private enum ToImportStatement implements Function<String, String> {
-    FUNCTION;
-
-    @Override
-    public String apply(String input) {
-      return "import " + input + ";\n";
     }
   }
 
