@@ -304,7 +304,7 @@ private [tT] buildInstance() {
 [else]
   return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]([v.type]) values['['][attributeIndex v][']'][/for])[for
           o in type.withSettableAfterConstruction]
-      .[o.names.with](values['['][attributeIndex o][']'])[/for];
+      .[o.names.with](([o.type]) values['['][attributeIndex o][']'])[/for];
 [/if]
 }
 [/for]
