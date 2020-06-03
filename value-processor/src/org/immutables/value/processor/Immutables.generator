@@ -3165,6 +3165,14 @@ private int [disambiguateAccessor type 'computeHashCode']() {
 [template generateToString Type type]
 [if not type.toStringDefined]
 
+static String objectToString(Object input, int limit) {
+    if (input == null) {
+        return null;
+    }
+    String output = input.toString();
+    return output.length() > limit ? output.substring(0, limit).concat("…") : output;
+}
+
 /**
  * Prints the immutable value {@code [type.name]}[if type.equivalenceAttributes] with attribute values[/if].
  * @return A string representation of the value
@@ -4380,6 +4388,6 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
 
-[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]
+[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else if a.limitStringLengthInToString and (a.stringType or a.optionalStringType)]objectToString([value], [a.limitStringLengthInToString])[else if a.limitStringLengthInToString and a.hasTypeVariables]objectToString([value], [a.limitStringLengthInToString])[else][value][/if][/template]
 
 [template hiddenMutableState Type type][if type allowsClasspathAnnotation 'com.google.errorprone.annotations.Immutable']@SuppressWarnings("Immutable")[/if][/template]

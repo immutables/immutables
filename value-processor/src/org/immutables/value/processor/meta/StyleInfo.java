@@ -399,6 +399,9 @@ public abstract class StyleInfo implements ValueMirrors.Style {
     throw new UnsupportedOperationException("Use StyleInfo.allowedClasspathAnnotationsNames() instead");
   }
 
+  @Value.Parameter
+  public abstract int limitStringLengthInToString();
+
   static StyleInfo infoFrom(StyleMirror input) {
     return ImmutableStyleInfo.of(
         input.get(),
@@ -481,6 +484,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.addAllBuilder(),
         input.getBuilders(),
         input.nullableAnnotation(),
-        ImmutableSet.copyOf(input.allowedClasspathAnnotationsName()));
+        ImmutableSet.copyOf(input.allowedClasspathAnnotationsName()),
+        input.limitStringLengthInToString());
   }
 }
