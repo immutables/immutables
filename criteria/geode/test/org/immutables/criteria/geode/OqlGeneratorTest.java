@@ -131,16 +131,16 @@ class OqlGeneratorTest {
   @Test
   void upperLower() {
     check(generate(person.fullName.toLowerCase().is("a")))
-            .is("SELECT * FROM /myRegion WHERE fullName.toLowerCase = $1");
+            .is("SELECT * FROM /myRegion WHERE fullName.toLowerCase() = $1");
 
     check(generate(Query.of(Person.class).withFilter(toExpression(person.fullName.toUpperCase().is("A")))))
-            .is("SELECT * FROM /myRegion WHERE fullName.toUpperCase = $1");
+            .is("SELECT * FROM /myRegion WHERE fullName.toUpperCase() = $1");
 
     check(generate(Query.of(Person.class).withFilter(toExpression(person.fullName.toUpperCase().toLowerCase().is("A")))))
-            .is("SELECT * FROM /myRegion WHERE fullName.toUpperCase.toLowerCase = $1");
+            .is("SELECT * FROM /myRegion WHERE fullName.toUpperCase().toLowerCase() = $1");
 
     check(generate(Query.of(Person.class).withFilter(toExpression(person.fullName.toUpperCase().toLowerCase().toUpperCase().is("A")))))
-            .is("SELECT * FROM /myRegion WHERE fullName.toUpperCase.toLowerCase.toUpperCase = $1");
+            .is("SELECT * FROM /myRegion WHERE fullName.toUpperCase().toLowerCase().toUpperCase() = $1");
 
   }
 

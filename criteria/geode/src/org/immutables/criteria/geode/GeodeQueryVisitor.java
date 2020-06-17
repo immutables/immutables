@@ -115,9 +115,9 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
             "Size should be == 1 for unary operator %s but was %s", op, args.size());
 
     Expression arg0 = args.get(0);
+    String path = arg0.accept(this).oql();
     if (op instanceof OptionalOperators) {
       // use IS_DEFINED / IS_UNDEFINED functions
-      String path = arg0.accept(this).oql();
       String expr;
       if (op == OptionalOperators.IS_PRESENT) {
         expr = String.format("is_defined(%s) AND %s != null", path, path);
@@ -126,9 +126,9 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
       }
       return oql(expr);
     } else if (op == Operators.NOT) {
-      return oql("NOT (" + arg0.accept(this).oql() + ")");
-    }  else if (op == IterableOperators.IS_EMPTY || op == StringOperators.TO_LOWER_CASE || op == StringOperators.TO_UPPER_CASE) {
-      return oql(arg0.accept(this).oql() + "." + toMethodName(op));
+      return oql(String.format("NOT (%s)", path));
+    } else if (op == IterableOperators.IS_EMPTY || op == StringOperators.TO_LOWER_CASE || op == StringOperators.TO_UPPER_CASE) {
+      return oql(String.format("%s.%s()", path, toMethodName(op)));
     }
 
     throw new UnsupportedOperationException("Unknown unary operator " + call);

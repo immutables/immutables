@@ -68,8 +68,8 @@ class GeodeQueryVisitorTest {
 
         @Test
         void filterCollection() {
-            oql(person.interests.isEmpty()).is("interests.isEmpty");
-            oql(person.interests.notEmpty()).is("NOT (interests.isEmpty)");
+            oql(person.interests.isEmpty()).is("interests.isEmpty()");
+            oql(person.interests.notEmpty()).is("NOT (interests.isEmpty())");
             oql(person.interests.hasSize(1)).is("interests.size = $1");
             oql(person.interests.contains("OSS")).is("interests.contains($1)");
         }
@@ -114,13 +114,13 @@ class GeodeQueryVisitorTest {
 
         @Test
         void upperLower() {
-            oql(person.fullName.toUpperCase().is("A")).is("fullName.toUpperCase = $1");
-            oql(person.fullName.toLowerCase().is("A")).is("fullName.toLowerCase = $1");
-            oql(person.fullName.toLowerCase().isNot("A")).is("fullName.toLowerCase != $1");
-            oql(person.fullName.toLowerCase().in(Arrays.asList("a", "b"))).is("fullName.toLowerCase IN $1");
-            oql(person.fullName.toLowerCase().notIn(Arrays.asList("a", "b"))).is("NOT (fullName.toLowerCase IN $1)");
-            oql(person.fullName.toLowerCase().toUpperCase().is("A")).is("fullName.toLowerCase.toUpperCase = $1");
-            oql(person.fullName.toLowerCase().endsWith("A")).is("fullName.toLowerCase.endsWith($1)");
+            oql(person.fullName.toUpperCase().is("A")).is("fullName.toUpperCase() = $1");
+            oql(person.fullName.toLowerCase().is("A")).is("fullName.toLowerCase() = $1");
+            oql(person.fullName.toLowerCase().isNot("A")).is("fullName.toLowerCase() != $1");
+            oql(person.fullName.toLowerCase().in(Arrays.asList("a", "b"))).is("fullName.toLowerCase() IN $1");
+            oql(person.fullName.toLowerCase().notIn(Arrays.asList("a", "b"))).is("NOT (fullName.toLowerCase() IN $1)");
+            oql(person.fullName.toLowerCase().toUpperCase().is("A")).is("fullName.toLowerCase().toUpperCase() = $1");
+            oql(person.fullName.toLowerCase().endsWith("A")).is("fullName.toLowerCase().endsWith($1)");
         }
 
 
@@ -149,13 +149,13 @@ class GeodeQueryVisitorTest {
 
         @Test
         void upperLower() {
-            oql(person.fullName.toUpperCase().is("A")).is("fullName.toUpperCase = 'A'");
-            oql(person.fullName.toLowerCase().is("A")).is("fullName.toLowerCase = 'A'");
-            oql(person.fullName.toLowerCase().isNot("A")).is("fullName.toLowerCase != 'A'");
-            oql(person.fullName.toLowerCase().in(Arrays.asList("a", "b"))).is("fullName.toLowerCase IN SET('a', 'b')");
-            oql(person.fullName.toLowerCase().notIn(Arrays.asList("a", "b"))).is("NOT (fullName.toLowerCase IN SET('a', 'b'))");
-            oql(person.fullName.toLowerCase().toUpperCase().is("A")).is("fullName.toLowerCase.toUpperCase = 'A'");
-            oql(person.fullName.toLowerCase().endsWith("A")).is("fullName.toLowerCase.endsWith('A')");
+            oql(person.fullName.toUpperCase().is("A")).is("fullName.toUpperCase() = 'A'");
+            oql(person.fullName.toLowerCase().is("A")).is("fullName.toLowerCase() = 'A'");
+            oql(person.fullName.toLowerCase().isNot("A")).is("fullName.toLowerCase() != 'A'");
+            oql(person.fullName.toLowerCase().in(Arrays.asList("a", "b"))).is("fullName.toLowerCase() IN SET('a', 'b')");
+            oql(person.fullName.toLowerCase().notIn(Arrays.asList("a", "b"))).is("NOT (fullName.toLowerCase() IN SET('a', 'b'))");
+            oql(person.fullName.toLowerCase().toUpperCase().is("A")).is("fullName.toLowerCase().toUpperCase() = 'A'");
+            oql(person.fullName.toLowerCase().endsWith("A")).is("fullName.toLowerCase().endsWith('A')");
         }
 
         @Test
@@ -198,8 +198,8 @@ class GeodeQueryVisitorTest {
 
         @Test
         void filterCollection() {
-            oql(person.interests.isEmpty()).is("interests.isEmpty");
-            oql(person.interests.notEmpty()).is("NOT (interests.isEmpty)");
+            oql(person.interests.isEmpty()).is("interests.isEmpty()");
+            oql(person.interests.notEmpty()).is("NOT (interests.isEmpty())");
             oql(person.interests.hasSize(1)).is("interests.size = 1");
             oql(person.interests.contains("OSS")).is("interests.contains('OSS')");
         }
