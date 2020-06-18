@@ -24,5 +24,6 @@ abstract class Abc {}
 @Value.Immutable
 public abstract class ExtendingBuilderGenericBounds<T extends Abc> {
   public abstract T attr();
+  public <S> S nonAttr() { return null; } // this should not cause validation error
   public static class Builder<T extends Abc> extends ImmutableExtendingBuilderGenericBounds.Builder<T> {}
 }
