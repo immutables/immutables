@@ -239,19 +239,13 @@ final class AccessorAttributesCollector {
   private void processGenerationCandidateMethod(ExecutableElement attributeMethodCandidate, TypeElement originalType) {
     Name name = attributeMethodCandidate.getSimpleName();
 
-    if (!attributeMethodCandidate.getTypeParameters().isEmpty()) {
-      report(attributeMethodCandidate)
-          .error("Method '%s' cannot have own generic type parameters."
-              + " Attribute accessors can only use enclosing type's type variables", name);
-      return;
-    }
-
     if (CheckMirror.isPresent(attributeMethodCandidate)) {
       if (!attributeMethodCandidate.getParameters().isEmpty()
           || attributeMethodCandidate.getModifiers().contains(Modifier.PRIVATE)
           || attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)
           || attributeMethodCandidate.getModifiers().contains(Modifier.STATIC)
-          || attributeMethodCandidate.getModifiers().contains(Modifier.NATIVE)) {
+          || attributeMethodCandidate.getModifiers().contains(Modifier.NATIVE)
+          || !attributeMethodCandidate.getTypeParameters().isEmpty()) {
         report(attributeMethodCandidate)
             .error("Method '%s' annotated with @%s must be non-private parameter-less method",
                 name,
@@ -272,6 +266,13 @@ final class AccessorAttributesCollector {
     boolean useDefaultAsDefault = type.constitution.style().defaultAsDefault();
 
     if (isDiscoveredAttribute(attributeMethodCandidate, useDefaultAsDefault)) {
+      if (!attributeMethodCandidate.getTypeParameters().isEmpty()) {
+        report(attributeMethodCandidate)
+            .error("Method '%s' cannot have own generic type parameters."
+                + " Attribute accessors can only use enclosing type's type variables", name);
+        return;
+      }
+
       TypeMirror returnType = resolveReturnType(attributeMethodCandidate);
 
       ValueAttribute attribute = new ValueAttribute();
