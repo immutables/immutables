@@ -33,11 +33,11 @@ import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -115,9 +115,9 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
             "Size should be == 1 for unary operator %s but was %s", op, args.size());
 
     Expression arg0 = args.get(0);
+    String path = arg0.accept(this).oql();
     if (op instanceof OptionalOperators) {
       // use IS_DEFINED / IS_UNDEFINED functions
-      String path = arg0.accept(this).oql();
       String expr;
       if (op == OptionalOperators.IS_PRESENT) {
         expr = String.format("is_defined(%s) AND %s != null", path, path);
@@ -126,9 +126,9 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
       }
       return oql(expr);
     } else if (op == Operators.NOT) {
-      return oql("NOT (" + arg0.accept(this).oql() + ")");
-    }  else if (op == IterableOperators.IS_EMPTY || op == StringOperators.TO_LOWER_CASE || op == StringOperators.TO_UPPER_CASE) {
-      return oql(arg0.accept(this).oql() + "." + toMethodName(op));
+      return oql(String.format("NOT (%s)", path));
+    } else if (op == IterableOperators.IS_EMPTY || op == StringOperators.TO_LOWER_CASE || op == StringOperators.TO_UPPER_CASE) {
+      return oql(String.format("%s.%s()", path, toMethodName(op)));
     }
 
     throw new UnsupportedOperationException("Unknown unary operator " + call);
@@ -182,7 +182,14 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
 
   @Override
   public Oql visit(Path path) {
-    return oql(pathNaming.name(path));
+    String name = pathNaming.name(path);
+    Type type = path.returnType();
+    if (!useBindVariables && (type instanceof Class<?>) && ((Class<?>) type).isEnum()) {
+      // for enums we need to add ".name" function (queries without bind variables)
+      // OQL should be "enum.name = 'VALUE'"
+      name = name + ".name";
+    }
+    return oql(name);
   }
 
   @Override
@@ -230,18 +237,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<Oql> {
   }
 
   private static String valueToString(Object value) {
-    if (value instanceof CharSequence) {
-      return "'" + Geodes.escapeOql((CharSequence) value) + "'";
-    } else if (value instanceof Pattern) {
-      return "'" + Geodes.escapeOql(((Pattern) value).pattern()) + "'";
-    } else if (value instanceof Iterable) {
-      @SuppressWarnings("unchecked")
-      final Set<Object> set = ImmutableSet.copyOf((Iterable<Object>) value);
-      String asString = set.stream().map(GeodeQueryVisitor::valueToString).collect(Collectors.joining(", "));
-      return "SET(" + asString + ")";
-    } else {
-      return Objects.toString(value);
-    }
+    return OqlLiterals.fromObject(value);
   }
 
 }

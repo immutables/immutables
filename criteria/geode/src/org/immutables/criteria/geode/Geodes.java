@@ -39,22 +39,6 @@ final class Geodes {
   }
 
   /**
-   * Replace single quote {@code '} with two quotes {@code ''}
-   *
-   * <p>From <a href="https://www.postgresql.org/docs/9.1/sql-syntax-lexical.html">SQL syntax in PostgreSQL</a>:
-   *  <pre>
-   *    To include the escape character in the identifier literally, write it twice.
-   *  </pre>
-   * </p>
-   * @param oql string to escape
-   * @return escaped string
-   * @see
-   */
-  static String escapeOql(CharSequence oql) {
-    return oql.toString().replace("'", "''");
-  }
-
-  /**
    * Used to convert between types. Sometimes geode backend returns different types for aggregate functions like AVG / MIN / MAX.
    * Eg. Long vs Integer
    */
