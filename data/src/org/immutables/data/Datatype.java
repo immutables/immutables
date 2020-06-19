@@ -12,6 +12,8 @@ public interface Datatype<T> {
 
   TypeToken<T> type();
   
+  boolean isInline();
+  
   List<Feature<T, ?>> features();
 
   <F> F get(Feature<T, F> feature, T instance);

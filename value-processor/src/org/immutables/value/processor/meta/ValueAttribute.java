@@ -222,9 +222,13 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public boolean isIgnorable() {
-    return isGenerateLazy || isJsonIgnore() || isGsonOther();
+    return isGenerateLazy || isJsonIgnore() || isGsonOther() || isDataIgnore();
   }
 
+  public boolean isOmittable() {
+    return !isMandatory() || isDataIgnore();
+  }
+  
   public boolean isMandatory() {
     return isGenerateAbstract
         && !isGenerateDefault // is the case for defaulted abstract annotation attribute
@@ -479,6 +483,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   public boolean isJsonIgnore() {
     return IgnoreMirror.isPresent(element)
         || OkIgnoreMirror.isPresent(element);
+  }
+  
+  public boolean isDataIgnore() {
+    return DataIgnoreMirror.isPresent(element);
   }
 
   public List<String> typeParameters() {

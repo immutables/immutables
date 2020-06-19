@@ -157,7 +157,7 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
     this.[g]_typeArg = type.resolveType([g]_TYPE_PARAM);
     [/for]
     [for a in all]
-    this.[a.name]_ = [dtt].Datatype.Feature.of([for.index], NAME, [toConstant a.name]_, [constructTypeToken a], [a.nullable], [a.gettable], [a.settable], [not a.mandatory], [a.ignorable]);
+    this.[a.name]_ = [dtt].Datatype.Feature.of([for.index], NAME, [toConstant a.name]_, [constructTypeToken a], [a.nullable], [a.gettable], [a.settable], [a.omittable], [a.ignorable]);
     [/for]
     this.features = [gimm]List.of([for a in all][if not for.first], [/if][a.name]_[/for]);
     [if subtypes]
@@ -188,6 +188,7 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
   @Override public [grefl].TypeToken<[tT]> type() { return type; }
   @Override public java.util.List<[dtt].Datatype.Feature<[tT], ?>> features() { return features; }
   @Override public String toString() { return "datatype<" + type + ">"; }
+  @Override public boolean isInline() { return [v.dataInline]; }
 [if not v.kind.value]
   @Override public boolean isInstantiable() { return false; }
   @Override public [dtt].Datatype.Builder<[tT]> builder() {

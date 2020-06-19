@@ -6,9 +6,12 @@ import org.immutables.data.Datatype.Builder;
 import org.immutables.data.Datatype.Feature;
 import org.immutables.data.Datatype.Violation;
 import org.immutables.data.Datatypes_Dtt.Dtt_;
+import org.immutables.data.Datatypes_Dtt.Inl_;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 import static org.immutables.data.Datatypes_Dtt._Dtt;
+import static org.immutables.data.Datatypes_Dtt._Ign;
+import static org.immutables.data.Datatypes_Dtt._Inl;
 import static org.immutables.data.Datatypes_Dtt._Sin;
 
 public class DataTest {
@@ -59,5 +62,16 @@ public class DataTest {
 
     check(vs.get(1).rule()).is("cast");
     check(vs.get(1).feature()).is(Optional.of(dtt.b_));
+  }
+  
+  @Test
+  public void isInline() {
+    check(_Inl().isInline());
+  }
+  
+  @Test
+  public void isIgnorable() {
+    check(_Ign().g_.ignorableOnOutput());
+    check(_Ign().g_.omittableOnInput());
   }
 }

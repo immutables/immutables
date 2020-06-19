@@ -59,4 +59,17 @@ public interface Dtt {
     OptionalDouble d();
     class Builder<O> extends ImmutableDtt.Opt.Builder<O> {}
   }
+  
+  @Data.Inline
+  @Immutable
+  public interface Inl {
+    @Parameter
+    int value();
+  }
+  
+  @Immutable
+  public interface Ign {
+    @Data.Ignore OptionalInt g();
+    class Builder extends ImmutableDtt.Ign.Builder {}
+  }
 }

@@ -1,5 +1,5 @@
 /*
-   Copyright 2015 Immutables Authors and Contributors
+   Copyright 2020 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,4 +22,10 @@ public final class DatatypeMirrors {
 
   @Mirror.Annotation("org.immutables.data.Data")
   public @interface Data {}
+  
+  @Mirror.Annotation("org.immutables.data.Data.Ignore")
+  public @interface DataIgnore {}
+  
+  @Mirror.Annotation("org.immutables.data.Data.Inline")
+  public @interface DataInline {}
 }

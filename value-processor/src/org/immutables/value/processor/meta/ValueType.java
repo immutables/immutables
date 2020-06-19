@@ -1840,6 +1840,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public List<String> getDebugLines() {
     return constitution.protoclass().getDebugLines();
   }
+  
+  public boolean isDataInline() {
+    return DataInlineMirror.isPresent(element);
+  }
 
   @Override
   public StyleInfo style() {
