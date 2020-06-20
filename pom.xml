@@ -51,6 +51,7 @@
     <module>serial</module>
     <module>trees</module>
     <module>encode</module>
+    <module>bom</module>
   </modules>
 
   <organization>
