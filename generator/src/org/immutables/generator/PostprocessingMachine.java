@@ -28,8 +28,10 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.TreeSet;
 import javax.annotation.Nullable;
@@ -48,7 +50,7 @@ public final class PostprocessingMachine {
   private PostprocessingMachine() {}
 
   public static CharSequence rewrite(CharSequence content) {
-  	return rewrite(content, true);
+    return rewrite(content, true);
   }
 
   public static CharSequence rewrite(CharSequence content, boolean useSemicolon) {
@@ -153,7 +155,7 @@ public final class PostprocessingMachine {
         if (c == ' ') {
           packageFrom = i + 1;
         }
-        if (c == ';' || c== '\n') {
+        if (c == ';' || c == '\n') {
           nextPartFrom = i + 2;
           currentPackage = content.subSequence(packageFrom, i).toString();
           importsBuilder.setCurrentPackage(currentPackage);
@@ -175,7 +177,7 @@ public final class PostprocessingMachine {
           importFrom = i + 1;
           importStarts = true;
         }
-        if (c == ';' || c== '\n') {
+        if (c == ';' || c == '\n') {
           nextPartFrom = i + 2;
           if (importsQualifiedNameMachine.isFinished()) {
             String simpleName = content.subSequence(
@@ -272,7 +274,7 @@ public final class PostprocessingMachine {
       headerParts.add("package ");
       headerParts.add(currentPackage);
       if (importsBuilder.useSemicolon) {
-      	headerParts.add(";");
+        headerParts.add(";");
       }
       headerParts.add("\n\n");
     }
@@ -355,10 +357,10 @@ public final class PostprocessingMachine {
           }
         }
       } else {
-      	if (wordIndex == 1 && charIndex == 0 && c == 'n') {
-        	// very dirty hack to parse 'interface' instead of 'import'
-      		wordIndex = 3;
-      	}
+        if (wordIndex == 1 && charIndex == 0 && c == 'n') {
+          // very dirty hack to parse 'interface' instead of 'import'
+          wordIndex = 3;
+        }
         if (vocabulary[wordIndex].length == 1) {
           newState = finalState[wordIndex];
 
@@ -403,13 +405,13 @@ public final class PostprocessingMachine {
 
     private String currentPackage;
 
-		final boolean useSemicolon;
+    final boolean useSemicolon;
 
     ImportsBuilder(boolean useSemicolon) {
-			this.useSemicolon = useSemicolon;
-		}
+      this.useSemicolon = useSemicolon;
+    }
 
-		void addImportCandidate(String name, String qualifiedName, int importFrom, int importTo, int packageTo) {
+    void addImportCandidate(String name, String qualifiedName, int importFrom, int importTo, int packageTo) {
       @Nullable String foundQualified = nameToQualified.get(name);
       if (foundQualified != null && !foundQualified.equals(qualifiedName)) {
         return;
@@ -471,26 +473,27 @@ public final class PostprocessingMachine {
         }
       }
 
-      for (Map.Entry<String, ImportCandidate> candidateEntry : importCandidates.entries()) {
-        ImportCandidate candidate = candidateEntry.getValue();
+      for (Iterator<Entry<String, ImportCandidate>> it = importCandidates.entries().iterator(); it.hasNext();) {
+				Map.Entry<String, ImportCandidate> candidateEntry = it.next();
+				ImportCandidate candidate = candidateEntry.getValue();
         String originalFullyName = originalImports.get(candidate.simpleName);
         if (originalFullyName != null && !originalFullyName.equals(candidate.preparedImport)) {
-          importCandidates.remove(candidateEntry.getKey(), candidateEntry.getValue());
+        	it.remove();
         }
-      }
+			}
     }
 
     String build() {
       invokeImportModifiers();
       List<String> generatedImports = new ArrayList<>();
       for (String i : imports) {
-      	generatedImports.add("import ");
-      	generatedImports.add(i);
+        generatedImports.add("import ");
+        generatedImports.add(i);
         if (useSemicolon) {
-        	generatedImports.add(";");
+          generatedImports.add(";");
         }
-      	generatedImports.add("\n");
-			}
+        generatedImports.add("\n");
+      }
       return JOINER.join(generatedImports);
     }
 
