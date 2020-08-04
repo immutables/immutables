@@ -29,6 +29,9 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
+import org.immutables.mongo.fixture.generic.GenericType;
+import org.immutables.mongo.fixture.generic.GenericTypeJsonSerializer;
+import org.immutables.mongo.fixture.generic.ImmutableGenericType;
 import org.immutables.mongo.fixture.holder.Holder;
 import org.immutables.mongo.fixture.holder.HolderJsonSerializer;
 import org.immutables.mongo.fixture.holder.ImmutableHolder;
@@ -117,6 +120,9 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
     final HolderJsonSerializer custom = new HolderJsonSerializer();
     gson.registerTypeAdapter(Holder.class, custom);
     gson.registerTypeAdapter(ImmutableHolder.class, custom);
+    final GenericTypeJsonSerializer genericTypeJsonSerializer = new GenericTypeJsonSerializer();
+    gson.registerTypeAdapter(GenericType.class, genericTypeJsonSerializer);
+    gson.registerTypeAdapter(ImmutableGenericType.class, genericTypeJsonSerializer);
 
     return gson.create();
   }
