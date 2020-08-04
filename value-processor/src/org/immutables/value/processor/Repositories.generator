@@ -802,10 +802,10 @@ public static final class Criteria extends Repositories.Criteria {
 private static class Serialization {
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
-  final Encoder<[a.elementType]> [a.name]Encoder;
+  final Encoder<[a.unwrapperOrRawElementType]> [a.name]Encoder;
     [/if]
     [if a.requiresMarshalingSecondaryAdapter]
-  final Encoder<[a.secondaryElementType]> [a.name]SecondaryEncoder;
+  final Encoder<[a.unwrapperOrRawSecondaryElementType]> [a.name]SecondaryEncoder;
     [/if]
   [/for]
   final CodecRegistry registry;
@@ -857,10 +857,10 @@ private static class Serialization {
   [if subs and suppotedSubs]
 [output.error a.originalElement]Repositories do not support inline @Gson.ExpectedSubtypes, please put this annotations
 on the interface nested in class covered with @Gson.TypeAdapters. Or manually register on GsonBuilder following adapter:
-org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson, [if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if][for s in subs], TypeToken.get([s].class)[/for])
+org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson, [if secondary][a.unwrapperOrRawSecondaryElementType][else][a.unwrapperOrRawElementType][/if][for s in subs], TypeToken.get([s].class)[/for])
 [/output.error]
   [else]
-this.[a.name][if secondary]Secondary[/if]Encoder = this.registry.get([if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if]);
+this.[a.name][if secondary]Secondary[/if]Encoder = this.registry.get([if secondary][a.unwrapperOrRawSecondaryElementType].class[else][a.unwrapperOrRawElementType].class[/if]);
   [/if]
 [/for]
 [/template]
