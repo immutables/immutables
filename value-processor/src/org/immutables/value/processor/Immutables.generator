@@ -177,6 +177,16 @@ import static [routine].immutableCopyOf;
   [generateImmutableCopyOf type]
   [generateSerialization type]
   [rr.valueHelperMethods type.implementedAttributes]
+[if type.useBuilder]
+
+  /**
+   * Creates a builder for {@link [type.typeValue.relativeRaw] [type.typeValue.simple]} prefilled with attribute values
+   * from this instance. This method is useful to copy-and-modify this immutable.
+   [javadocGenerics type]
+   * @return A new prefilled [type.typeValue.simple] builder
+   */
+   [generateToBuilder type]
+[/if]
 [if type.useBuilder andnot type.constitution.isOutsideBuilder]
   [if not type.factoryBuilder.isNew]
     [for parameters = type.builderParameters]
@@ -4309,6 +4319,27 @@ private static final long serialVersionUID = [literal serialVersion];
 [if type allowsClasspathAnnotation 'org.immutables.value.Generated']
 @org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
 [/if]
+[/template]
+
+[template generateToBuilder Type type]
+public [builderReturnType type] toBuilder() {
+  return [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder]
+  [if type.generateBuilderFrom]
+    .[type.names.from](this);
+  [else]
+    [for v in type.settableAttributes]
+      [if v.encoding]
+    .[rr.builderCopyFrom v]([v.names.get]())
+      [else if v.nullable]
+    .[v.names.init]([v.names.get]())
+      [else if v.collectionType]
+    .[v.names.addAll]([v.names.get]())
+      [else if v.mapType]
+    .[v.names.putAll]([v.names.get]())
+      [else]
+    .[v.names.init]([v.names.get]())[/if][/for];
+  [/if]
+}
 [/template]
 
 [template atElementNullable Attribute a][if not a.nullElements.ban][atNullable a][/if][/template]
