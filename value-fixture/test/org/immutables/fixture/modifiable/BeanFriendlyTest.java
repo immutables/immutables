@@ -60,5 +60,8 @@ public class BeanFriendlyTest {
     check(immutableBean.getId()).is(1000);
     check(immutableBean.getNames()).isOf("name", "name2");
     check(immutableBean.getOptions()).is(ImmutableMap.of("foo", "bar"));
+
+    // from works as with Immutable
+    BeanFriendly mutableFromImmutable = new ModifiableBeanFriendly().from(immutableBean);
   }
 }

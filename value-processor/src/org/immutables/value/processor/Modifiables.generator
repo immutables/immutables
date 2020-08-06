@@ -366,10 +366,10 @@ public static[type.generics.def] [thisReturnType type] [type.names.create]() {
 [docReturnThis type]
  */
 [atCanIgnoreReturnValue type]
-public [thisSetterReturnType type] [type.names.from]([s.type] instance) {
+public [thisReturnType type] [type.names.from]([s.type] instance) {
   [im.requireNonNull type](instance, "instance");
   from((Object) instance);
-  [thisSetterReturn type]
+  [thisReturn type]
 }
   [/for]
 
