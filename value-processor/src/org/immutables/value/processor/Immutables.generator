@@ -1616,7 +1616,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     }
     [/if]
     [if v.generateJdkOnly or v.hasAttributeValue]
-    for ([v.unwrappedElementType] element : elements) {
+    for ([v.wrappedElementType] element : elements) {
       [if v.hasAttributeValue]
       [if not v.nullElements.ban]if (element != null) [/if]element = [deepCopyOf v]element[/deepCopyOf];
       [/if]
