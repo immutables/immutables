@@ -254,6 +254,36 @@ public class NullableAttributesTest {
   }
 
   @Test
+  public void skipNullValues3() {
+    ImmutableNullablyElements elements = ImmutableNullablyElements.builder()
+        .addAllRi(Arrays.asList(1, null, 2, null))
+        .build();
+
+    check(elements.ri()).isOf(1, 2);
+  }
+
+  @Test
+  public void allowNulls3() {
+    ImmutableNullablyElements elements = ImmutableNullablyElements.builder()
+        .addAllRj(Arrays.asList(1, null, 2, null))
+        .build();
+
+    check(elements.rj()).isOf(1, null, 2, null);
+  }
+
+  @Test
+  public void banNulls3() {
+    try {
+      ImmutableNullablyElements elements = ImmutableNullablyElements.builder()
+          .addAllRk(Arrays.asList(1, null, 2, null))
+          .build();
+    } catch (NullPointerException ex) {
+      // make sure NPE isn't due to unboxed loop, static code analyzers don't like that
+      check(ex.getStackTrace()[0].getMethodName().equals("requireNonNull"));
+    }
+  }
+
+  @Test
   public void typeUseNullable() {
     ImmutableNullableTypeUseJdtAccepted r = ImmutableNullableTypeUseJdtAccepted.builder()
         .i1(null)

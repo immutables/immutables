@@ -35,4 +35,10 @@ public interface NullablyElements {
   Map<String, @SkipNulls Integer> sm();
 
   Set<String> rg();
+  
+  Set<@SkipNulls Integer> ri();
+
+  List<@AllowNulls Integer> rj();
+
+  Set<Integer> rk();
 }
