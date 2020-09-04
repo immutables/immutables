@@ -62,6 +62,7 @@ public class BeanFriendlyTest {
     check(immutableBean.getOptions()).is(ImmutableMap.of("foo", "bar"));
 
     // from works as with Immutable
-    BeanFriendly mutableFromImmutable = new ModifiableBeanFriendly().from(immutableBean);
+    BeanFriendly mutableFromImmutable1 = new ModifiableBeanFriendly().from(immutableBean);
+    BeanFriendly.Mod mutableFromImmutable2 = new ModifiableMod().from(immutableBean.getMod());
   }
 }
