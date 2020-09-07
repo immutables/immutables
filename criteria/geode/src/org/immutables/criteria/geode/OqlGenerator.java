@@ -61,8 +61,8 @@ abstract class OqlGenerator {
       throw new UnsupportedOperationException("Aggregations / Group By and count(*) are not yet supported");
     }
 
-    // wherever to rewrite query as "select count(*) from (select distinct ...)"
-    boolean addOuterCountQuery = query.count() && query.distinct() && query.hasProjections();
+    // wherever to rewrite query as "select count(*) from (select [distinct] ... from ... where ... limit ?)"
+    boolean addOuterCountQuery = query.count() && (query.distinct() || query.hasProjections() || query.limit().isPresent());
 
     final StringBuilder oql = new StringBuilder("SELECT");
     if (query.distinct()) {

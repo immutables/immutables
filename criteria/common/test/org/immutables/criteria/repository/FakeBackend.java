@@ -19,12 +19,15 @@ package org.immutables.criteria.repository;
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
+import org.immutables.criteria.backend.StandardOperations;
+import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
 
 /**
- * Backend which returns same result for any operation. Intended for tests
+ * Backend which returns same result for any operation. It can also perform basic count.
+ * Intended for simple tests.
  */
 public class FakeBackend implements Backend {
 
@@ -47,7 +50,6 @@ public class FakeBackend implements Backend {
 
     private final Class<?> entityType;
 
-
     private Session(Class<?> entityType) {
       this.entityType = entityType;
     }
@@ -59,6 +61,14 @@ public class FakeBackend implements Backend {
 
     @Override
     public Result execute(Operation operation) {
+      if (operation instanceof StandardOperations.Select) {
+        Query query = ((StandardOperations.Select) operation).query();
+        if (query.count()) {
+          // just count number of elements
+          return DefaultResult.of(Flowable.fromPublisher(existing).count().toFlowable());
+        }
+      }
+
       return DefaultResult.of(existing);
     }
   }

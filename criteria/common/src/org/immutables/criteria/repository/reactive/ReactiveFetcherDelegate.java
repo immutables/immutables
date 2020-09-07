@@ -99,9 +99,15 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
 
   @Override
   public Publisher<Boolean> exists() {
-    Query query = this.query.withLimit(1); // check if at least one exists
-    Publisher<List<T>> asList = Publishers.toList(session.execute(StandardOperations.Select.of(query)).publisher());
-    return Publishers.map(asList, list -> !list.isEmpty());
+    // change query to count at most one record
+    // select count(*) from (select * from foo where ... limit 1)
+    ImmutableQuery query = this.query;
+    if (!query.limit().isPresent()) {
+      // for exists operation we need at most one (1) element (if limit is not set already)
+      query = query.withLimit(1);
+    }
+    Publisher<Long> countPublisher = of(query, session).count();
+    return Publishers.map(countPublisher, count -> count > 0);
   }
 
   @Override

@@ -136,7 +136,8 @@ class MongoSession implements Backend.Session {
 
     final boolean hasProjections = query.hasProjections();
 
-    boolean useAggregationPipeline = query.hasAggregations() || query.distinct();
+    boolean useAggregationPipeline = query.hasAggregations() || query.distinct()
+            || query.count() && query.limit().isPresent();
     ExpressionNaming expressionNaming = useAggregationPipeline ? ExpressionNaming.from(UniqueCachedNaming.of(query.projections())) : expression -> pathNaming.name((Path) expression);
 
     MongoCollection<?> collection = this.collection;
@@ -170,6 +171,7 @@ class MongoSession implements Backend.Session {
     }
 
     final FindPublisher<?> find = collection.find(filter);
+
     if (!query.collations().isEmpty()) {
       // add sorting
       final Function<Collation, Bson> toSortFn = col -> {

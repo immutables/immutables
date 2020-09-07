@@ -73,6 +73,14 @@ class ReactiveFetcherDelegateTest {
     check(Flowable.fromPublisher(create("one", "two", "three").exists()).toList().blockingGet()).isOf(true);
   }
 
+  @Test
+  void count() {
+    check(Flowable.fromPublisher(create().count()).toList().blockingGet()).isOf(0L);
+    check(Flowable.fromPublisher(create("one").count()).toList().blockingGet()).isOf(1L);
+    check(Flowable.fromPublisher(create("one", "two").count()).toList().blockingGet()).isOf(2L);
+    check(Flowable.fromPublisher(create("one", "two", "three").count()).toList().blockingGet()).isOf(3L);
+  }
+
   private static ReactiveFetcher<String> create(String ... values) {
     FakeBackend backend = new FakeBackend(Flowable.fromArray(values));
     return ReactiveFetcherDelegate.of(Query.of(TypeHolder.StringHolder.class), backend.open(TypeHolder.StringHolder.class));
