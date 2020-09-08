@@ -24,6 +24,9 @@ import com.mongodb.reactivestreams.client.Success;
 import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.reactivex.Flowable;
+import io.reactivex.Single;
+import org.bson.BsonDocument;
+import org.bson.conversions.Bson;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -64,6 +67,18 @@ class MongoInstance implements AutoCloseable {
 
   MongoDatabase database() {
     return database;
+  }
+
+  /**
+   * Detect if current mongo instance is fake (as in <a href="https://github.com/bwaldvogel/mongo-java-server">Mongo Java Server</a>)
+   * or real (stand-alone database or docker container).
+   */
+  boolean isRealMongo() {
+    Bson buildInfo = BsonDocument.parse("{buildInfo:1}");
+    return Single.fromPublisher(database().runCommand(buildInfo))
+            .map(bson -> bson.containsKey("gitVersion") && bson.containsKey("version"))
+            .onErrorReturn(x -> false)
+            .blockingGet();
   }
 
   static MongoInstance create() {

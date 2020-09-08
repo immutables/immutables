@@ -24,6 +24,7 @@ import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.changestream.FullDocument;
+import com.mongodb.reactivestreams.client.ChangeStreamPublisher;
 import com.mongodb.reactivestreams.client.FindPublisher;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import io.reactivex.Flowable;
@@ -46,6 +47,7 @@ import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.UniqueCachedNaming;
+import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
@@ -54,7 +56,6 @@ import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Visitors;
 import org.reactivestreams.Publisher;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -285,13 +286,27 @@ class MongoSession implements Backend.Session {
     return Flowable.fromPublisher(collection.find(filter));
   }
 
-  private <X> Publisher<X> watch(StandardOperations.Watch operation) {
+  private <X> Publisher<WatchEvent<X>> watch(StandardOperations.Watch operation) {
     final MongoCollection<X> collection = (MongoCollection<X>) this.collection;
-    final Bson filter = new Document("fullDocument", toBsonFilter(operation.query()));
-    return Flowable.fromPublisher(collection.watch(Collections.singletonList(filter))
-            .fullDocument(FullDocument.UPDATE_LOOKUP)
-            .withDocumentClass(collection.getDocumentClass()));
 
+    if (operation.query().hasProjections()) {
+      return Flowable.error(new UnsupportedOperationException("Projections are not yet supported with watch operation"));
+    }
+
+    ChangeStreamPublisher<X> watch;
+    if (!operation.query().filter().isPresent()) {
+      // watch without filter
+      watch = collection.watch(collection.getDocumentClass());
+    } else {
+      // prefix all attributes with 'fullDocument.'
+      PathNaming naming = path -> "fullDocument." + this.pathNaming.name(path);
+      AggregationQuery agg = new AggregationQuery(operation.query(), naming); // reuse aggregation pipeline
+      watch = collection.watch(agg.toPipeline(), collection.getDocumentClass());
+    }
+
+    return Flowable.fromPublisher(watch.fullDocument(FullDocument.UPDATE_LOOKUP))
+            .map(MongoWatchEvent::fromChangeStream);
   }
+
 
 }

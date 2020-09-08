@@ -93,17 +93,15 @@ public abstract class ExistsTemplate {
   @Test
   void existsWithLimit() {
     // empty
-    check(!repository.findAll().limit(0).exists());
     check(!repository.findAll().limit(1).exists());
     check(!repository.findAll().limit(2).exists());
 
     repository.insert(generator.get().withId("id1").withValue("v1"));
-    check(!repository.findAll().limit(0).exists());
     check(repository.findAll().limit(1).exists());
     check(repository.findAll().limit(2).exists());
 
-    check(!repository.find(string.id.is("id1")).limit(0).exists());
     check(repository.find(string.id.is("id1")).limit(1).exists());
+    check(!repository.find(string.id.isNot("id1")).limit(1).exists());
     check(repository.find(string.id.is("id1")).limit(2).exists());
   }
 }

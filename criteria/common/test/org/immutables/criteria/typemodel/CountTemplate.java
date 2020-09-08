@@ -74,25 +74,22 @@ public abstract class CountTemplate {
 
   @Test
   void countWithLimit() {
-    check(repository.findAll().limit(0).count()).is(0L);
     check(repository.findAll().limit(1).count()).is(0L);
+    check(repository.findAll().limit(2).count()).is(0L);
 
     repository.insert(generator.get().withValue("v1"));
-    check(repository.findAll().limit(0).count()).is(0L);
     check(repository.findAll().limit(1).count()).is(1L);
     check(repository.findAll().limit(2).count()).is(1L);
 
     repository.insert(generator.get().withValue("v2"));
-    check(repository.findAll().limit(0).count()).is(0L);
     check(repository.findAll().limit(1).count()).is(1L);
     check(repository.findAll().limit(2).count()).is(2L);
     check(repository.findAll().limit(3).count()).is(2L);
 
     repository.insert(generator.get().withValue("v3"));
-    check(repository.findAll().limit(0).count()).is(0L);
     check(repository.findAll().limit(1).count()).is(1L);
     check(repository.findAll().limit(2).count()).is(2L);
     check(repository.findAll().limit(3).count()).is(3L);
-    check(repository.findAll().limit(100).count()).is(3L);
+    check(repository.findAll().limit(4).count()).is(3L);
   }
 }
