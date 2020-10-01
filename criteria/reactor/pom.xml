@@ -27,6 +27,10 @@
       Project Reactor implementation for Repository (readers / writers)
     </description>
 
+    <properties>
+        <module.name>${project.groupId}.criteria.reactor</module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.immutables</groupId>

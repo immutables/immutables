@@ -27,6 +27,10 @@
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Processor test utils</description>
 
+  <properties>
+    <module.name>${project.groupId}.processor.testlib</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>

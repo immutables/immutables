@@ -28,6 +28,11 @@
   you don't need this stub
   </description>
   <name>${project.groupId}.${project.artifactId}</name>
+
+  <properties>
+    <module.name>${project.groupId}.android.stub</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>
