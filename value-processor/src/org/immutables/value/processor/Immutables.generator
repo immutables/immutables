@@ -3422,7 +3422,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
 public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
 [if v.jdkOptional]
-  [if v.hasSimpleScalarElementType]
+  [if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](this.[v.name], value)) return this;
   [else]
   if (this.[v.name] == value) return this;
@@ -3480,7 +3480,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
     [else if v.double]
   if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
-    [else if v.primitive or v.enumType]
+    [else if v.primitive]
   if (this.[v.name] == value) return this;
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved to after value assignment --]
@@ -3499,7 +3499,9 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
     [else if v.nullable]
     [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
-      [if v.nullable or type.generateNoargConstructor]
+      [if v.enumType]
+  if (this.[v.name] == value) return this;
+      [else if v.nullable or type.generateNoargConstructor]
   if ([objectsEqual type](this.[v.name], value)) return this;
       [else]
   if (this.[v.name].equals(value)) return this;
@@ -3510,7 +3512,9 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
     [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
-      [if v.nullable or type.generateNoargConstructor]
+      [if v.enumType]
+  if (this.[v.name] == newValue) return this;
+      [else if v.nullable or type.generateNoargConstructor]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
       [else]
   if (this.[v.name].equals(newValue)) return this;
