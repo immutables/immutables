@@ -1,6 +1,6 @@
 package org.immutables.fixture.with;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.math.RoundingMode;
 import java.util.Optional;
@@ -59,5 +59,52 @@ public class WithEnumsTest {
             .not().same(TEST_IMMUTABLE_WITH_NULLS);
     check(TEST_IMMUTABLE_WITH_NULLS.withMaybeRoundingMode(Optional.of(RoundingMode.HALF_UP)))
             .not().same(TEST_IMMUTABLE_WITH_NULLS);
+  }
+
+  @Test
+  public void withOnDifferentEnumValueIsEqualTo() {
+    ImmutableWithEnums testImmutableWithFloorRoundingMode = ImmutableWithEnums.builder()
+            .roundingMode(RoundingMode.FLOOR)
+            .maybeRoundingMode(RoundingMode.HALF_DOWN)
+            .nullableRoundingMode(RoundingMode.UNNECESSARY)
+            .build();
+
+    check(TEST_IMMUTABLE.withRoundingMode(RoundingMode.FLOOR)).is(testImmutableWithFloorRoundingMode);
+  }
+
+  @Test
+  public void withOnNullEnumValueWithEnumValueIsEqualTo() {
+    ImmutableWithEnums testImmutableWithFloorNullableRoundingMode = ImmutableWithEnums.builder()
+            .roundingMode(RoundingMode.DOWN)
+            .maybeRoundingMode(Optional.empty())
+            .nullableRoundingMode(RoundingMode.FLOOR)
+            .build();
+
+    check(TEST_IMMUTABLE_WITH_NULLS.withNullableRoundingMode(RoundingMode.FLOOR))
+            .is(testImmutableWithFloorNullableRoundingMode);
+  }
+
+  @Test
+  public void withOnOptionalEnumValueWithEnumValueIsEqualTo() {
+    ImmutableWithEnums testImmutableWithHalfDownMaybeRoundingMode = ImmutableWithEnums.builder()
+            .roundingMode(RoundingMode.DOWN)
+            .maybeRoundingMode(RoundingMode.HALF_DOWN)
+            .nullableRoundingMode(null)
+            .build();
+
+    check(TEST_IMMUTABLE_WITH_NULLS.withMaybeRoundingMode(RoundingMode.HALF_DOWN))
+            .is(testImmutableWithHalfDownMaybeRoundingMode);
+  }
+
+  @Test
+  public void withOnOptionalEnumValueWithEmptyOptionalIsEqualTo() {
+    ImmutableWithEnums testImmutableWithEmptyMaybeRoundingMode = ImmutableWithEnums.builder()
+            .roundingMode(RoundingMode.CEILING)
+            .maybeRoundingMode(Optional.empty())
+            .nullableRoundingMode(RoundingMode.UNNECESSARY)
+            .build();
+
+    check(TEST_IMMUTABLE.withMaybeRoundingMode(Optional.empty()))
+            .is(testImmutableWithEmptyMaybeRoundingMode);
   }
 }
