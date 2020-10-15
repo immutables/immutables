@@ -21,11 +21,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+
 import org.junit.jupiter.api.Test;
+
 import static org.immutables.check.Checkers.check;
+import static org.immutables.matcher.ModifierMatcher.notFinalModifier;
 
 public class BeanFriendlyTest {
-
+ 
   @Test
   public void modifiableAsJavaBean() throws Exception {
     ImmutableSet<String> rwProperties =

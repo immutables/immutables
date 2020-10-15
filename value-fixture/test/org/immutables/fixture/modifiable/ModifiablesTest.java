@@ -15,16 +15,24 @@
  */
 package org.immutables.fixture.modifiable;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.immutables.check.Checkers.check;
+import static org.immutables.matcher.ModifierMatcher.finalModifier;
+
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.util.Collections;
+import java.util.Map;
+
+import org.immutables.fixture.modifiable.FromTypesModifiables.FromType;
+import org.junit.jupiter.api.Test;
+
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
-
-import java.util.Collections;
-import java.util.Map;
-import org.immutables.fixture.modifiable.FromTypesModifiables.FromType;
-import org.junit.jupiter.api.Test;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.immutables.check.Checkers.check;
 
 public class ModifiablesTest {
 
@@ -342,5 +350,14 @@ public class ModifiablesTest {
     m1.computePricesWithTaxRate(0.06f);
     check(m1.getPrices()).isOf(1.00f, 2.00f);
     check(m1.getPricesWithSalesTax()).isOf(1.06f, 2.12f);
+  }
+
+  @Test
+  public void finalReadMethod() throws IntrospectionException {
+    final FluentIterable<PropertyDescriptor> propertyDescriptors = FluentIterable
+        .of(Introspector.getBeanInfo(ModifiableCompanion.class).getPropertyDescriptors());
+    for (final PropertyDescriptor pd : propertyDescriptors) {
+      check(pd.getReadMethod()).allOf(notNullValue(), finalModifier());
+    }
   }
 }

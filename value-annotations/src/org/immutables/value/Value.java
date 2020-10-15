@@ -1213,6 +1213,24 @@ public @interface Value {
     boolean beanFriendlyModifiables() default false;
 
     /**
+     * If enabled modifable type will have non-final getters and collection setters will literally replace 
+     * the previous values. This is modifiable companion types only, not for builders and other types of 
+     * generated artifacts.
+     * <p>
+     * Despite the fact that this option will allows your class to be more JPA compliant, it's at the price 
+     * of some weakness like type collections inconsistency or the possibility to override getter method.
+     * So handle this option with care.
+     * </p>
+     * <p>
+     * <em>Note, we are not supporting JPA specification in any way except that Immutables can
+     * be used/configured to be partially compatible with some of the conventions.</em>
+     * </p>
+     * @return {@code true} for non-final setters and minor tweaks to make modifiables more
+     *         jpa-friendly. {@code false} is the default
+     */
+    boolean jpaFriendlyModifiables() default false;
+
+    /**
      * If enabled mandatory attributes would be auto-propagated to be parameters of value object
      * constuctor.
      * <p>

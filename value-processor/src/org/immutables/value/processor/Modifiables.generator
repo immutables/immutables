@@ -496,7 +496,7 @@ public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
 [eachLine v.accessorInjectedAnnotations]
 [deprecation v]
 @Override
-[v.access]final [v.atNullability][v.implementationModifiableType] [v.names.get]() {
+[v.access][if not type.jpaFriendlyModifiable]final [/if][v.atNullability][v.implementationModifiableType] [v.names.get]() {
 [if v.mandatory]
   if (![isSet v]()) {[-- opportunistically reuse attributes check --]
     [disambiguateAccessor type 'checkRequiredAttributes']();
@@ -629,7 +629,10 @@ public final [thisSetterReturnType type] [v.names.addv]([v.unwrappedElementType]
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
-public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanFriendlyModifiable][v.type][else]Iterable<[v.consumedElementType]>[/if] elements) {
+public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanFriendlyModifiable or type.jpaFriendlyModifiable][v.type][else]Iterable<[v.consumedElementType]>[/if] elements) {
+  [if type.jpaFriendlyModifiable]
+  this.[v.name] = elements;
+  [else]
   [if v.nullable]
   if (elements == null) {
     this.[v.name] = null;
@@ -647,6 +650,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
   this.[v.name].clear();
   [/if]
   [v.names.addAll](elements);
+  [/if]
   [thisSetterReturn type]
 }
 
@@ -944,7 +948,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
 [template defineOrResetField Attribute v Boolean declare][defineOrResetFieldAlt v declare false][/template]
 
 [template defineOrResetFieldAlt Attribute v Boolean declare Boolean deferAllocation]
-[let fn][if not v.nullableCollector] final[/if][/let]
+[let fn][if v.finalField] final[/if][/let]
   [if v.containerType]
     [if v.generateEnumMap]
 [if declare]private[fn] java.util.EnumMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.EnumMap[v.genericArgs]([v.elementType].class)[/if];
@@ -965,9 +969,9 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
     [else if v.generateEnumSet]
 [if declare]private[fn] java.util.EnumSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
     [else if v.setType]
-[if declare]private[fn] java.util.LinkedHashSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashSet[v.genericArgs]([if deferAllocation]0[/if])[/if];
+[if declare]private[fn] java.util.[if not v.style.jpaFriendlyModifiables]LinkedHash[/if]Set[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashSet[v.genericArgs]([if deferAllocation]0[/if])[/if];
     [else if v.listType]
-[if declare]private[fn] java.util.ArrayList[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.ArrayList[v.genericArgs]([if deferAllocation]0[/if])[/if];
+[if declare]private[fn] java.util.[if not v.style.jpaFriendlyModifiables]Array[/if]List[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.ArrayList[v.genericArgs]([if deferAllocation]0[/if])[/if];
     [else if v.optionalType]
 [if declare]private [v.type] [/if][v.name] = [optionalEmpty v];
     [else]

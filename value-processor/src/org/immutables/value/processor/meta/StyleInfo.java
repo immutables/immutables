@@ -303,6 +303,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean jpaFriendlyModifiables();
+
+  @Value.Parameter
+  @Override
   public abstract boolean allMandatoryParameters();
 
   @Value.Parameter
@@ -469,6 +473,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.stagedBuilder(),
         input.builtinContainerAttributes(),
         input.beanFriendlyModifiables(),
+        input.jpaFriendlyModifiables(),
         input.allMandatoryParameters(),
         input.transientDerivedFields(),
         input.finalInstanceFields(),

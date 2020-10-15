@@ -290,6 +290,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return style().beanFriendlyModifiables();
   }
 
+  public boolean isJpaFriendlyModifiable() {
+    return style().jpaFriendlyModifiables();
+  }
+
   private boolean noGuavaInClasspath() {
     return !constitution.protoclass().environment().hasGuavaLib();
   }

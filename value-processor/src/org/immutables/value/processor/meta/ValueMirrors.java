@@ -225,6 +225,8 @@ public final class ValueMirrors {
 
     boolean beanFriendlyModifiables() default false;
 
+    boolean jpaFriendlyModifiables() default false;
+
     boolean allMandatoryParameters() default false;
 
     String redactedMask() default "";

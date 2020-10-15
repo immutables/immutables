@@ -1629,6 +1629,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return typeKind.isCollectionOrMapping()
         && (isNullable() || containingType.isDeferCollectionAllocation());
   }
+  
+  public boolean isFinalField() {
+    return !(isNullableCollector() || style().jpaFriendlyModifiables());
+  }
 
   public boolean isDeferCollectionAllocation() {
     return typeKind.isCollectionOrMapping()
