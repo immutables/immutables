@@ -37,6 +37,7 @@ final class StaticEnvironment {
     private ClassToInstanceMap<Completable> components;
     private ProcessingEnvironment processing;
     private RoundEnvironment round;
+    private ClassToInstanceMap<Completable> serviceFiles = MutableClassToInstanceMap.create();
     private Set<TypeElement> annotations;
     private boolean initialized;
 
@@ -49,8 +50,13 @@ final class StaticEnvironment {
       round = null;
       annotations = null;
       initialized = false;
+    }
 
-      state.remove();
+    void writeServiceFiles() {
+      for (Completable serviceFile : serviceFiles.values()) {
+        serviceFile.complete();
+      }
+      serviceFiles.clear();
     }
 
     void init(Set<? extends TypeElement> annotations, RoundEnvironment round, ProcessingEnvironment processing) {
@@ -89,6 +95,16 @@ final class StaticEnvironment {
     return instance;
   }
 
+  static <T extends Completable> T getServiceFilesInstance(Class<T> type, Supplier<T> supplier) {
+    ClassToInstanceMap<Completable> components = state().serviceFiles;
+    @Nullable T instance = components.getInstance(type);
+    if (instance == null) {
+      instance = supplier.get();
+      components.putInstance(type, instance);
+    }
+    return instance;
+  }
+
   static boolean isInitialized() {
     return state.get().initialized;
   }
@@ -107,6 +123,10 @@ final class StaticEnvironment {
 
   static void shutdown() throws Exception {
     state().shutdown();
+  }
+
+  static void writeServiceFiles() {
+    state().writeServiceFiles();
   }
 
   static void init(
