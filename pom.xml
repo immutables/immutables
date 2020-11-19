@@ -208,10 +208,9 @@
           <useIncrementalCompilation>false</useIncrementalCompilation>
           <compilerArgs>
             <arg>-Xlint:unchecked</arg>
+            <arg>-Xmaxerrs</arg>
+            <arg>1000000</arg>
           </compilerArgs>
-          <compilerArguments>
-            <Xmaxerrs>1000000</Xmaxerrs>
-          </compilerArguments>
         </configuration>
       </plugin>
       <plugin>

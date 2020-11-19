@@ -9,10 +9,7 @@ import org.immutables.data.Datatypes_Dtt.Dtt_;
 import org.immutables.data.Datatypes_Dtt.Inl_;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
-import static org.immutables.data.Datatypes_Dtt._Dtt;
-import static org.immutables.data.Datatypes_Dtt._Ign;
-import static org.immutables.data.Datatypes_Dtt._Inl;
-import static org.immutables.data.Datatypes_Dtt._Sin;
+import static org.immutables.data.Datatypes_Dtt.*;
 
 public class DataTest {
   @Test
@@ -73,5 +70,11 @@ public class DataTest {
   public void isIgnorable() {
     check(_Ign().g_.ignorableOnOutput());
     check(_Ign().g_.omittableOnInput());
+  }
+
+  @Test
+  public void defaultPrimitive() {
+   // _Hjj()
+
   }
 }

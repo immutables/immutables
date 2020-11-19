@@ -17,9 +17,9 @@ public @interface Data {
   public @interface Ignore {}
 
   /**
-   * Marks that the type is strongly typed alias (newtype) for the other types it wraps.
+   * Marks that the type is strongly typed alias (newtype) for the other type it wraps.
    * For now it requires either single parameter to be inlined or otherwise multiple will be
-   * "inlined" as heteronenous array/tuple in their data represendation/serialization, in positional
+   * "inlined" as heterogeneous array/tuple in their data representation/serialization, in positional
    * order, for example. However, in our Datatypes metadata framework we only mark those as such on
    * a model level, we leave it up to further codecs/serialization to implement it.
    */

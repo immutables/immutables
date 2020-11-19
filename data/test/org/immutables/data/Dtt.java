@@ -6,6 +6,7 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import javax.annotation.Nullable;
+import org.immutables.value.Value;
 import org.immutables.value.Value.Enclosing;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Parameter;
@@ -17,6 +18,12 @@ public interface Dtt {
   int a();
 
   String b();
+
+  @Value.Default
+  default int n() {
+    return 1;
+  }
+
 
   class Builder extends ImmutableDtt.Builder {}
 

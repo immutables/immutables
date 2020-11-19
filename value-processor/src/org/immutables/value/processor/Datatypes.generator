@@ -1,5 +1,5 @@
 [--
-   Copyright 2018 Immutables Authors and Contributors
+   Copyright 2020 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -224,10 +224,12 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
           if (violations.isEmpty()) violations = new java.util.ArrayList<>(1);
           violations.add([dtt].Datatype.Violation.of("required", "Missing value", features.get([for.index])));
         } else [/if]try {
-          [vv] = ([a.type]) [vv];
-        } catch (java.lang.ClassCastException e) {
+          [vv] = ([a.wrapperType]) [vv];
+        } catch (java.lang.RuntimeException e) {
           if (violations.isEmpty()) violations = new java.util.ArrayList<>(1);
-          violations.add([dtt].Datatype.Violation.of("cast", e.getMessage(), features.get([for.index])));
+          String kind = e instanceof java.lang.NullPointerException ? "null"
+              : e instanceof java.lang.ClassCastException ? "cast" : "wrong";
+          violations.add([dtt].Datatype.Violation.of(kind, e.getMessage(), features.get([for.index])));
         }
       [/if]
       [/for]
