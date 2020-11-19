@@ -118,7 +118,6 @@ public interface Datatype<T> {
     }
   }
 
-  @SuppressWarnings("unchecked") // runtime token check
   default Feature<T, ?> feature(String name) {
     for (Feature<T, ?> f : features()) {
       if (f.name().equals(name)) {

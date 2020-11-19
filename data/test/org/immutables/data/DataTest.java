@@ -71,10 +71,4 @@ public class DataTest {
     check(_Ign().g_.ignorableOnOutput());
     check(_Ign().g_.omittableOnInput());
   }
-
-  @Test
-  public void defaultPrimitive() {
-   // _Hjj()
-
-  }
 }
