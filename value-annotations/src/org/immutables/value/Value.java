@@ -1406,6 +1406,12 @@ public @interface Value {
     Class<? extends Annotation>[] allowedClasspathAnnotations() default {};
 
     /**
+     * Setting to cut strings longer than a defined length when calling the toString method.
+     * @return string limit
+     */
+    int limitStringLengthInToString() default 1000;
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * constructon methods. Builder visibility will follow.
