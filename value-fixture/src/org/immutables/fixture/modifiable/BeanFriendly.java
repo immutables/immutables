@@ -27,10 +27,11 @@ import org.immutables.value.Value;
     deepImmutablesDetection = true,
     create = "new",
     get = {"get*", "is*"})
-public interface BeanFriendly {
+public interface BeanFriendly extends Identifiable {
 
   boolean isPrimary();
 
+  @Override
   int getId();
 
   String getDescription();
@@ -81,4 +82,8 @@ public interface BeanFriendly {
   @Value.Immutable
   @Value.Modifiable
   public interface Mod {}
+}
+
+interface Identifiable {
+  int getId();
 }
