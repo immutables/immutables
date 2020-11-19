@@ -17,6 +17,7 @@ package org.immutables.generator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ArrayListMultimap;
@@ -256,6 +257,8 @@ public final class SourceOrdering {
         String rightKey = ToSimpleName.FUNCTION.apply(right);
         Intratype leftIntratype = accessorOrderings.get(leftKey);
         Intratype rightIntratype = accessorOrderings.get(rightKey);
+        Preconditions.checkNotNull(leftIntratype, "intratype not found by key: %s", leftKey);
+        Preconditions.checkNotNull(rightIntratype, "intratype not found by key: %s", rightKey);
         return leftIntratype == rightIntratype
             ? leftIntratype.ordering.compare(leftKey, rightKey)
             : Integer.compare(leftIntratype.rank, rightIntratype.rank);
