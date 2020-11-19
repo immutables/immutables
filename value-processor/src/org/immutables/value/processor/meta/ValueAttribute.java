@@ -167,6 +167,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return String.class.getName().equals(rawTypeName);
   }
 
+  public boolean isOptionalStringType() {
+    return isOptionalType() && getGenericArgs().equals("<" + String.class.getName() + ">");
+  }
+
   public boolean charType() {
     return returnType.getKind() == TypeKind.CHAR;
   }
@@ -1880,6 +1884,14 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public String atNullableInSupertypeLocal() {
     return nullabilityInSupertype != null ? nullabilityInSupertype.asLocalPrefix() : "";
+  }
+
+  public int getLimitStringLengthInToString() {
+    return protoclass().styles().style().limitStringLengthInToString();
+  }
+
+  public boolean isLimitStringLengthInToString() {
+    return protoclass().styles().style().limitStringLengthInToString() > 0;
   }
 
   enum ToName implements Function<ValueAttribute, String> {

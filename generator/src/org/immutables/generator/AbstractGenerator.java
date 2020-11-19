@@ -86,6 +86,9 @@ public abstract class AbstractGenerator extends AbstractProcessor {
       if (!round.processingOver() && !round.errorRaised()) {
         process();
       }
+      if (round.processingOver()) {
+        StaticEnvironment.writeServiceFiles();
+      }
       StaticEnvironment.shutdown();
     } catch (Exception ex) {
       processingEnv.getMessager()

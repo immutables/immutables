@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 Immutables Authors and Contributors
+   Copyright 2017 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,32 +13,19 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.nullable;
+package org.immutables.mongo.fixture.generic;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.value.Value;
 
-/**
- * Compilation and runtime test for allowing and skipping nulls.
- */
-@Value.Style(jdkOnly = true)
 @Value.Immutable
-public interface NullablyElements {
-  List<@AllowNulls Void> al();
+@JsonSerialize(as = ImmutableGenericType.class)
+@JsonDeserialize(as = ImmutableGenericType.class)
+public interface GenericType<T> {
+  String TYPE_PROPERTY = "@class";
 
-  List<@SkipNulls String> sk();
-
-  Map<String, @AllowNulls Integer> bl();
-
-  Map<String, @SkipNulls Integer> sm();
-
-  Set<String> rg();
-  
-  Set<@SkipNulls Integer> ri();
-
-  List<@AllowNulls Integer> rj();
-
-  Set<Integer> rk();
+  @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = TYPE_PROPERTY)
+  T value();
 }

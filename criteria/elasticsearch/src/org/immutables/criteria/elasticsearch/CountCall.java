@@ -21,6 +21,7 @@ import io.reactivex.Single;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Query;
 
+import java.util.OptionalLong;
 import java.util.concurrent.Callable;
 
 /**
@@ -43,8 +44,15 @@ class CountCall implements Callable<Single<Long>> {
       throw new UnsupportedOperationException("count(*) doesn't work with existing aggregates");
     }
 
-    if (query.limit().isPresent() || query.offset().isPresent()) {
-      throw new UnsupportedOperationException("count(*) doesn't work with limit / offset");
+    if (query.offset().isPresent()) {
+      throw new UnsupportedOperationException(String.format("count(*) with offset not supported in %s", ElasticsearchBackend.class.getSimpleName()));
+    }
+
+    OptionalLong limit = query.limit();
+
+    if (limit.isPresent() && limit.getAsLong() <= 0) {
+      // short-circuit when no results are expected
+      return Single.just(0L);
     }
 
     ObjectNode filter =  query.filter()
@@ -54,6 +62,8 @@ class CountCall implements Callable<Single<Long>> {
     if (filter.size() != 0) {
       filter = (ObjectNode) session.objectMapper.createObjectNode().set("query", filter);
     }
-    return session.ops.count(filter).map(Json.Count::count);
+
+    return session.ops.count(filter).map(Json.Count::count)
+            .map(count -> limit.isPresent() ? Math.min(limit.getAsLong(), count) : count);
   }
 }

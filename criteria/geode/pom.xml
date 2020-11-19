@@ -26,6 +26,11 @@
     <description>
       Geode Adapter for Criteria
     </description>
+
+    <properties>
+        <module.name>${project.groupId}.criteria.geode</module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.immutables</groupId>

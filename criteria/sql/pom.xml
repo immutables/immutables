@@ -25,6 +25,10 @@
   <name>${project.groupId}.${project.artifactId}</name>
   <description>SQL Criteria backend</description>
 
+  <properties>
+    <module.name>${project.groupId}.criteria.sql</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>

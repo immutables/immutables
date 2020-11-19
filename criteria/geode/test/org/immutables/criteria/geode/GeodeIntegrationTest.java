@@ -29,6 +29,7 @@ import org.immutables.criteria.typemodel.DeleteByKeyTemplate;
 import org.immutables.criteria.typemodel.DistinctLimitCountTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
+import org.immutables.criteria.typemodel.ExistsTemplate;
 import org.immutables.criteria.typemodel.GetByKeyTemplate;
 import org.immutables.criteria.typemodel.InstantTemplate;
 import org.immutables.criteria.typemodel.IntegerTemplate;
@@ -171,6 +172,13 @@ class GeodeIntegrationTest {
   @Nested
   class Count extends CountTemplate {
     private Count() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class Exists extends ExistsTemplate {
+    private Exists() {
       super(backend);
     }
   }

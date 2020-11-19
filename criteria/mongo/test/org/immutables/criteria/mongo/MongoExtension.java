@@ -50,7 +50,7 @@ public class MongoExtension implements BeforeTestExecutionCallback, ParameterRes
   @Override
   public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
     final Class<?> type = parameterContext.getParameter().getType();
-    return MongoDatabase.class.isAssignableFrom(type) || MongoClient.class.isAssignableFrom(type);
+    return MongoDatabase.class.isAssignableFrom(type) || MongoClient.class.isAssignableFrom(type) || MongoInstance.class.isAssignableFrom(type);
   }
 
   @Override
@@ -60,6 +60,8 @@ public class MongoExtension implements BeforeTestExecutionCallback, ParameterRes
       return getOrCreate(extensionContext).instance.database();
     } else if (MongoClient.class.isAssignableFrom(type)) {
       return getOrCreate(extensionContext).instance.client();
+    } else if (MongoInstance.class.isAssignableFrom(type)) {
+      return getOrCreate(extensionContext).instance;
     }
 
     throw new ExtensionConfigurationException(String.format("%s supports only %s or %s but yours was %s", MongoExtension.class.getSimpleName(),

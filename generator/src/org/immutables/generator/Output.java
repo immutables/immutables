@@ -189,14 +189,14 @@ public final class Output {
       Invokable body = (Invokable) parameters[1];
 
       ResourceKey key = new ResourceKey("", META_INF_SERVICES + interfaceName);
-      AppendServiceFile servicesFile = getFiles().appendResourceFiles.get(key);
+      AppendServiceFile servicesFile = getServiceFiles().appendResourceFiles.get(key);
       body.invoke(new Invokation(servicesFile.consumer));
       return null;
     }
   };
 
   private final static class ResourceKey {
-    private static Joiner PACKAGE_RESOURCE_JOINER = Joiner.on('.').skipNulls();
+    private static final Joiner PACKAGE_RESOURCE_JOINER = Joiner.on('.').skipNulls();
 
     final String packageName;
     final String relativeName;
@@ -391,6 +391,19 @@ public final class Output {
     }
   }
 
+  private static ServiceFiles getServiceFiles() {
+    return StaticEnvironment.getServiceFilesInstance(ServiceFiles.class, ServiceFilesSupplier.INSTANCE);
+  }
+
+  private enum ServiceFilesSupplier implements Supplier<ServiceFiles> {
+    INSTANCE;
+
+    @Override
+    public ServiceFiles get() {
+      return new ServiceFiles();
+    }
+  }
+
   // Do not use guava cache to slim down minimized jar
   @NotThreadSafe
   private static abstract class Cache<K, V> {
@@ -424,6 +437,12 @@ public final class Output {
       }
     };
 
+    @Override
+    public void complete() {
+    }
+  }
+
+  private static class ServiceFiles implements StaticEnvironment.Completable {
     final Cache<ResourceKey, AppendServiceFile> appendResourceFiles = new Cache<ResourceKey, AppendServiceFile>() {
       @Override
       public AppendServiceFile load(ResourceKey key) throws Exception {

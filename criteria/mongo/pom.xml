@@ -27,6 +27,10 @@
       Mongo Adapter for Criteria
     </description>
 
+    <properties>
+        <module.name>${project.groupId}.criteria.mongo</module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.immutables</groupId>

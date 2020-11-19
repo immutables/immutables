@@ -1624,7 +1624,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     }
     [/if]
     [if v.generateJdkOnly or v.hasAttributeValue]
-    for ([v.unwrappedElementType] element : elements) {
+    for ([v.wrappedElementType] element : elements) {
       [if v.hasAttributeValue]
       [if not v.nullElements.ban]if (element != null) [/if]element = [deepCopyOf v]element[/deepCopyOf];
       [/if]
@@ -3173,6 +3173,14 @@ private int [disambiguateAccessor type 'computeHashCode']() {
 [template generateToString Type type]
 [if not type.toStringDefined]
 
+static String objectToString(Object input, int limit) {
+    if (input == null) {
+        return null;
+    }
+    String output = input.toString();
+    return output.length() > limit ? output.substring(0, limit).concat("…") : output;
+}
+
 /**
  * Prints the immutable value {@code [type.name]}[if type.equivalenceAttributes] with attribute values[/if].
  * @return A string representation of the value
@@ -3430,7 +3438,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
 public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
 [if v.jdkOptional]
-  [if v.hasSimpleScalarElementType]
+  [if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](this.[v.name], value)) return this;
   [else]
   if (this.[v.name] == value) return this;
@@ -3488,7 +3496,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
     [else if v.double]
   if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
-    [else if v.primitive or v.enumType]
+    [else if v.primitive]
   if (this.[v.name] == value) return this;
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved to after value assignment --]
@@ -3507,7 +3515,9 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
     [else if v.nullable]
     [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
-      [if v.nullable or type.generateNoargConstructor]
+      [if v.enumType]
+  if (this.[v.name] == value) return this;
+      [else if v.nullable or type.generateNoargConstructor]
   if ([objectsEqual type](this.[v.name], value)) return this;
       [else]
   if (this.[v.name].equals(value)) return this;
@@ -3518,7 +3528,9 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
     [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
-      [if v.nullable or type.generateNoargConstructor]
+      [if v.enumType]
+  if (this.[v.name] == newValue) return this;
+      [else if v.nullable or type.generateNoargConstructor]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
       [else]
   if (this.[v.name].equals(newValue)) return this;
@@ -4388,6 +4400,6 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
 
-[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]
+[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else if a.limitStringLengthInToString and (a.stringType or a.optionalStringType)]objectToString([value], [a.limitStringLengthInToString])[else if a.limitStringLengthInToString and a.hasTypeVariables]objectToString([value], [a.limitStringLengthInToString])[else][value][/if][/template]
 
 [template hiddenMutableState Type type][if type allowsClasspathAnnotation 'com.google.errorprone.annotations.Immutable']@SuppressWarnings("Immutable")[/if][/template]

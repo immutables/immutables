@@ -366,10 +366,10 @@ public static[type.generics.def] [thisReturnType type] [type.names.create]() {
 [docReturnThis type]
  */
 [atCanIgnoreReturnValue type]
-public [thisSetterReturnType type] [type.names.from]([s.type] instance) {
+public [thisReturnType type] [type.names.from]([s.type] instance) {
   [im.requireNonNull type](instance, "instance");
   from((Object) instance);
-  [thisSetterReturn type]
+  [thisReturn type]
 }
   [/for]
 
@@ -503,13 +503,36 @@ public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
   }
 [/if]
 [if v.generateLazy]
+  [if v.attributeValueKindModifyFrom]
+  [v.type] [v.name] = [invokeSuper v].[v.names.get]();
+  return [v.name] instanceof [v.attributeValueType.constitution.typeModifiable.absoluteRaw]
+      ? ([v.attributeValueType.constitution.typeModifiable.absolute]) [v.name]
+      : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from]([v.name]);
+  [else]
   return [invokeSuper v].[v.names.get]();
+  [/if]
 [else if v.generateDerived]
+  [if v.attributeValueKindModifyFrom]
+  [v.type] [v.name] = [invokeSuper v].[v.names.get]();
+  return [v.name] instanceof [v.attributeValueType.constitution.typeModifiable.absoluteRaw]
+      ? ([v.attributeValueType.constitution.typeModifiable.absolute]) [v.name]
+      : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from]([v.name]);
+  [else]
   return [invokeSuper v].[v.names.get]();
+  [/if]
 [else if v.generateDefault]
-  return [isSet v]()
-      ? [v.name]
-      : [invokeSuper v].[v.names.get]();
+  if ([isSet v]()) {
+    return [v.name];
+  } else {
+    [if v.attributeValueKindModifyFrom]
+    [v.type] [v.name] = [invokeSuper v].[v.names.get]();
+    return [v.name] instanceof [v.attributeValueType.constitution.typeModifiable.absoluteRaw]
+        ? ([v.attributeValueType.constitution.typeModifiable.absolute]) [v.name]
+        : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from]([v.name]);
+    [else]
+    return [invokeSuper v].[v.names.get]();
+    [/if]
+  }
 [else]
   [if v.nullableCollector andnot v.nullable]
   if ([v.name] == null) {

@@ -249,6 +249,8 @@ public final class ValueMirrors {
 
     String nullableAnnotation() default "Nullable";
 
+    int limitStringLengthInToString() default 1000;
+
     Class<? extends Annotation>[] allowedClasspathAnnotations() default {};
 
     public enum ImplementationVisibility {

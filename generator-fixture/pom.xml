@@ -29,6 +29,10 @@
     Module that contains all tests for the code generation capability
   </description>
 
+  <properties>
+    <module.name>${project.groupId}.generator.fixture</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>

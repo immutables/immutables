@@ -17,7 +17,6 @@
 package org.immutables.criteria.typemodel;
 
 import org.immutables.criteria.backend.Backend;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
@@ -47,7 +46,6 @@ public abstract class CountTemplate {
 
   @Test
   void basicCount() {
-
     repository.insert(generator.get().withValue("v1"));
     check(repository.findAll().count()).is(1L);
 
@@ -74,17 +72,24 @@ public abstract class CountTemplate {
             .select(string.value, string.value, string.value).map((a, b, c) -> "a").count()).is(3L);
   }
 
-  @Disabled("not yet implemented by most of the backends")
   @Test
   void countWithLimit() {
-    repository.insert(generator.get().withValue("v1"));
-    repository.insert(generator.get().withValue("v2"));
-    repository.insert(generator.get().withValue("v3"));
+    check(repository.findAll().limit(1).count()).is(0L);
+    check(repository.findAll().limit(2).count()).is(0L);
 
-    check(repository.findAll().limit(0).count()).is(0L);
+    repository.insert(generator.get().withValue("v1"));
+    check(repository.findAll().limit(1).count()).is(1L);
+    check(repository.findAll().limit(2).count()).is(1L);
+
+    repository.insert(generator.get().withValue("v2"));
+    check(repository.findAll().limit(1).count()).is(1L);
+    check(repository.findAll().limit(2).count()).is(2L);
+    check(repository.findAll().limit(3).count()).is(2L);
+
+    repository.insert(generator.get().withValue("v3"));
     check(repository.findAll().limit(1).count()).is(1L);
     check(repository.findAll().limit(2).count()).is(2L);
     check(repository.findAll().limit(3).count()).is(3L);
-
+    check(repository.findAll().limit(4).count()).is(3L);
   }
 }

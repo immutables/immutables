@@ -27,6 +27,10 @@
         Criteria support for ElasticSearch
     </description>
 
+    <properties>
+        <module.name>${project.groupId}.criteria.elasticsearch</module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.immutables</groupId>

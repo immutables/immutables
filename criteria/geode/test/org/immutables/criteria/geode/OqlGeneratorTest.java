@@ -86,6 +86,9 @@ class OqlGeneratorTest {
     check(generate(query.addProjections(toExpression(person.fullName))))
             .is("SELECT fullName FROM /myRegion");
 
+    check(generate(query.addProjections(toExpression(person.fullName), toExpression(person.fullName))))
+            .is("SELECT fullName, fullName FROM /myRegion");
+
     check(generate(query.addProjections(
             toExpression(person.fullName), toExpression(person.age)
     ))).is("SELECT fullName, age FROM /myRegion");
@@ -96,8 +99,55 @@ class OqlGeneratorTest {
     check(generate(Query.of(Person.class).withCount(true)))
             .is("SELECT COUNT(*) FROM /myRegion");
 
+  }
+
+  @Test
+  void distinct() {
+    check(generate(Query.of(Person.class).withDistinct(true)))
+            .is("SELECT DISTINCT * FROM /myRegion");
+
+    check(generate(Query.of(Person.class)
+            .withDistinct(true)
+            .addProjections(toExpression(person.fullName))))
+            .is("SELECT DISTINCT fullName FROM /myRegion");
+
+    // add limit
+    check(generate(Query.of(Person.class)
+            .withDistinct(true).withLimit(1)
+            .addProjections(toExpression(person.fullName))))
+            .is("SELECT DISTINCT fullName FROM /myRegion LIMIT 1");
+
+    check(generate(Query.of(Person.class)
+            .withDistinct(true)
+            .addProjections(toExpression(person.id), toExpression(person.fullName))))
+            .is("SELECT DISTINCT id, fullName FROM /myRegion");
+
+    check(generate(Query.of(Person.class)
+            .withDistinct(true).withLimit(1)
+            .addProjections(toExpression(person.id), toExpression(person.fullName))))
+            .is("SELECT DISTINCT id, fullName FROM /myRegion LIMIT 1");
+  }
+
+  @Test
+  void distinctAndCount() {
     check(generate(Query.of(Person.class).withDistinct(true).withCount(true)))
-            .is("SELECT DISTINCT COUNT(*) FROM /myRegion");
+            .is("SELECT COUNT(*) FROM (SELECT DISTINCT * FROM /myRegion)");
+
+    check(generate(Query.of(Person.class).withDistinct(true).withCount(true)
+            .addProjections(toExpression(person.fullName))))
+            .is("SELECT COUNT(*) FROM (SELECT DISTINCT fullName FROM /myRegion)");
+  }
+
+  @Test
+  void countWithLimit() {
+    check(generate(Query.of(Person.class).withCount(true).withLimit(1)))
+            .is("SELECT COUNT(*) FROM (SELECT * FROM /myRegion LIMIT 1)");
+
+    check(generate(Query.of(Person.class)
+            .withCount(true).withLimit(1)
+            .withDistinct(true)
+            .addProjections(toExpression(person.fullName))))
+            .is("SELECT COUNT(*) FROM (SELECT DISTINCT fullName FROM /myRegion LIMIT 1)");
   }
 
   @Test
