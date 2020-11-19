@@ -25,6 +25,10 @@
   <artifactId>generator-processor</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
 
+  <properties>
+    <module.name>${project.groupId}.generator.processor</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>

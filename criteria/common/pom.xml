@@ -27,6 +27,10 @@
     Annotation and runtime support to generate criteria classes based on immutables model. Common classes.
   </description>
 
+  <properties>
+    <module.name>${project.groupId}.criteria.common</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>

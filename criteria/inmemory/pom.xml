@@ -27,6 +27,10 @@
     Adapter for in-memory sources like Iterable
   </description>
 
+  <properties>
+    <module.name>${project.groupId}.criteria.inmemory</module.name>
+  </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.immutables</groupId>

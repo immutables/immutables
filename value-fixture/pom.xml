@@ -30,6 +30,7 @@
   </description>
 
   <properties>
+    <module.name>${project.groupId}.value.fixture</module.name>
     <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>

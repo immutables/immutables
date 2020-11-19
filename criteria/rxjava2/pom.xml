@@ -27,6 +27,10 @@
       RxJava implementation for Repository (readers / writers)
     </description>
 
+    <properties>
+        <module.name>${project.groupId}.criteria.rxjava2</module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.immutables</groupId>
