@@ -63,6 +63,6 @@ public class BeanFriendlyTest {
 
     // from works as with Immutable
     BeanFriendly mutableFromImmutable1 = new ModifiableBeanFriendly().from(immutableBean);
-    BeanFriendly.Mod mutableFromImmutable2 = new ModifiableMod().from(immutableBean.getMod());
+    BeanFriendly.Mod mutableFromImmutable2 = new ModifiableMod().from(ImmutableMod.builder().build());
   }
 }
