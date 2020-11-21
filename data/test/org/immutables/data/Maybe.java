@@ -4,7 +4,8 @@ import org.immutables.value.Value.Enclosing;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Parameter;
 
-@MetaData
+//@MetaData
+@Data
 @Enclosing
 interface Maybe<T> {
   @Immutable(builder = false)
