@@ -2,14 +2,17 @@ package org.immutables.data;
 
 import java.util.List;
 import java.util.Optional;
+import com.google.common.reflect.TypeToken;
 import org.immutables.data.Datatype.Builder;
 import org.immutables.data.Datatype.Feature;
 import org.immutables.data.Datatype.Violation;
 import org.immutables.data.Datatypes_Dtt.Dtt_;
 import org.immutables.data.Datatypes_Dtt.Inl_;
+import org.immutables.data.Datatypes_Maybe.Maybe_;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 import static org.immutables.data.Datatypes_Dtt.*;
+import static org.immutables.data.Datatypes_Maybe._Maybe;
 
 public class DataTest {
   @Test
@@ -70,5 +73,13 @@ public class DataTest {
   public void isIgnorable() {
     check(_Ign().g_.ignorableOnOutput());
     check(_Ign().g_.omittableOnInput());
+  }
+
+  @Test
+  public void optGenerated() {
+    // check only generated fact and structure here
+    Maybe_<String> may = _Maybe(TypeToken.of(String.class));
+    check(!may.isInstantiable());
+    check(may.cases()).hasSize(2);
   }
 }
