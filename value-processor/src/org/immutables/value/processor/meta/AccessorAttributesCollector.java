@@ -132,26 +132,34 @@ final class AccessorAttributesCollector {
     }
   }
 
-  private static boolean isElegibleAccessorMethod(Element element) {
+  private boolean isElegibleAccessorMethod(Element element) {
     if (element.getKind() != ElementKind.METHOD) {
       return false;
     }
     if (element.getModifiers().contains(Modifier.STATIC)) {
       return false;
     }
-    switch (element.getSimpleName().toString()) {
+    String simpleName = element.getSimpleName().toString();
+    switch (simpleName) {
     case HASH_CODE_METHOD:
     case TO_STRING_METHOD:
       return false;
     default:
     }
-    String definitionType = element.getEnclosingElement().toString();
-    if (definitionType.equals(Object.class.getName())
-        || definitionType.equals(Proto.ORDINAL_VALUE_INTERFACE_TYPE)
-        || definitionType.equals(Proto.PARCELABLE_INTERFACE_TYPE)) {
+    if (!type.style().toBuilder().isEmpty()
+        && !type.style().strictBuilder()
+        && simpleName.equals(type.names().toBuilder())
+        && element.getModifiers().contains(Modifier.ABSTRACT)) {
+      // When we enable toBuilder generation, then matching abstract toBuilder declarations
+      // will not be considered accessors. Any other name signature conficts is up to the user to resolve
+      // Note: this is not the full check if to builder will be actually generated (isGenerateToBuilder)
+      // but it's good enough for this stage when we don't know all attribute set
       return false;
     }
-    return true;
+    String definitionType = element.getEnclosingElement().toString();
+    return !definitionType.equals(Object.class.getName())
+        && !definitionType.equals(Proto.ORDINAL_VALUE_INTERFACE_TYPE)
+        && !definitionType.equals(Proto.PARCELABLE_INTERFACE_TYPE);
   }
 
   private void processUtilityCandidateMethod(ExecutableElement utilityMethodCandidate, TypeElement originalType) {

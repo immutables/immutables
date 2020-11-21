@@ -135,6 +135,12 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
+    public Optional<DataMirror> datatypeEnabled() {
+      return DataMirror.find(element());
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
     public Optional<StyleInfo> style() {
       return StyleMirror.find(element()).transform(ToStyleInfo.FUNCTION);
     }
@@ -518,11 +524,6 @@ public class Proto {
     public Optional<OkTypeAdaptersMirror> okTypeAdapters() {
       return OkTypeAdaptersMirror.find(element());
     }
-    
-    @Value.Lazy
-    public Optional<DataMirror> datatypeMarker() {
-      return DataMirror.find(element());
-    }
 
     @Value.Lazy
     List<TypeElement> includedTypes() {
@@ -624,6 +625,23 @@ public class Proto {
         Optional<StyleInfo> metaStyle = m.style();
         if (metaStyle.isPresent()) {
           return metaStyle;
+        }
+      }
+
+      return Optional.absent();
+    }
+
+    @Value.Lazy
+    public Optional<DataMirror> datatypeEnabled() {
+      Optional<DataMirror> datatypeOwn = DataMirror.find(element());
+      if (datatypeOwn.isPresent()) {
+        return datatypeOwn;
+      }
+
+      for (MetaAnnotated m : metaAnnotated()) {
+        Optional<DataMirror> d = m.datatypeEnabled();
+        if (d.isPresent()) {
+          return d;
         }
       }
 
@@ -907,14 +925,14 @@ public class Proto {
     
     @Override
     @Value.Lazy
-    public Optional<DataMirror> datatypeMarker() {
-      Optional<DataMirror> datatypeMarker = super.datatypeMarker();
+    public Optional<DataMirror> datatypeEnabled() {
+      Optional<DataMirror> datatypeMarker = super.datatypeEnabled();
       if (datatypeMarker.isPresent()) {
         return datatypeMarker;
       }
       Optional<DeclaringPackage> parent = namedParentPackage();
       if (parent.isPresent()) {
-        return parent.get().datatypeMarker();
+        return parent.get().datatypeEnabled();
       }
       return Optional.absent();
     }
@@ -1397,7 +1415,7 @@ public class Proto {
     public Optional<DataMirror> datatypeMarker() {
       Optional<AbstractDeclaring> provider = datatypeProvider();
       if (provider.isPresent()) {
-        return provider.get().datatypeMarker();
+        return provider.get().datatypeEnabled();
       }
       return Optional.absent();
     }
@@ -1411,10 +1429,10 @@ public class Proto {
 
       Optional<DataMirror> typeDefined =
           typeDefining.isPresent()
-              ? typeDefining.get().datatypeMarker()
+              ? typeDefining.get().datatypeEnabled()
               : Optional.<DataMirror>absent();
 
-      Optional<DataMirror> packageDefined = packageOf().datatypeMarker();
+      Optional<DataMirror> packageDefined = packageOf().datatypeEnabled();
 
       if (packageDefined.isPresent()) {
         if (typeDefined.isPresent()) {

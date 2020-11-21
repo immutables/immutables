@@ -87,6 +87,7 @@ public final class Styles {
     Naming build = Naming.from(style.build());
     Naming buildOrThrow = Naming.from(style.buildOrThrow());
     Naming canBuild = Naming.from(style.canBuild());
+    Naming toBuilder = Naming.from(style.toBuilder());
 
     Naming builder = Naming.from(style.builder());
     Naming newBuilder = Naming.from(style.newBuilder());
@@ -213,6 +214,10 @@ public final class Styles {
 
       public final String canBuild() {
         return scheme.canBuild.apply(raw);
+      }
+
+      public final String toBuilder() {
+        return scheme.toBuilder.apply(raw);
       }
 
       public final String isInitialized() {

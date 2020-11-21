@@ -100,6 +100,21 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract String toBuilder();
+  @Value.Parameter
+  @Override
+  public abstract String underrideHashCode();
+
+  @Value.Parameter
+  @Override
+  public abstract String underrideEquals();
+
+  @Value.Parameter
+  @Override
+  public abstract String underrideToString();
+
+  @Value.Parameter
+  @Override
   public abstract String isInitialized();
 
   @Value.Parameter
@@ -420,6 +435,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.build(),
         input.buildOrThrow(),
         input.canBuild(),
+        input.toBuilder(),
+        input.underrideHashCode(),
+        input.underrideEquals(),
+        input.underrideToString(),
         input.isInitialized(),
         input.isSet(),
         input.set(),

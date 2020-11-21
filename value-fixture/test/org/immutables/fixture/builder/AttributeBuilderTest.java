@@ -5,6 +5,7 @@ import static org.immutables.check.Checkers.check;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.immutables.fixture.builder.ToBuilderMethod.ToBuilderSandwich;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyWithBuilderExtension;
@@ -30,6 +31,32 @@ import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("unused")
 public class AttributeBuilderTest {
+
+  @Test
+  public void toBuilderClassic() {
+    ImmutableToBuilderClassic instance = ImmutableToBuilderClassic.builder()
+        .a(1)
+        .b("b")
+        .build();
+
+    instance = instance.toBuilder().a(2).build();
+
+    check(instance.b()).is("b");
+    check(instance.a()).is(2);
+  }
+
+  @Test
+  public void toBuilderSandwich() {
+    ToBuilderSandwich instance = new ToBuilderSandwich.Builder()
+        .a(1)
+        .b("b")
+        .build();
+
+    instance = instance.toBuilder().a(2).build();
+
+    check(instance.b()).is("b");
+    check(instance.a()).is(2);
+  }
 
   @Test
   public void basicApiForVanillaParent() {

@@ -157,6 +157,12 @@ public final class ValueTypeComposer {
                 "'prehash' feature is automatically disabled when type is Serializable and copy constructor is off");
       }
     }
+    if (type.style().strictBuilder() && !type.style().toBuilder().isEmpty()) {
+      protoclass.report()
+          .annotationNamed(ImmutableMirror.simpleName())
+          .warning(About.INCOMPAT,
+              "'toBuilder' style is incompartible with `strictBuilder` enabled and is automatically disabled");
+    }
     if (type.isUseConstructor()
         && protoclass.constitution().factoryOf().isNew()) {
       if (type.isUseValidation()) {

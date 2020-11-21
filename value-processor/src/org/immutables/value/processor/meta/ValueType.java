@@ -1383,6 +1383,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return generateBuilderFrom;
   }
 
+  public boolean isGenerateToBuilder() {
+    return isUseBuilder() && isGenerateBuilderFrom() && !style().toBuilder().isEmpty();
+  }
+
   public boolean isGenerateFilledFrom() {
     return kind().isModifiable() && noAttributeSetterIsNamedAsFrom();
   }

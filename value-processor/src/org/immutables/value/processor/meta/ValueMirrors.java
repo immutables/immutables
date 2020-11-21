@@ -121,6 +121,14 @@ public final class ValueMirrors {
 
     String canBuild() default "";
 
+    String toBuilder() default "";
+
+    String underrideHashCode() default "";
+
+    String underrideEquals() default "";
+
+    String underrideToString() default "";
+
     String isInitialized() default "isInitialized";
 
     String isSet() default "*IsSet";

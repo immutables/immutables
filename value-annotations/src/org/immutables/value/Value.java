@@ -550,7 +550,7 @@ public @interface Value {
      * <em>Note: This attribute-style is experimental and may be changed in near releases.
      * You should not rely on it if don't ready to change code on minor updates of the annotation
      * processor</em>
-     * @return naming template
+     * @return naming template, if default/empty it will not be generated
      */
     String buildOrThrow() default "";
 
@@ -564,9 +564,48 @@ public @interface Value {
      * <em>Note: when using encoding, building of attributes is delegated to encoding specific
      * routines, so that general builder infrastructure may not know if attribute can be safely
      * constructed, in this case, canBuild method might give wrong answer.</em>
-     * @return naming template
+     * @return naming template, if default/empty it will not be generated
      */
     String canBuild() default "";
+
+    /**
+     * Naming template for the {@code toBuilder} method on a immutable instance that returns new builder on which
+     * merge method is already called on this instance {@code builder.from(this)}. By default, this naming template
+     * is empty, and this method is not generated. To enable generation of this method, you must specify naming template,
+     * {@code (toBuilder="toBuilder")}. Naming template can insert type name for an asterisk, but in most cases you
+     * would just use method name verbatim.
+     * <p>
+     * <em>Note: This attribute-style is experimental and may be changed in near releases.
+     * This is not compatible with strict builders and will not be generated if {@link #strictBuilder()} is {@code true}.
+     * Also, when enabled, this will not be considered an attribute if defined as {@code abstract Builder toBuilder()}
+     * in abstract value type.
+     * </em>
+     * @return naming template, if default/empty it will not be generated
+     */
+    String toBuilder() default "";
+
+    /**
+     * Detects and use method named as specified to customize generated {@code hashCode}.
+     * Abstract value types defined as interfaces cannot implement {@code default} methods of {@code java.lang.Object},
+     * such as {@link Object#hashCode()} implemented as {@code default} interface methods and so cannot override
+     * (actually "underride" if that is the right term) the default {@code hashCode} which is generated on immutable
+     * implementation. So in order to customize and replace default generated code, you can now declare {@code default}
+     * or {@code static} method named, say {@code hash}({@code underwriteInterfaceHashCode="hash"}),
+     * will be used in generated {@code hashCode} method.
+     * The signature of the {@code default}/{@code static} should be compatible to the ones
+     * of {@link Object}, static methods suppose to take instances of the abstract value type as parameter
+     * instead of a plain {@link Object}.
+     * <p>
+     * <em></em>Wiring of the custom method will only occur if found by the name and
+     * matched by signature.
+     * </em>
+     * @return method name, if empty (the {@code default}) it will not be detected and wired in generation.
+     */
+    String underrideHashCode() default "";
+
+    String underrideEquals() default "";
+
+    String underrideToString() default "";
 
     /**
      * Method to determine if all required attributes are set.
@@ -769,7 +808,7 @@ public @interface Value {
      *
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
-     * 
+     *
      * @return if all attributes will be considered parameters
      */
     boolean allParameters() default false;
@@ -801,7 +840,7 @@ public @interface Value {
      * annotations to the implementation class. In general, copying all type-level annotations is
      * not very safe for annotation processing and some other annotation consumers. By default, no
      * annotations are copied unless you specify non-empty annotation type list as value
-     * for {@code passAnnotations} attribute. Howerver there are some special annotations which are
+     * for {@code passAnnotations} attribute. However there are some special annotations which are
      * copied using special logic, such as {@code Nullable} annotations (and Jackson annotations)
      * <p>
      * This style parameter is experimental and may change in future.
@@ -811,8 +850,8 @@ public @interface Value {
     Class<? extends Annotation>[] passAnnotations() default {};
 
     /**
-     * List of additional annotations to pass through for any jackson json object
-     * @Deprecated this is no longer necessary.
+     * List of additional annotations to pass through for any jackson json object.
+     * Soft-deprecated this is no longer necessary.
      * @return types of annotations to pass to the json methods on an immutable implementation class
      */
     Class<? extends Annotation>[] additionalJsonAnnotations() default {};
@@ -1188,7 +1227,7 @@ public @interface Value {
     /**
      * Setting {@code builtinContainerAttributes} to {@code false} would disable generation of
      * built-in convenience features of automatically recongized container types such as
-     * {@link Optional}, {@link List}, {@link Map}. This will turn all attribute types into nothing
+     * {@code Optional}, {@link List}, {@link Map}. This will turn all attribute types into nothing
      * special setters(initializers) and getters. However any registered encodings (type
      * customizers) will be still processed. One of the purposes of this style control is to provide
      * clean-slate when only registered encodings will impact type generation, but none of the
@@ -1214,7 +1253,7 @@ public @interface Value {
 
     /**
      * If enabled mandatory attributes would be auto-propagated to be parameters of value object
-     * constuctor.
+     * constructor.
      * <p>
      * <em>This parameter conflicts with {@link #allParameters()} and is ignored when
      * {@code allParameters} is enabled</em>
@@ -1301,7 +1340,7 @@ public @interface Value {
      * value instance method, the builder class must have a public no-arg static construction
      * method. To use a no-arg public constructor, a special token "new" should be specified.
      * example: new token required to find this builder.
-     * 
+     *
      * <pre>
      * class MyObject {
      *   class Builder {
@@ -1377,11 +1416,11 @@ public @interface Value {
      * <p>
      * In order to simply disable all such annotation auto-discovery, you can put some dummy
      * annotation like {@code java.lang.Override}, as in:
-     * 
+     *
      * <pre>
      * Style(allowedClasspathAnnotations = {java.lang.Override.class})
      * </pre>
-     * 
+     *
      * The array will no longer be empty as by default so only specified entries will be applied.
      * Please note that standard {@code java.lang} annotations like {@link java.lang.Override},
      * {@link java.lang.Deprecated}, {@link java.lang.SuppressWarnings} will always be applied where
@@ -1411,10 +1450,12 @@ public @interface Value {
      */
     int limitStringLengthInToString() default 1000;
 
+
+
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
-     * constructon methods. Builder visibility will follow.
+     * construction methods. Builder visibility will follow.
      */
     public enum ImplementationVisibility {
       /**
