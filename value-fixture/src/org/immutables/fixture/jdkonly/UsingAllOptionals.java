@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture.jdkonly;
 
-import com.atlassian.fugue.Option;
+import io.atlassian.fugue.Option;
 import com.google.common.base.Optional;
 import java.util.Objects;
 import java.util.OptionalDouble;
@@ -43,10 +43,7 @@ public interface UsingAllOptionals {
   OptionalDouble d1();
 
   @Value.Parameter
-  Option<String> fo2();
-
-  @Value.Parameter
-  io.atlassian.fugue.Option<String> fo3();
+  Option<String> fo3();
 
   @Value.Parameter
   javaslang.control.Option<String> jso();
@@ -64,7 +61,7 @@ public interface UsingAllOptionals {
               .jso(javaslang.control.Option.none())
               .build();
 
-      Objects.equals(value.v1().get(), value.v2().get());
+      Objects.equals(value.v1(), value.v2());
       Objects.hash(value.i1(), value.l1(), value.d1());
     }
   }

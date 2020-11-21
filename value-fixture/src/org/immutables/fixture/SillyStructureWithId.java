@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture;
 
-import com.atlassian.fugue.Option;
+import io.atlassian.fugue.Option;
 import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.fixture.subpack.SillySubstructure;
@@ -37,9 +37,7 @@ public interface SillyStructureWithId {
 
   Optional<Integer> opt3();
 
-  Option<Integer> opt4();
-
-  io.atlassian.fugue.Option<Integer> opt5();
+  Option<Integer> opt5();
 
   long very4();
 

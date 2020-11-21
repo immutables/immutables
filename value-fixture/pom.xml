@@ -140,11 +140,6 @@
       <version>${jackson.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.atlassian.fugue</groupId>
-      <artifactId>fugue</artifactId>
-      <version>2.6.1</version>
-    </dependency>
-    <dependency>
       <groupId>io.atlassian.fugue</groupId>
       <artifactId>fugue</artifactId>
       <version>3.0.0</version>
@@ -170,12 +165,6 @@
       <version>${errorprone.version}</version>
     </dependency>
   </dependencies>
-  <repositories>
-    <repository>
-      <id>spring-milestones</id>
-      <url>https://repo.spring.io/libs-milestone/</url>
-    </repository>
-  </repositories>
   <build>
     <plugins>
       <plugin>
