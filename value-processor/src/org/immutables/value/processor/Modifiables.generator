@@ -943,31 +943,31 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
 
 [template defineOrResetField Attribute v Boolean declare][defineOrResetFieldAlt v declare false][/template]
 
-[template defineOrResetFieldAlt Attribute v Boolean declare Boolean deferAllocation]
-[let fn][if not v.nullableCollector] final[/if][/let]
+[template defineOrResetFieldAlt Attribute v Boolean declare Boolean deferAllocation][output.trim]
+[let fn][if not v.nullableCollector]final [/if][if v.nullable][v.atNullability][/if][/let]
   [if v.containerType]
     [if v.generateEnumMap]
-[if declare]private[fn] java.util.EnumMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.EnumMap[v.genericArgs]([v.elementType].class)[/if];
+[if declare]private [fn]java.util.EnumMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.EnumMap[v.genericArgs]([v.elementType].class)[/if];
     [else if v.generateSortedMap]
-[if declare]private[fn] java.util.TreeMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeMap[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
+[if declare]private [fn]java.util.TreeMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeMap[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
     [else if v.typeKind.biMap]
-[if declare]private[fn] [guava].collect.HashBiMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashBiMap.create([if deferAllocation]0[/if])[/if];
+[if declare]private [fn][guava].collect.HashBiMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashBiMap.create([if deferAllocation]0[/if])[/if];
     [else if v.typeKind.setMultimap]
-[if declare]private[fn] [guava].collect.HashMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultimap.create([if deferAllocation]0, 0[/if])[/if];
+[if declare]private [fn][guava].collect.HashMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultimap.create([if deferAllocation]0, 0[/if])[/if];
     [else if v.typeKind.multimapKind]
-[if declare]private[fn] [guava].collect.ArrayListMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.ArrayListMultimap.create([if deferAllocation]0, 0[/if])[/if];
+[if declare]private [fn][guava].collect.ArrayListMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.ArrayListMultimap.create([if deferAllocation]0, 0[/if])[/if];
     [else if v.mapType]
-[if declare]private[fn] java.util.Map[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashMap[v.genericArgs]([if deferAllocation]0[/if])[/if];
+[if declare]private [fn]java.util.Map[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashMap[v.genericArgs]([if deferAllocation]0[/if])[/if];
     [else if v.typeKind.multiset]
-[if declare]private[fn] [guava].collect.HashMultiset[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultiset.create([if deferAllocation]0[/if])[/if];
+[if declare]private [fn][guava].collect.HashMultiset[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultiset.create([if deferAllocation]0[/if])[/if];
     [else if v.generateSortedSet]
-[if declare]private[fn] java.util.TreeSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeSet[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
+[if declare]private [fn]java.util.TreeSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeSet[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
     [else if v.generateEnumSet]
-[if declare]private[fn] java.util.EnumSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
+[if declare]private [fn]java.util.EnumSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
     [else if v.setType]
-[if declare]private[fn] java.util.LinkedHashSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashSet[v.genericArgs]([if deferAllocation]0[/if])[/if];
+[if declare]private [fn]java.util.LinkedHashSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashSet[v.genericArgs]([if deferAllocation]0[/if])[/if];
     [else if v.listType]
-[if declare]private[fn] java.util.ArrayList[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.ArrayList[v.genericArgs]([if deferAllocation]0[/if])[/if];
+[if declare]private [fn]java.util.ArrayList[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.ArrayList[v.genericArgs]([if deferAllocation]0[/if])[/if];
     [else if v.optionalType]
 [if declare]private [v.type] [/if][v.name] = [optionalEmpty v];
     [else]
@@ -978,7 +978,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
   [else]
 [if declare]private [v.atNullability][v.implementationModifiableType] [v.name][else][clearField v][/if];
   [/if]
-[/template]
+[/output.trim][/template]
 
 [template clearField Attribute v]
   [if v.optionalType]
@@ -1253,7 +1253,11 @@ public String toString() {
 package [type.package];
   [/if]
 
+[-- these imports will be deleted if unused, essentially this is plumbing for the imports post-processor  --]
+import java.lang.Object;
 import java.lang.String;
+import java.lang.Float;
+import java.lang.Double;
   [for starImport in type.requiredSourceStarImports]
 import [starImport];
   [/for]
