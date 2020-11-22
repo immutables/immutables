@@ -2423,6 +2423,8 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [if v.generateJdkOnly]
     [if v.typeKind.isSortedMap]
       [immutableCollectionCopyOfSafe v false]java.util.Collections.[v.genericArgs]emptyMap()[/immutableCollectionCopyOfSafe]
+    [else if v.isGenerateJdk9]
+      java.util.Map.[genericArgsOrEmpty]of()
     [else]
       java.util.Collections.[genericArgsOrEmpty]emptyMap()
     [/if]
@@ -2435,6 +2437,8 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [else if v.generateJdkOnly]
     [if v.typeKind.isSortedSet]
       [immutableCollectionCopyOfSafe v false]java.util.Collections.[v.genericArgs]emptyList()[/immutableCollectionCopyOfSafe]
+    [else if v.isGenerateJdk9]
+      java.util.[v.rawCollectionType].[genericArgsOrEmpty]of()
     [else]
       java.util.Collections.[genericArgsOrEmpty]empty[v.rawCollectionType]()
     [/if]
@@ -3238,7 +3242,7 @@ public String toString() {
 [for a in type.implementedAttributes if a.shouldLimitLengthInToString]
 [if for.first]
 
-private static String objectToString(Object input, int limit) {
+private static String toStringTrimmed(Object input, int limit) {
   if (input == null) return null;
   String output = input.toString();
   return output.length() > limit ? output.substring(0, limit).concat("…") : output;
@@ -3436,12 +3440,14 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.un
     [generateReturnCopy type v 'null']
   }
   [/if]
-  [if v.generateJdkOnly and v.primitiveElement]
+  [if v.isGenerateJdk9 andnot v.primitiveElement]
+  [immutableImplementationType v] newValue = java.util.[v.rawCollectionType].of(elements);
+  [else if v.generateJdkOnly and v.primitiveElement]
   java.util.ArrayList<[v.wrappedElementType]> wrappedList = new java.util.ArrayList[asDiamond v.wrappedElementType](elements.length);
   for ([v.unwrappedElementType] element : elements) {
     wrappedList.add(element);
   }
-  [immutableImplementationType v] newValue = [immutableCollectionCopyOfSafe v false]wrappedList[/immutableCollectionCopyOfSafe];
+  [immutableImplementationType v] newValue = [if v.isGenerateJdk9]java.util.[v.rawCollectionType].copyOf(wrappedList)[else][immutableCollectionCopyOfSafe v false]wrappedList[/immutableCollectionCopyOfSafe][/if];
   [else]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v][if v.wrapArrayToIterable][arrayAsList v 'elements'][else]elements[/if][/valueFromValue];
   [/if]
@@ -3457,7 +3463,10 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.un
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
   if (this.[v.name] == elements) return this;
-  [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if][immutableCollectionCopyOf v 'elements'];
+  [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if][if v.isGenerateJdk9]elements instanceof java.util.Collection<?>
+      ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[v.consumedElementType]>) elements)
+      : java.util.stream.StreamSupport.stream(elements.spliterator(), false)
+          .collect(java.util.stream.Collectors.toUnmodifiable[v.rawCollectionType]())[else][immutableCollectionCopyOf v 'elements'][/if];
   [generateReturnCopyContextual type v]
 }
     [else if v.optionalType]
@@ -3746,15 +3755,27 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
   [else if a.generateOrdinalValueSet]
     [output.error]Not implemented generate OrdinalValue set for JDK only[/output.error]
   [else if a.listType]
+    [if a.isGenerateJdk9]
+    java.util.List.copyOf([if a.isAttributeBuilder][convertToValueType a.getAttributeBuilderDescriptor]([expression])[else][expression][/if])
+    [else]
     createUnmodifiableList(true, [if a.isAttributeBuilder][convertToValueType a.getAttributeBuilderDescriptor]([expression])[else][expression][/if])
+    [/if]
   [else if a.setType]
+    [if a.isGenerateJdk9]
+    java.util.Set.copyOf([expression])
+    [else]
     createUnmodifiableSet([expression])
+    [/if]
   [else if a.generateEnumMap]
     createUnmodifiableEnumMap(false, false, [expression])
   [else if a.generateSortedMap]
     createUnmodifiableSortedMap([a.hasReverseOrder], false, false, [expression])
   [else if a.mapType]
+    [if a.isGenerateJdk9]
+    java.util.Map.copyOf([expression])
+    [else]
     createUnmodifiableMap(false, false, [expression])
+    [/if]
   [/if]
 [else]
   [if a.generateOrdinalValueSet or (a.generateEnumSet or a.generateEnumMap)]
@@ -3769,8 +3790,14 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 
 [template immutableCollectionCopyOfSafe Attribute a Boolean safe String expression][output.trim]
 [if a.generateJdkOnly]
-[let safeList][if safe]createSafeList([expression], [a.nullElements.ban], [a.nullElements.skip])[else][expression][/if][/let]
-  [if a.generateSortedSet]
+  [let safeList][if safe]createSafeList([expression], [a.nullElements.ban], [a.nullElements.skip])[else][expression][/if][/let]
+  [if a.isGenerateJdk9 and a.listType]
+    java.util.List.copyOf([expression])
+  [else if a.isGenerateJdk9 and a.setType]
+    java.util.Set.copyOf([expression])
+  [else if a.isGenerateJdk9 and a.mapType]
+    java.util.Map.copyOf([expression])
+  [else if a.generateSortedSet]
     createUnmodifiableSortedSet([a.hasReverseOrder], [safeList])
   [else if a.generateEnumSet]
     createUnmodifiableEnumSet([expression])
@@ -4157,8 +4184,8 @@ private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(It
 
 private static <T extends Comparable<T>> java.util.[unmodifiableSortedSetInterface]<T> createUnmodifiableSortedSet(boolean reverse, java.util.List<T> list) {
   java.util.TreeSet<T> set = reverse
-      ? new java.util.TreeSet[asDiamond 'T'](java.util.Collections.reverseOrder())
-      : new java.util.TreeSet[asDiamond 'T']();
+      ? new java.util.TreeSet<T>(java.util.Collections.<T>reverseOrder())
+      : new java.util.TreeSet<T>();
   set.addAll(list);
   return java.util.Collections.unmodifiable[unmodifiableSortedSetInterface](set);
 }
@@ -4233,8 +4260,8 @@ private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnum
 
 private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInterface]<K, V> createUnmodifiableSortedMap(boolean reverse, boolean checkNulls, boolean skipNulls, java.util.Map<? extends K, ? extends V> map) {
   java.util.TreeMap<K, V> sortedMap = reverse
-      ? new java.util.TreeMap[asDiamond 'K, V'](java.util.Collections.reverseOrder())
-      : new java.util.TreeMap[asDiamond 'K, V']();
+      ? new java.util.TreeMap<K, V>(java.util.Collections.<K>reverseOrder())
+      : new java.util.TreeMap<K, V>();
 
   if (checkNulls || skipNulls) {
     for (java.util.Map.Entry<? extends K, ? extends V> e : map.entrySet()) {
@@ -4477,6 +4504,6 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
 
-[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else if a.shouldLimitLengthInToString]objectToString([value], [a.limitLengthInToString])[else][value][/if][/template]
+[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else if a.shouldLimitLengthInToString]toStringTrimmed([value], [a.limitLengthInToString])[else][value][/if][/template]
 
 [template hiddenMutableState Type type][if type allowsClasspathAnnotation 'com.google.errorprone.annotations.Immutable']@SuppressWarnings("Immutable")[/if][/template]

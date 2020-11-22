@@ -275,6 +275,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return style().jdkOnly() || noGuavaInClasspath();
   }
 
+  public boolean isGenerateJdk9() {
+    return constitution.protoclass().environment().hasJava9Collections();
+  }
+
   public boolean isGenerateBuildOrThrow() {
     return !style().buildOrThrow().isEmpty();
   }
@@ -1147,8 +1151,19 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
     @Override
     public boolean apply(ValueAttribute attribute) {
-      return attribute.typeKind() == kind
+      boolean def = attribute.typeKind() == kind
           && !attribute.isGuavaImmutableDeclared();
+      if (def) {
+        switch (kind) {
+        case MAP:
+        case LIST:
+        case SET:
+          return !attribute.isGenerateJdk9();
+        default:
+          return true;
+        }
+      }
+      return false;
     }
   }
 

@@ -72,7 +72,9 @@ public final class ValueTypeComposer {
                 Joiner.on(", ").join(violations));
         // Do nothing now. kind of way to less blow things up when it happens.
       }
-
+      if (!type.style().delegateToString().isEmpty()) {
+        type.isToStringDefined = true;
+      }
       type.detectSerialization();
       type.detectParcelableCreator();
     }

@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -48,6 +49,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
 import org.immutables.generator.ClasspathFence;
 import org.immutables.generator.SourceExtraction;
@@ -403,9 +405,26 @@ public class Proto {
       return hasElement(InjectAnnotationMirror.qualifiedName());
     }
 
+    @Value.Lazy
+    public boolean hasJava9Collections() {
+      for (SourceVersion v9 : SourceVersion.values()) {
+        if (v9.name().equals("RELEASE_9")
+            && processing().getSourceVersion().compareTo(v9) >= 0) {
+          TypeElement element = findElement(List.class.getCanonicalName());
+          assert element != null : "always present in modern JREs";
+          for (ExecutableElement e : ElementFilter.methodsIn(element.getEnclosedElements())) {
+            if (e.getModifiers().contains(Modifier.STATIC) && e.getSimpleName().contentEquals("of")) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
     /**
      * Default type adapters should only be called if {@code Gson.TypeAdapters} annotation is
-     * definitely in classpath. Currenlty, it is called by for mongo repository module,
+     * definitely in classpath. Currently, it is called by for mongo repository module,
      * which have {@code gson} module as a transitive dependency.
      * @return default type adapters
      */

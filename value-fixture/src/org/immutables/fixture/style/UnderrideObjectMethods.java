@@ -4,6 +4,7 @@ import org.immutables.value.Value;
 
 @Value.Style(underrideEquals = "equalTo", underrideHashCode = "hash", underrideToString = "stringify")
 @Value.Immutable
+@Value.Modifiable
 public interface UnderrideObjectMethods {
   int a();
 
@@ -19,6 +20,7 @@ public interface UnderrideObjectMethods {
 
   @Value.Style(underrideEquals = "equalTo", underrideHashCode = "hash", underrideToString = "stringify")
   @Value.Immutable
+  @Value.Modifiable
   interface StaticUnderride {
     static String stringify(StaticUnderride a) {
       return "!!!";

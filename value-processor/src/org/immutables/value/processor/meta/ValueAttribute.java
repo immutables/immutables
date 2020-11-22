@@ -774,6 +774,13 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         && !isCustomCollectionType();
   }
 
+  public boolean isGenerateJdk9() {
+    return containingType.isGenerateJdk9()
+        && isGenerateJdkOnly()
+        && (typeKind.isList() || typeKind.isMap() || typeKind.isSet())
+        && nullElements.ban();
+  }
+
   public boolean isGenerateOrdinalValueSet() {
     if (!isSetType()) {
       return false;

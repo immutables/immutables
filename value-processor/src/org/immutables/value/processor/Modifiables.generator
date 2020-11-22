@@ -1048,7 +1048,15 @@ public boolean equals([atNullable type]Object another) {
 [if not type.equalToDefined][if not type.usePrehashed][if not getters][if type.generics.empty]@SuppressWarnings("MethodCanBeStatic")[/if][/if][/if][/if]
 private boolean equalTo([equalToType] another) {
   [if type.equalToDefined]
+    [if type.underrideEquals]
+      [if type.underrideEquals.isStatic]
+  return [type.underrideEquals.definedIn].[type.underrideEquals.name](this, another);
+      [else]
+  return [type.underrideEquals.definedIn].super.[type.underrideEquals.name](another);
+      [/if]
+    [else]
   return super.equals(another);
+    [/if]
   [else]
 [for v in getters]
   [if v.generateDerived or v.generateDefault]
@@ -1104,7 +1112,15 @@ private boolean equalTo([equalToType] another) {
 
 public final int hashCode() {
   if (![isInitialized type]()) return [type.hashCode];
+  [if type.underrideHashCode]
+    [if type.underrideHashCode.isStatic]
+  return [type.underrideHashCode.definedIn].[type.underrideHashCode.name](this);
+    [else]
+  return [type.underrideHashCode.definedIn].super.[type.underrideHashCode.name]();
+    [/if]
+  [else]
   return super.hashCode();
+  [/if]
 }
 [else]
 
@@ -1126,7 +1142,25 @@ public int hashCode() {
 [/template]
 
 [template generateToString Type type]
-[if not type.toStringDefined]
+[if type.toStringDefined]
+[if type.underrideToString or type.style.delegateToString]
+
+/**
+* Prints the immutable value {@code [type.name]} delegating to a customized method.
+* @return A string representation of the value
+*/
+@Override
+public String toString() {
+  [if type.style.delegateToString]
+  return [type.style.delegateToString](this);
+  [else if type.underrideToString.isStatic]
+  return [type.underrideToString.definedIn].[type.underrideToString.name](this);
+  [else]
+  return [type.underrideToString.definedIn].super.[type.underrideToString.name]();
+  [/if]
+}
+[/if]
+[else]
 
 /**
  * Generates a string representation of this {@code [type.typeAbstract.simple]}.
