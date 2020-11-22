@@ -608,6 +608,13 @@ public @interface Value {
     String underrideToString() default "";
 
     /**
+     * Delegates {@code toString} implementation completely to a fully qualified path to a method name, example {@code delegateToString="com.whatever.packg.ToStringer.strigify"}. The path will be used literally in generated code, and a single parameter will be passed to it, {@code this} immutable object instance.
+     * <p><em>Note: If specified, it will take precedence over any other {@code toString} customization mechanism</em>
+     * @return fully qualified static method name, if empty (by default) will not be used
+     */
+    String delegateToString() default "";
+
+    /**
      * Method to determine if all required attributes are set.
      * Default method name choice for this is mostly random.
      * @return naming template
@@ -1445,10 +1452,10 @@ public @interface Value {
     Class<? extends Annotation>[] allowedClasspathAnnotations() default {};
 
     /**
-     * Setting to cut strings longer than a defined length when calling the toString method.
-     * @return string limit
+     * Setting to trim strings longer than a defined length when calling the toString method.
+     * @return string limit, by default {@code 0} i.e. no limit
      */
-    int limitStringLengthInToString() default 1000;
+    int limitStringLengthInToString() default 0;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

@@ -3217,15 +3217,17 @@ private int [disambiguateAccessor type 'computeHashCode']() {
 
 [template generateToString Type type]
 [if type.toStringDefined]
-  [if type.underrideToString]
+  [if type.underrideToString or type.style.delegateToString]
 
 /**
- * Prints the immutable value {@code [type.name]} delegating to a customized method in supertype.
+ * Prints the immutable value {@code [type.name]} delegating to a customized method.
  * @return A string representation of the value
  */
 @Override
 public String toString() {
-[if type.underrideToString.isStatic]
+[if type.style.delegateToString]
+  return [type.style.delegateToString](this);
+[else if type.underrideToString.isStatic]
   return [type.underrideToString.definedIn].[type.underrideToString.name](this);
 [else]
   return [type.underrideToString.definedIn].super.[type.underrideToString.name]();
@@ -3233,7 +3235,7 @@ public String toString() {
 }
   [/if]
 [else]
-[for a in type.implementedAttributes if a.isLimitStringLengthInToString]
+[for a in type.implementedAttributes if a.shouldLimitLengthInToString]
 [if for.first]
 
 private static String objectToString(Object input, int limit) {
@@ -4475,6 +4477,6 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
 
-[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else if a.limitStringLengthInToString and (a.stringType or a.optionalStringType)]objectToString([value], [a.limitStringLengthInToString])[else if a.limitStringLengthInToString and a.hasTypeVariables]objectToString([value], [a.limitStringLengthInToString])[else][value][/if][/template]
+[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else if a.shouldLimitLengthInToString]objectToString([value], [a.limitLengthInToString])[else][value][/if][/template]
 
 [template hiddenMutableState Type type][if type allowsClasspathAnnotation 'com.google.errorprone.annotations.Immutable']@SuppressWarnings("Immutable")[/if][/template]

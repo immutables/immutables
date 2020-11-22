@@ -129,6 +129,8 @@ public final class ValueMirrors {
 
     String underrideToString() default "";
 
+    String delegateToString() default "";
+
     String isInitialized() default "isInitialized";
 
     String isSet() default "*IsSet";
@@ -257,7 +259,7 @@ public final class ValueMirrors {
 
     String nullableAnnotation() default "Nullable";
 
-    int limitStringLengthInToString() default 1000;
+    int limitStringLengthInToString() default 0;
 
     Class<? extends Annotation>[] allowedClasspathAnnotations() default {};
 

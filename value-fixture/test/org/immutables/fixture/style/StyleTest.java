@@ -115,4 +115,10 @@ public class StyleTest {
     ImmutableInternUnderride i2 = ImmutableInternUnderride.builder().d(1).build();
     check(i1).not().same(i2); // because == in equalTo prevents proper interning
   }
+
+  @Test
+  public void trimToString() {
+    ImmutableTrimToString b = ImmutableTrimToString.builder().a(true).b("fffff").build();
+    check(b).hasToString("TrimToString{a=true, b=ff…}");
+  }
 }
