@@ -628,7 +628,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
     @Override
     public boolean equals([atNullable type]Object another) {
-      return another != null && instance.equalTo(((InternProxy) another).instance);
+      return another != null && instance.equalTo(0, ((InternProxy) another).instance);
     }
 
     @Override
@@ -809,7 +809,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [if type.useSingletonOnlyForConstruction]
     return instance;
   [else]
-    return INSTANCE != null && INSTANCE.equalTo(instance) ? INSTANCE : instance;[-- may be null during initialization --]
+    return INSTANCE != null && INSTANCE.equalTo(0, instance) ? INSTANCE : instance;[-- may be null during initialization --]
   [/if]
 [else]
     return instance;
@@ -3061,7 +3061,7 @@ public boolean equals([atNullable type]Object another) {
   [else]
   if (this == another) return true;
   return another instanceof [equalToType]
-      && equalTo(([equalToType]) another);
+      && equalTo(0, ([equalToType]) another);
   [/if]
 }
 [/if]
@@ -3073,9 +3073,18 @@ public boolean equals([atNullable type]Object another) {
 [else]
 @SuppressWarnings("MethodCanBeStatic")
 [/if]
-private boolean equalTo([equalToType] another) {
-  [if type.equalToDefined]
+[-- adding synthetic parameter for macros-hygiene: do not overlap with any customized equalTo method --]
+private boolean equalTo(int synthetic, [equalToType] another) {
+  [if type.equalToDefined][-- type.useEqualTo is usually false when type.equalToDefined, but not always --]
+    [if type.underrideEquals]
+      [if type.underrideEquals.isStatic]
+  return [type.underrideEquals.definedIn].[type.underrideEquals.name](this, another);
+      [else]
+  return [type.underrideEquals.definedIn].super.[type.underrideEquals.name](another);
+      [/if]
+    [else]
   return super.equals(another);
+    [/if]
   [else]
     [if type.cacheHash]
       [if type.annotationType]
@@ -3089,6 +3098,22 @@ private boolean equalTo([equalToType] another) {
     [/if]
   return [if not getters]true[/if][for v in getters][if not for.first]
       && [/if][equalsAttribute v type.annotationType][/for];
+  [/if]
+}
+[else if type.equalToDefined and type.underrideEquals]
+
+/**
+ * This instance is equal to all instances of {@code [type.typeImmutable.simple]} that have equal attribute values or
+ * as defined by custom equality check method in supertype.
+ * @return {@code true} if {@code this} is equal to {@code another} instance
+ */
+@Override
+public boolean equals([atNullable type]Object another) {
+  return another instanceof [equalToType]
+  [if type.underrideEquals.isStatic]
+      && [type.underrideEquals.definedIn].[type.underrideEquals.name](this, ([equalToType])another);
+  [else]
+      && [type.underrideEquals.definedIn].super.[type.underrideEquals.name](([equalToType])another);
   [/if]
 }
 [/if]
@@ -3139,6 +3164,16 @@ private boolean equalTo([equalToType] another) {
 public int hashCode() {
   return hashCode;
 }
+  [else if type.underrideHashCode]
+
+/**
+ * Returns a hashCode computed by customized in supertype implementation.
+ * @return hashCode value
+ */
+@Override
+public int hashCode() {
+  return [customizedHashCode type];
+}
   [/if]
 [else]
 
@@ -3181,15 +3216,33 @@ private int [disambiguateAccessor type 'computeHashCode']() {
 [/template]
 
 [template generateToString Type type]
-[if not type.toStringDefined]
+[if type.toStringDefined]
+  [if type.underrideToString]
 
-static String objectToString(Object input, int limit) {
-    if (input == null) {
-        return null;
-    }
-    String output = input.toString();
-    return output.length() > limit ? output.substring(0, limit).concat("…") : output;
+/**
+ * Prints the immutable value {@code [type.name]} delegating to a customized method in supertype.
+ * @return A string representation of the value
+ */
+@Override
+public String toString() {
+[if type.underrideToString.isStatic]
+  return [type.underrideToString.definedIn].[type.underrideToString.name](this);
+[else]
+  return [type.underrideToString.definedIn].super.[type.underrideToString.name]();
+[/if]
 }
+  [/if]
+[else]
+[for a in type.implementedAttributes if a.isLimitStringLengthInToString]
+[if for.first]
+
+private static String objectToString(Object input, int limit) {
+  if (input == null) return null;
+  String output = input.toString();
+  return output.length() > limit ? output.substring(0, limit).concat("…") : output;
+}
+[/if]
+[/for]
 
 /**
  * Prints the immutable value {@code [type.name]}[if type.equivalenceAttributes] with attribute values[/if].
@@ -3297,7 +3350,7 @@ this.[a.name] = [shim].[a.names.get]();
 
 [template generateAfterConstruction Type type Boolean usingBuilder]
   [if type.usePrehashed]
-this.hashCode = [if type.hashCodeDefined]super.hashCode()[else][disambiguateAccessor type 'computeHashCode']()[/if];
+this.hashCode = [if type.hashCodeDefined][customizedHashCode type][else][disambiguateAccessor type 'computeHashCode']()[/if];
   [/if]
   [if type.generateOrdinalValue][-- Assigning dummy ordinal value to be changed on interning --]
 this.ordinal = 0;
@@ -3312,6 +3365,18 @@ this.domain = Domain.get();
 this.[disambiguateField type 'initShim'] = null;
   [/if]
 [/template]
+
+[template customizedHashCode Type type][output.trim]
+[if type.underrideHashCode]
+  [if type.underrideHashCode.isStatic]
+[type.underrideHashCode.definedIn].[type.underrideHashCode.name](this)
+  [else]
+[type.underrideHashCode.definedIn].super.[type.underrideHashCode.name]()
+  [/if]
+[else]
+super.hashCode()
+[/if]
+[/output.trim][/template]
 
 [template generateReturnCopy Type type Attribute modified String expression][generateReturnCopyRaw type modified.name expression][/template]
 

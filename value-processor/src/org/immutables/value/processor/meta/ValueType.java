@@ -1910,8 +1910,24 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
         getDeclaringPackageAnnotationInjections());
   }
 
+  public @Nullable UnderrideMethod underrideToString;
+  public @Nullable UnderrideMethod underrideHashCode;
+  public @Nullable UnderrideMethod underrideEquals;
+
+  public static final class UnderrideMethod {
+    public final String name;
+    public final boolean isStatic;
+    public final String definedIn;
+
+    UnderrideMethod(String name, boolean isStatic, String definedIn) {
+      this.name = name;
+      this.isStatic = isStatic;
+      this.definedIn = definedIn;
+    }
+  }
+
   /**
-   * Used for type snapshoting
+   * Used for type snapshotting
    */
   @Override
   public int hashCode() {

@@ -90,10 +90,29 @@ public class StyleTest {
   
   @Test
   public void nonFinalInstanceFields()throws Exception {
-      Class<ImmutableNonFinalInstanceFields> c = ImmutableNonFinalInstanceFields.class;
-      check(c.getDeclaredConstructor().getModifiers() & Modifier.PROTECTED).is(Modifier.PROTECTED);
-      check(c.getDeclaredField("a").getModifiers() & Modifier.FINAL).is(0);
-      check(c.getDeclaredField("b").getModifiers() & Modifier.FINAL).is(0);
-      check(c.getDeclaredField("c").getModifiers() & Modifier.FINAL).is(0);
+    Class<ImmutableNonFinalInstanceFields> c = ImmutableNonFinalInstanceFields.class;
+    check(c.getDeclaredConstructor().getModifiers() & Modifier.PROTECTED).is(Modifier.PROTECTED);
+    check(c.getDeclaredField("a").getModifiers() & Modifier.FINAL).is(0);
+    check(c.getDeclaredField("b").getModifiers() & Modifier.FINAL).is(0);
+    check(c.getDeclaredField("c").getModifiers() & Modifier.FINAL).is(0);
+  }
+
+  @Test
+  public void underrides() {
+    ImmutableUnderrideObjectMethods b = ImmutableUnderrideObjectMethods.builder().a(42).build();
+    check(b).hasToString("%%%");
+    check(b.hashCode()).is(-1);
+    check(b).is(b);
+    check(b).not(ImmutableUnderrideObjectMethods.builder().a(42).build()); // underridden equals by ref
+
+    ImmutableStaticUnderride su = ImmutableStaticUnderride.builder().build();
+    check(su).hasToString("!!!");
+    check(su.hashCode()).is(-2);
+    check(su).is(su);
+    check(su).not(ImmutableStaticUnderride.builder().build());
+
+    ImmutableInternUnderride i1 = ImmutableInternUnderride.builder().d(1).build();
+    ImmutableInternUnderride i2 = ImmutableInternUnderride.builder().d(1).build();
+    check(i1).not().same(i2); // because == in equalTo prevents proper interning
   }
 }

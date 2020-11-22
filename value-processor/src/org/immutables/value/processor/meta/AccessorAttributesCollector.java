@@ -47,6 +47,15 @@ final class AccessorAttributesCollector {
   private static final String ORDINAL_ORDINAL_ATTRIBUTE_NAME = "ordinal";
   private static final String ORDINAL_DOMAIN_ATTRIBUTE_NAME = "domain";
   private static final String PARCELABLE_DESCRIBE_CONTENTS_METHOD = "describeContents";
+  private static final @Nullable Modifier DEFAULT_MODIFIER;
+  static {
+    // because we still don't fully go java 8)
+    @Nullable Modifier def = null;
+    for (Modifier m : Modifier.values()) {
+      if (m.name().equals("DEFAULT")) def = m;
+    }
+    DEFAULT_MODIFIER = def;
+  }
 
   private static final String ORG_ECLIPSE = "org.eclipse";
 
@@ -120,13 +129,62 @@ final class AccessorAttributesCollector {
     // inform use during checking for warnings.
     for (Element element : processing.getElementUtils().getAllMembers(originalType)) {
       if (element.getKind() == ElementKind.METHOD) {
-        switch (element.getSimpleName().toString()) {
+        ExecutableElement e = (ExecutableElement) element;
+        String simpleName = element.getSimpleName().toString();
+        switch (simpleName) {
         case HASH_CODE_METHOD:
         case TO_STRING_METHOD:
         case EQUALS_METHOD:
-          processUtilityCandidateMethod((ExecutableElement) element, originalType);
+          processUtilityCandidateMethod(e, originalType);
           break;
         default:
+          if (!e.getTypeParameters().isEmpty()) break;
+          boolean hasDefaultModifier = element.getModifiers().contains(DEFAULT_MODIFIER);
+          boolean hasStaticModifier = element.getModifiers().contains(Modifier.STATIC);
+          boolean hasAbstractModifier = element.getModifiers().contains(Modifier.ABSTRACT);
+          if (hasStaticModifier || hasDefaultModifier || !hasAbstractModifier) {
+            String definedIn = element.getEnclosingElement().toString();
+            if (!styles.style().underrideEquals().isEmpty()
+                && styles.style().underrideEquals().equals(simpleName)) {
+              if (hasStaticModifier) {
+                if (e.getParameters().size() == 2) {
+                  this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, true, definedIn);
+                  this.type.isEqualToDefined = true;
+                }
+              } else {
+                if (e.getParameters().size() == 1) {
+                  this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, false, definedIn);
+                  this.type.isEqualToDefined = true;
+                }
+              }
+            } else if (!styles.style().underrideHashCode().isEmpty()
+                && styles.style().underrideHashCode().equals(simpleName)) {
+              if (hasStaticModifier) {
+                if (e.getParameters().size() == 1) {
+                  this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, true, definedIn);
+                  this.type.isHashCodeDefined = true;
+                }
+              } else {
+                if (e.getParameters().isEmpty()) {
+                  this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, false, definedIn);
+                  this.type.isHashCodeDefined = true;
+                }
+              }
+            } else if (!styles.style().underrideToString().isEmpty()
+                && styles.style().underrideToString().equals(simpleName)) {
+              if (hasStaticModifier) {
+                if (e.getParameters().size() == 1) {
+                  this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, true, definedIn);
+                  this.type.isToStringDefined = true;
+                }
+              } else {
+                if (e.getParameters().isEmpty()) {
+                  this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, false, definedIn);
+                  this.type.isToStringDefined = true;
+                }
+              }
+            }
+          }
         }
       }
     }

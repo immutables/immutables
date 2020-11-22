@@ -1450,8 +1450,6 @@ public @interface Value {
      */
     int limitStringLengthInToString() default 1000;
 
-
-
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
