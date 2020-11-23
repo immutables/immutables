@@ -48,6 +48,14 @@
       <optional>true</optional>
     </dependency>
     <dependency>
+      <!-- only to have compile-time Javac classes -->
+      <groupId>com.google.errorprone</groupId>
+      <artifactId>javac</artifactId>
+      <version>${javac.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
       <version>${project.version}</version>
@@ -75,21 +83,6 @@
           </plugin>
         </plugins>
       </build>
-    </profile>
-    <profile>
-      <id>jdk8</id>
-      <activation>
-        <jdk>1.8</jdk>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-          <version>1.4.2</version>
-          <scope>system</scope>
-          <systemPath>${java.home}/../lib/tools.jar</systemPath>
-        </dependency>
-      </dependencies>
     </profile>
   </profiles>
 </project>
