@@ -26,17 +26,15 @@ import static org.immutables.check.Checkers.check;
 
 class ClassScannerTest {
 
-  private final ClassScanner scanner = ClassScanner.of(MyClass.class);
-
   @Test
   void fields() {
-    List<String> names = scanner.skipMethods().stream().map(Member::getName).collect(Collectors.toList());
+    List<String> names = ClassScanner.onlyFields(MyClass.class).cache().stream().map(Member::getName).collect(Collectors.toList());
     check(names).isOf("anotherField", "base");
   }
 
   @Test
   void methods() {
-    List<String> names = scanner.skipFields().stream().map(Member::getName).collect(Collectors.toList());
+    List<String> names = ClassScanner.onlyMethods(MyClass.class).stream().map(Member::getName).collect(Collectors.toList());
     check(names).hasContentInAnyOrder("anotherMethod", "fromIface", "fromIface", "getFromBase");
   }
 

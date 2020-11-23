@@ -22,14 +22,12 @@ import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
 import org.immutables.criteria.expression.Visitors;
-import org.immutables.criteria.reflect.ClassScanner;
 import org.immutables.value.Value;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Member;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 
 /**
  * Expression holder
@@ -39,8 +37,14 @@ import java.util.stream.Stream;
  */
 public final class CriteriaContext implements Queryable {
 
+  /**
+   * Singleton which stores class metadata for faster lookups
+   */
+  private static final MemberLookupCache MEMBER_LOOKUP_SINGLETON = new MemberLookupCache();
+
   private final CriteriaContext previous;
   private final ImmutableState state;
+  private final MemberLookupCache memberLookup;
 
   public CriteriaContext(Class<?> entityType, CriteriaCreator<?> creator) {
     this(null,
@@ -55,8 +59,8 @@ public final class CriteriaContext implements Queryable {
   CriteriaContext(CriteriaContext previous, ImmutableState state) {
     this.previous = previous;
     this.state = Objects.requireNonNull(state, "state");
+    this.memberLookup = MEMBER_LOOKUP_SINGLETON;
   }
-
 
   @Value.Immutable
   interface State {
@@ -65,7 +69,6 @@ public final class CriteriaContext implements Queryable {
     Combiner combiner();
     CriteriaCreator<?> creator();
     Class<?> entityType();
-
 
     @Value.Default
     @Nullable
@@ -108,10 +111,7 @@ public final class CriteriaContext implements Queryable {
    *  adds an intermediate path to partial expression
    */
   public <T> CriteriaContext appendPath(Class<?> type, String pathAsString, CriteriaCreator<T> creator) {
-    // first look for fields then methods
-    final Member member = Stream.concat(ClassScanner.of(type).skipMethods().stream(), ClassScanner.of(type).skipFields().stream())
-            .filter(m -> m.getName().equals(pathAsString))
-            .findAny()
+    final Member member = memberLookup.find(type, pathAsString)
             .orElseThrow(() -> new IllegalArgumentException(String.format("Path %s not found in %s", pathAsString, type)));
 
     Path newPath;

@@ -18,139 +18,53 @@ package org.immutables.criteria.reflect;
 
 import org.immutables.value.Value;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.lang.reflect.Member;
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * Lazily iterates through class hierarchy using reflection api looking for methods, fields
+ * Iterates through class hierarchy using reflection api looking for methods, fields
  * and constructors.
  *
  * <p>This class is not thread-safe</p>
  */
-@NotThreadSafe
-public class ClassScanner implements Iterable<Member> {
-  private final ImmutableSetup setup;
+public interface ClassScanner extends Iterable<Member> {
 
-  private ClassScanner(ImmutableSetup setup) {
-    this.setup = Objects.requireNonNull(setup, "setup");
-  }
-
-  public static ClassScanner of(Class<?> type) {
-    return new ClassScanner(ImmutableSetup.of(type));
-  }
-
-  /**
-   * Don't include fields (default behaviour is to include fields).
-   */
-  public ClassScanner skipFields() {
-    return new ClassScanner(setup.withFields(false));
-  }
-
-  /**
-   * Don't include methods (default behaviour is to include methods).
-   */
-  public ClassScanner skipMethods() {
-    return new ClassScanner(setup.withMethods(false));
-  }
-
-  /**
-   * Include constructors (default behaviour is to exclude constructors)
-   */
-  public ClassScanner includeConstructors() {
-    return new ClassScanner(setup.withConstructors(true));
-  }
-
-  /**
-   * Don't include (process) implemented interfaces (default behaviour is to include interfaces).
-   */
-  public ClassScanner skipInterfaces() {
-    return new ClassScanner(setup.withInterfaces(false));
-  }
-
-  /**
-   * Don't traverse superclass (default behaviour is to process superclass).
-   */
-  public ClassScanner skipSuperclass() {
-    return new ClassScanner(setup.withSuperclass(false));
-  }
-
-  @Override
-  public Iterator<Member> iterator() {
-    return new InternalScanner();
-  }
-
-  public Stream<Member> stream() {
+  default Stream<Member> stream() {
     return StreamSupport.stream(spliterator(), false);
   }
 
-  private class InternalScanner implements Iterator<Member> {
-    private final Set<Class<?>> visited = new HashSet<>();
-    private final Deque<Class<?>> toVisit = new ArrayDeque<>();
-    private final Queue<Member> queue = new ArrayDeque<>();
+  /**
+   * Return cached version of the scanner. Reflection API is used only once.
+   * new scanner is thread-safe
+   */
+  default ClassScanner cache() {
+    return PrecachedClassScanner.of(this);
+  }
 
-    private InternalScanner() {
-      visited.add(Object.class);
-      toVisit.add(setup.type());
-    }
+  static ClassScanner of(Class<?> type) {
+    return builder(type).build();
+  }
 
-    @Override
-    public boolean hasNext() {
-      return tryNext();
-    }
+  static ClassScanner onlyFields(Class<?> type) {
+    return builder(type).withMethods(false).withFields(true).build();
+  }
 
-    private boolean tryNext() {
-      while (queue.isEmpty() && !toVisit.isEmpty()) {
-        final Class<?> current = toVisit.pop();
-        if (!visited.add(current)) {
-          continue;
-        }
+  static ClassScanner onlyMethods(Class<?> type) {
+    return builder(type).withMethods(true).withFields(false).build();
+  }
 
-        if (setup.fields()) {
-          queue.addAll(Arrays.asList(current.getDeclaredFields()));
-        }
+  static ClassScanner concat(ClassScanner scan1, ClassScanner scan2) {
+    return new ConcatScanner(Arrays.asList(scan1, scan2));
+  }
 
-        if (setup.methods()) {
-          queue.addAll(Arrays.asList(current.getDeclaredMethods()));
-        }
-
-        if (setup.constructors()) {
-          queue.addAll(Arrays.asList(current.getDeclaredConstructors()));
-        }
-
-        if (!current.isInterface() && !visited.contains(current.getSuperclass()) && setup.superclass()) {
-          toVisit.push(current.getSuperclass());
-        }
-
-        if (setup.interfaces()) {
-          toVisit.addAll(Arrays.asList(current.getInterfaces()));
-        }
-      }
-
-      return !queue.isEmpty();
-    }
-
-    @Override
-    public Member next() {
-      if (!hasNext()) {
-        throw new NoSuchElementException("No more elements to scan for " + setup.type());
-      }
-      return queue.remove();
-    }
+  static ImmutableBuilder builder(Class<?> type) {
+    return ImmutableBuilder.of(type);
   }
 
   @Value.Immutable
-  interface Setup {
+  interface Builder {
 
     @Value.Parameter
     Class<?> type();
@@ -190,6 +104,10 @@ public class ClassScanner implements Iterable<Member> {
     @Value.Default
     default boolean interfaces() {
       return true;
+    }
+
+    default ClassScanner build() {
+      return new LazyClassScanner(ImmutableBuilder.copyOf(this));
     }
   }
 }
