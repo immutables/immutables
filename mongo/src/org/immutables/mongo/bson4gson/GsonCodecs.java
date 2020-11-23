@@ -131,10 +131,22 @@ public final class GsonCodecs {
   public static CodecRegistry codecRegistryFromGson(final Gson gson) {
     Preconditions.checkNotNull(gson, "gson");
     return new CodecRegistry() {
+
+      @Override
+      public <T> Codec<T> get(Class<T> clazz, CodecRegistry registry) {
+        try {
+          return get(clazz);
+        } catch (CodecConfigurationException e) {
+          return null;
+        }
+      }
+
       @Override
       public <T> Codec<T> get(Class<T> clazz) {
         return codecFromTypeAdapter(clazz, gson.getAdapter(clazz));
       }
+
+
     };
   }
 

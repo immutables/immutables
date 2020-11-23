@@ -69,7 +69,12 @@
     <dependency>
       <!-- Required. -->
       <groupId>org.mongodb</groupId>
-      <artifactId>mongo-java-driver</artifactId>
+      <artifactId>mongodb-driver-sync</artifactId>
+      <version>${mongo-java-driver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-legacy</artifactId>
       <version>${mongo-java-driver.version}</version>
     </dependency>
     <dependency>

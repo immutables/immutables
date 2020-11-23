@@ -58,6 +58,15 @@ public final class JacksonCodecs {
     Preconditions.checkNotNull(mapper, "mapper");
     return new CodecRegistry() {
       @Override
+      public <T> Codec<T> get(Class<T> clazz, CodecRegistry registry) {
+        try {
+          return get(clazz);
+        } catch (CodecConfigurationException e) {
+          return null;
+        }
+      }
+
+      @Override
       public <T> Codec<T> get(final Class<T> clazz) {
         final JavaType javaType = TypeFactory.defaultInstance().constructType(clazz);
         if (!mapper.canSerialize(clazz) || !mapper.canDeserialize(javaType)) {

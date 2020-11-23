@@ -61,6 +61,11 @@ class JacksonCodecRegistry implements CodecRegistry {
     return new JacksonCodec<>(clazz, mapper);
   }
 
+  @Override
+  public <T> Codec<T> get(Class<T> clazz, CodecRegistry codecRegistry) {
+    return LegacyCodecAdapter.of(this).get(clazz, codecRegistry);
+  }
+
   private static class JacksonCodec<T> implements Codec<T> {
 
     private final Class<T> clazz;

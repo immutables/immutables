@@ -55,4 +55,9 @@ class NativeCodecRegistry implements CodecRegistry  {
 
     throw new CodecConfigurationException(javaType + " not supported");
   }
+
+  @Override
+  public <T> Codec<T> get(Class<T> clazz, CodecRegistry registry) {
+    return LegacyCodecAdapter.of(this).get(clazz, registry);
+  }
 }

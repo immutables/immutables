@@ -1,7 +1,7 @@
 package org.immutables.mongo.fixture;
 
 import com.google.common.util.concurrent.MoreExecutors;
-import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
 import org.bson.BsonReader;
 import org.bson.BsonWriter;
 import org.bson.codecs.Codec;
@@ -37,7 +37,7 @@ public class BsonCodecRepoTest {
     LocalCodec codecAndStrategy = new LocalCodec();
 
     CodecRegistry registry = CodecRegistries.fromRegistries(codecAndStrategy,
-            MongoClient.getDefaultCodecRegistry());
+            MongoClientSettings.getDefaultCodecRegistry());
 
 
     RepositorySetup.FieldNamingStrategy strategy = new RepositorySetup.FieldNamingStrategy() {
@@ -103,6 +103,15 @@ public class BsonCodecRepoTest {
         throw new CodecConfigurationException("Not supported " + clazz);
       }
       return (Codec<T>) this;
+    }
+
+    @Override
+    public <T> Codec<T> get(Class<T> clazz, CodecRegistry registry) {
+      try {
+        return get(clazz);
+      } catch (CodecConfigurationException e) {
+        return null;
+      }
     }
   }
 

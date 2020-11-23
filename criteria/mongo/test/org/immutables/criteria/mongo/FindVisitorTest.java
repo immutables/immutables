@@ -17,6 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import org.immutables.criteria.Criterias;
+import org.immutables.criteria.matcher.PresentAbsentMatcher;
 import org.immutables.criteria.typemodel.StringHolderCriteria;
 import org.junit.jupiter.api.Test;
 
@@ -60,15 +61,27 @@ class FindVisitorTest {
 
   @Test
   void absentPresent() {
-    check(criteria.optional.isPresent()).matches("{optional: {$exists: true, $ne: null}}");
-    check(criteria.optional.isAbsent()).matches("{optional: {$not: {$exists: true, $ne: null}}}");
+    String present = "{$and: [{optional: {$exists: true}}, {optional: {$ne: null}}]}";
+    String absent = "{$or: [{optional: {$exists: false}}, {optional: null}]}";
+    check(criteria.optional.isPresent()).matches(present);
+    check(criteria.optional.isAbsent()).matches(absent);
+
+    // negation of absent / present
+    check(criteria.optional.not(PresentAbsentMatcher::isAbsent)).matches(present);
+    check(criteria.optional.not(PresentAbsentMatcher::isPresent)).matches(absent);
   }
 
   @Test
   void emptyString() {
     check(criteria.value.isEmpty()).matches("{value: ''}");
     check(criteria.optional.isEmpty()).matches("{optional: ''}");
-    check(criteria.value.notEmpty()).matches("{value: {$nin: ['', null], $exists: true}}");
+    check(criteria.value.notEmpty()).matches("{$and: [{value: {$nin: ['', null]}}, {value: {$exists: true}}]}");
+  }
+
+  @Test
+  void emptyIterable() {
+    check(criteria.list.isEmpty()).matches("{list: []}");
+    check(criteria.list.notEmpty()).matches("{$and: [{list: {$exists: true}}, {list:{$ne:null}}, {list: {$ne:[]}}]}");
   }
 
   @Test

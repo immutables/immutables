@@ -24,6 +24,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoClientURI;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
@@ -223,7 +224,7 @@ public final class RepositorySetup {
       // TypeAdapter(s) from Gson if they're explicitly defined (not a ReflectiveTypeAdapter).
       // Otherwise delegate to BSON codec.
       TypeAdapterFactory bsonAdapterFactory = GsonCodecs.delegatingTypeAdapterFactory(
-              MongoClient.getDefaultCodecRegistry()
+              MongoClientSettings.getDefaultCodecRegistry()
       );
 
       // Appending new TypeAdapterFactory to allow Gson and Bson adapters to co-exists.

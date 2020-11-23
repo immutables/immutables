@@ -21,7 +21,6 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
-import com.mongodb.reactivestreams.client.Success;
 import io.reactivex.Flowable;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.criteria.backend.ContainerNaming;
@@ -75,10 +74,9 @@ class BackendResource  {
     @Override
     public MongoCollection<?> resolve(Class<?> entityClass) {
       final String name = ContainerNaming.DEFAULT.name(entityClass);
-      final MongoCollection<?> collection;
       // already exists ?
       if (!Flowable.fromPublisher(database.listCollectionNames()).toList().blockingGet().contains(name)) {
-        Success success = Flowable.fromPublisher(database.createCollection(name)).blockingFirst();
+        Flowable.fromPublisher(database.createCollection(name)).blockingSubscribe();
       }
 
       return database.getCollection(name).withDocumentClass(entityClass).withCodecRegistry(registry);

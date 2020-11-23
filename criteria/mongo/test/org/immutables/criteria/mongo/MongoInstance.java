@@ -20,7 +20,6 @@ import com.google.common.io.Closer;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoDatabase;
-import com.mongodb.reactivestreams.client.Success;
 import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.reactivex.Flowable;
@@ -51,7 +50,7 @@ class MongoInstance implements AutoCloseable {
 
     // drop database if exists (to have a clean test)
     if (Flowable.fromPublisher(client.listDatabaseNames()).toList().blockingGet().contains(DBNAME)) {
-      Success success = Flowable.fromPublisher(client.getDatabase(DBNAME).drop()).blockingFirst();
+      Flowable.fromPublisher(client.getDatabase(DBNAME).drop()).blockingSubscribe();
     }
 
     this.database = client.getDatabase(DBNAME);

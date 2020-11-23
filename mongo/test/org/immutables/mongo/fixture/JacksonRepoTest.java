@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.BsonDocument;
@@ -43,6 +43,7 @@ import org.bson.BsonWriter;
 import org.bson.UuidRepresentation;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
+import org.bson.codecs.EncoderContext;
 import org.bson.codecs.UuidCodec;
 import org.bson.types.ObjectId;
 import org.immutables.mongo.Mongo;
@@ -84,11 +85,14 @@ public class JacksonRepoTest {
     module.addSerializer(new DateSerializer());
     module.addDeserializer(ObjectId.class, new ObjectIdDeserializer());
     module.addSerializer(new ObjectIdSerializer());
-    module.addDeserializer(UUID.class, new UUIDDeserializer(UuidRepresentation.JAVA_LEGACY));
+
+    UuidCodec uuidCodec = new UuidCodec(UuidRepresentation.JAVA_LEGACY);
+    module.addDeserializer(UUID.class, new UUIDDeserializer(uuidCodec));
+    module.addSerializer(UUID.class, new UUIDSerializer(uuidCodec));
 
     ObjectMapper mapper = new ObjectMapper()
         // to support bson types like: Document, BsonValue etc.
-        .registerModule(JacksonCodecs.module(MongoClient.getDefaultCodecRegistry()))
+        .registerModule(JacksonCodecs.module(MongoClientSettings.getDefaultCodecRegistry()))
         .registerModule(new GuavaModule())
         .registerModule(module);
 
@@ -114,7 +118,7 @@ public class JacksonRepoTest {
 
     repository.insert(expected).getUnchecked();
 
-    check(collection.count()).is(1L);
+    check(collection.countDocuments()).is(1L);
 
     final Jackson actual = repository.findAll().fetchAll().getUnchecked().get(0);
     check(expected).is(actual);
@@ -259,26 +263,38 @@ public class JacksonRepoTest {
     }
   }
 
-
-
   /**
    * Custom deserializer for UUID (stored as {@link BsonType#BINARY})
    */
   private static class UUIDDeserializer extends StdScalarDeserializer<UUID> {
 
-    public static final DecoderContext DECODER_CONTEXT = DecoderContext.builder().build();
+    private final Codec<UUID> codec;
 
-    private final Codec<UUID> uuidCodec;
-
-    private UUIDDeserializer(UuidRepresentation uuidRepresentation) {
+    private UUIDDeserializer(Codec codec) {
       super(UUID.class);
-      uuidCodec = new UuidCodec(uuidRepresentation);
+      this.codec = codec;
     }
 
     @Override
     public UUID deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException, JsonProcessingException {
       final BsonReader reader = ((BsonParser) parser).unwrap();
-      return uuidCodec.decode(reader, DECODER_CONTEXT);
+      return codec.decode(reader, DecoderContext.builder().build());
+    }
+  }
+
+  private static class UUIDSerializer extends StdScalarSerializer<UUID> {
+
+    private final Codec<UUID> codec;
+
+    private UUIDSerializer(Codec<UUID> codec) {
+      super(UUID.class);
+      this.codec = codec;
+    }
+
+    @Override
+    public void serialize(UUID uuid, JsonGenerator gen, SerializerProvider serializerProvider) throws IOException {
+      final BsonWriter writer = ((BsonGenerator) gen).unwrap();
+      codec.encode(writer, uuid, EncoderContext.builder().build());
     }
   }
 

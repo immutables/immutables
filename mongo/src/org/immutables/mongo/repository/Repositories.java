@@ -27,22 +27,25 @@ import com.mongodb.client.model.FindOneAndDeleteOptions;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnegative;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.mongo.concurrent.FluentFuture;
 import org.immutables.mongo.concurrent.FluentFutures;
 import org.immutables.mongo.repository.internal.Constraints;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -266,7 +269,7 @@ public final class Repositories {
       return submit(new Callable<Integer>() {
         @Override
         public Integer call() {
-          collection().replaceOne(convertToBson(criteria), document, new UpdateOptions().upsert(true));
+          collection().replaceOne(convertToBson(criteria), document, new ReplaceOptions().upsert(true));
           // upsert will always return 1:
           // if document doesn't exists, it will be inserted (modCount == 1)
           // if document exists, it will be updated (modCount == 1)

@@ -42,7 +42,6 @@ import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -74,8 +73,14 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
       final String field = naming.name(Visitors.toPath(args.get(0)));
-      final Bson exists = Filters.and(Filters.exists(field), Filters.ne(field, null));
-      return op == OptionalOperators.IS_PRESENT ? exists : Filters.not(exists);
+      Bson filter;
+      if (op == OptionalOperators.IS_PRESENT) {
+        filter = Filters.and(Filters.exists(field), Filters.ne(field, null));
+      } else {
+        // absent fields means null or missing
+        filter = Filters.or(Filters.exists(field, false), Filters.eq(field, null));
+      }
+      return filter;
     }
 
     if (op == Operators.AND || op == Operators.OR) {
@@ -94,7 +99,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
       final String field = naming.name(Visitors.toPath(args.get(0)));
       return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
-              : Filters.and(Filters.exists(field), Filters.nin(field, Arrays.asList(Collections.emptyList(), null)));
+              : Filters.and(Filters.exists(field), Filters.ne(field, null), Filters.ne(field, Collections.emptyList()));
     }
 
     if (op.arity() == Operator.Arity.BINARY) {
@@ -206,27 +211,38 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     }
 
     Call notCall = (Call) expression;
+    Operator notOperator = notCall.operator();
 
-    if (notCall.operator() == Operators.NOT) {
+    if (notOperator == Operators.NOT) {
       // NOT NOT a == a
       return notCall.arguments().get(0).accept(this);
-    } else if (notCall.operator() == Operators.EQUAL) {
-      return visit(Expressions.call(Operators.NOT_EQUAL, notCall.arguments()));
-    } else if (notCall.operator() == Operators.NOT_EQUAL) {
-      return visit(Expressions.call(Operators.EQUAL, notCall.arguments()));
-    } else if (notCall.operator() == Operators.IN) {
-      return visit(Expressions.call(Operators.NOT_IN, notCall.arguments()));
-    } else if (notCall.operator() == Operators.NOT_IN) {
-      return visit(Expressions.call(Operators.IN, notCall.arguments()));
-    } else if (notCall.operator() == Operators.OR) {
+    } else if (notOperator == Operators.EQUAL) {
+      return newCall(notCall, Operators.NOT_EQUAL);
+    } else if (notOperator == Operators.NOT_EQUAL) {
+      return newCall(notCall, Operators.EQUAL);
+    } else if (notOperator == Operators.IN) {
+      return newCall(notCall, Operators.NOT_IN);
+    } else if (notOperator == Operators.NOT_IN) {
+      return newCall(notCall, Operators.IN);
+    } else if (notOperator == Operators.OR) {
       return Filters.nor(notCall.arguments().stream().map(a -> a.accept(this)).collect(Collectors.toList()));
-    } else if (notCall.operator() == Operators.AND) {
+    } else if (notOperator == Operators.AND) {
       // NOT A and B == (NOT A) or (NOT B)
       return Filters.or(notCall.arguments().stream().map(this::negate).collect(Collectors.toList()));
+    } else if (notOperator == OptionalOperators.IS_ABSENT || notOperator == OptionalOperators.IS_PRESENT) {
+      Operator newOp = notOperator == OptionalOperators.IS_ABSENT ? OptionalOperators.IS_PRESENT : OptionalOperators.IS_ABSENT;
+      return newCall(notCall, newOp);
+    } else if (notOperator == IterableOperators.IS_EMPTY || notOperator == IterableOperators.NOT_EMPTY) {
+      Operator newOp = notOperator == IterableOperators.IS_EMPTY ? IterableOperators.NOT_EMPTY : IterableOperators.IS_EMPTY;
+      return newCall(notCall, newOp);
     }
 
     // don't really know how to negate here
     return Filters.not(notCall.accept(this));
+  }
+
+  private Bson newCall(Call existing, Operator newOperator) {
+    return visit(Expressions.call(newOperator, existing.arguments()));
   }
 
   /**
