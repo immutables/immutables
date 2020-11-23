@@ -26,7 +26,6 @@
   <name>${project.groupId}.${project.artifactId}</name>
 
   <properties>
-    <asm.version>8.0.1</asm.version>
     <module.name>${project.groupId}.generator.processor</module.name>
   </properties>
 
@@ -89,7 +88,7 @@
           <plugin>
             <groupId>org.immutables.tools</groupId>
             <artifactId>maven-shade-plugin</artifactId>
-            <version>3</version>
+            <version>4</version>
             <executions>
               <execution>
                 <phase>package</phase>

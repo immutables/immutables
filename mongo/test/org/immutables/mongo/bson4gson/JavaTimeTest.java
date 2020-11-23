@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.immutables.check.Checkers.check;
@@ -75,7 +76,7 @@ public class JavaTimeTest {
 
   @Test
   public void localDateTime() throws IOException {
-    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
     long epoch = now.toInstant(ZoneOffset.UTC).toEpochMilli();
 
     TypeAdapter<LocalDateTime> adapter = gson.getAdapter(LocalDateTime.class);
@@ -93,7 +94,7 @@ public class JavaTimeTest {
 
   @Test
   public void instant() throws IOException {
-    Instant now = Instant.now();
+    Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     long epoch = now.toEpochMilli();
 
     TypeAdapter<Instant> adapter = gson.getAdapter(Instant.class);

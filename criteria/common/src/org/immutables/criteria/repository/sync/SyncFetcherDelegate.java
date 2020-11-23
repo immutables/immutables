@@ -53,7 +53,7 @@ class SyncFetcherDelegate<T> implements SyncFetcher<T>, SyncFetcher.DistinctLimi
   @Override
   public Optional<T> oneOrNone() {
     List<T> list = Publishers.blockingListGet(fetcher.oneOrNone());
-    Preconditions.checkState(list.size() <= 1, "Invalid list size: %d", list.size());
+    Preconditions.checkState(list.size() <= 1, "Invalid list size: %s", list.size());
     return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
   }
 
