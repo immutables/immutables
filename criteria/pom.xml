@@ -54,18 +54,7 @@
                 <configuration>
                     <compilerArgs>
                         <arg>-XDcompilePolicy=simple</arg>
-                        <arg>
-                            -Xplugin:ErrorProne
-                            -Xep:CheckReturnValue:ERROR
-                            -Xep:MethodCanBeStatic:ERROR
-                            -Xep:BadImport:ERROR
-                            -Xep:MissingOverride:ERROR
-                            -Xep:OrphanedFormatString:ERROR
-                            -Xep:RedundantOverride:ERROR
-                            -Xep:RedundantThrows:ERROR
-                            -Xep:RemoveUnusedImports:ERROR
-                            -Xep:UnusedMethod:ERROR
-                        </arg>
+                        <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:BadImport:ERROR -Xep:MissingOverride:ERROR -Xep:OrphanedFormatString:ERROR -Xep:RedundantOverride:ERROR -Xep:RedundantThrows:ERROR -Xep:RemoveUnusedImports:ERROR -Xep:UnusedMethod:ERROR</arg>
                         <arg>-Xlint:unchecked</arg>
                     </compilerArgs>
                     <annotationProcessorPaths>

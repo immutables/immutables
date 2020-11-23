@@ -15,12 +15,16 @@
  */
 package org.immutables.fixture.custann;
 
+import org.immutables.value.Value;
+
 public class CustomImmutables {
 
   @CustomWithStyle
+  @Value.Immutable
   interface Od {}
   
   @CustomWithStyle2
+  @Value.Immutable
   interface Dv {}
 
   @SuppressWarnings("CheckReturnValue")

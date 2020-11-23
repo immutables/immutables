@@ -174,11 +174,7 @@
         <configuration>
           <compilerArgs>
             <arg>-XDcompilePolicy=simple</arg>
-            <arg>
-              -Xplugin:ErrorProne
-              -Xep:CheckReturnValue:ERROR
-              -Xep:MethodCanBeStatic:ERROR
-            </arg>
+            <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:UnnecessaryCheckNotNull:WARN</arg>
             <arg>-Xlint:unchecked</arg>
           </compilerArgs>
           <annotationProcessorPaths>
@@ -190,6 +186,41 @@
             <path>
               <groupId>org.immutables</groupId>
               <artifactId>value</artifactId>
+              <version>${project.version}</version>
+            </path>
+            <path>
+              <groupId>org.immutables</groupId>
+              <artifactId>serial</artifactId>
+              <version>${project.version}</version>
+            </path>
+            <path>
+              <groupId>org.immutables</groupId>
+              <artifactId>builder</artifactId>
+              <version>${project.version}</version>
+            </path>
+            <path>
+              <groupId>org.immutables</groupId>
+              <artifactId>annotate</artifactId>
+              <version>${project.version}</version>
+            </path>
+            <path>
+              <groupId>org.immutables</groupId>
+              <artifactId>encode</artifactId>
+              <version>${project.version}</version>
+            </path>
+            <path>
+              <groupId>org.immutables</groupId>
+              <artifactId>metainf</artifactId>
+              <version>${project.version}</version>
+            </path>
+            <path>
+              <groupId>org.immutables</groupId>
+              <artifactId>gson</artifactId>
+              <version>${project.version}</version>
+            </path>
+            <path>
+              <groupId>org.immutables</groupId>
+              <artifactId>mongo</artifactId>
               <version>${project.version}</version>
             </path>
           </annotationProcessorPaths>
