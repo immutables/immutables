@@ -48,6 +48,9 @@ public interface UsingAllOptionals {
   @Value.Parameter
   javaslang.control.Option<String> jso();
 
+  @Value.Parameter
+  io.vavr.control.Option<String> vo();
+
   class Use {
     @SuppressWarnings("CheckReturnValue")
     void use() {
@@ -59,6 +62,7 @@ public interface UsingAllOptionals {
               .d1(1.1)
               .l1(OptionalLong.empty())
               .jso(javaslang.control.Option.none())
+              .vo(io.vavr.control.Option.none())
               .build();
 
       Objects.equals(value.v1(), value.v2());

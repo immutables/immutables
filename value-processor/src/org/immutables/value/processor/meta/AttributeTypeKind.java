@@ -89,7 +89,8 @@ public enum AttributeTypeKind {
       "io.atlassian.fugue.Option"),
   OPTION_JAVASLANG(
       "Option",
-      "javaslang.control.Option"),
+      "javaslang.control.Option",
+      "io.vavr.control.Option"),
   CUSTOM_COLLECTION("", "");
 
   private final String[] rawTypes;
