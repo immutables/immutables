@@ -51,7 +51,7 @@
       <!-- only to have compile-time Javac classes -->
       <groupId>com.google.errorprone</groupId>
       <artifactId>javac</artifactId>
-      <version>1.9.0-dev-r2644-1</version>
+      <version>${javac.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>

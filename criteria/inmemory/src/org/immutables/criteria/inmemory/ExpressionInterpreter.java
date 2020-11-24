@@ -130,7 +130,7 @@ class ExpressionInterpreter implements Function<Object, Object> {
       }
 
       if (op == StringOperators.TO_UPPER_CASE || op == StringOperators.TO_LOWER_CASE) {
-        Preconditions.checkArgument(args.size() == 1, "Size should be 1 but was %d", args.size());
+        Preconditions.checkArgument(args.size() == 1, "Size should be 1 but was %s", args.size());
         Object value = args.get(0).accept(this);
         if (value == null || value == UNKNOWN) {
           return UNKNOWN;
