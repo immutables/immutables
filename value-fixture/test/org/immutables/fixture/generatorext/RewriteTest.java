@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class RewriteTest {
   @SuppressWarnings("CheckReturnValue")
   @Test
-  @Disabled("FIXME: This test doesn't pass on either of provided JDKs")
+  @Disabled("FIXME: import rewriter can still work, but now in this build due to extension loading problems")
   public void rewrite() {
     // Our changed preconditions will be able to throw IllegalArgumentException
     // instead of NullPointerException
