@@ -197,6 +197,9 @@ final class AccessorAttributesCollector {
     if (element.getModifiers().contains(Modifier.STATIC)) {
       return false;
     }
+    if (NonAttributeMirror.isPresent(element)) {
+      return false;
+    }
     String simpleName = element.getSimpleName().toString();
     switch (simpleName) {
     case HASH_CODE_METHOD:

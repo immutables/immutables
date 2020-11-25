@@ -40,6 +40,9 @@ public final class ValueMirrors {
     boolean builder() default true;
   }
 
+  @Mirror.Annotation("org.immutables.value.Value.NonAttribute")
+  public @interface NonAttribute {}
+
   @Mirror.Annotation("org.immutables.value.Value.Include")
   public @interface Include {
     Class<?>[] value();

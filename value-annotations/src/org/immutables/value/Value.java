@@ -52,7 +52,7 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.TYPE)
-  public @interface Immutable {
+  @interface Immutable {
 
     /**
      * If {@code singleton=true}, generates internal singleton object constructed without any
@@ -123,7 +123,7 @@ public @interface Value {
    */
   @Documented
   @Target({ElementType.TYPE, ElementType.PACKAGE})
-  public @interface Include {
+  @interface Include {
     Class<?>[] value();
   }
 
@@ -160,7 +160,7 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.TYPE)
-  public @interface Enclosing {}
+  @interface Enclosing {}
 
   /**
    * This kind of attribute cannot be set during building, but they are eagerly computed from other
@@ -169,7 +169,7 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  public @interface Derived {}
+  @interface Derived {}
 
   /**
    * Annotates accessor that should be turned in set-able generated attribute. However, it is
@@ -178,7 +178,7 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  public @interface Default {}
+  @interface Default {}
 
   /**
    * Annotate attribute as <em>auxiliary</em> and it will be stored and will be accessible, but will
@@ -190,7 +190,7 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  public @interface Auxiliary {}
+  @interface Auxiliary {}
 
   /**
    * Lazy attributes cannot be set, defined as method that computes value, which is invoke lazily
@@ -224,7 +224,7 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  public @interface Lazy {}
+  @interface Lazy {}
 
   /**
    * Works with {@link Value.Immutable} classes to mark abstract accessor method be included as
@@ -233,13 +233,13 @@ public @interface Value {
    * Following rules applies:
    * <ul>
    * <li>No constructor generated if none of methods have {@link Value.Parameter} annotation</li>
-   * <li>For object to be constructible with a constructor - all non-default and non-derived
+   * <li>For object to be constructable with a constructor - all non-default and non-derived
    * attributes should be annotated with {@link Value.Parameter}.
    * </ul>
    */
   @Documented
   @Target({ElementType.METHOD, ElementType.PARAMETER})
-  public @interface Parameter {
+  @interface Parameter {
     /**
      * Used to specify order of constructor argument. It defaults to zero and allows for
      * non-contiguous order values (arguments are sorted ascending by this order value).
@@ -253,7 +253,7 @@ public @interface Value {
      * but it still might be needed if you wish to reorder arguments</em>
      * <em>
      * Since 2.5.6 the default value was changed to -1 to signify unspecified order, but the logic
-     * behind should not result in any practical incompatibilites.
+     * behind should not result in any practical incompatibilities.
      * </em>
      * @return order
      */
@@ -262,7 +262,7 @@ public @interface Value {
     /**
      * Specify as {@code false} to cancel out parameter: an attribute would not be considered as a
      * parameter. This is useful to override the effect of {@link Style#allParameters()} flag.
-     * By default it is {@code true} and should be omited.
+     * By default it is {@code true} and should be omitted.
      * @return {@code false} if not a parameter
      */
     boolean value() default true;
@@ -340,7 +340,7 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  public @interface Check {}
+  @interface Check {}
 
   /**
    * Specified natural ordering for the implemented {@link SortedSet}, {@link NavigableSet} or
@@ -352,7 +352,7 @@ public @interface Value {
    */
   @Documented
   @Target({ElementType.METHOD, ElementType.PARAMETER})
-  public @interface NaturalOrder {}
+  @interface NaturalOrder {}
 
   /**
    * Specified reversed natural ordering for the implemented {@link SortedSet}, {@link NavigableSet}
@@ -365,11 +365,11 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  public @interface ReverseOrder {}
+  @interface ReverseOrder {}
 
   /**
    * Generate modifiable implementation of abstract value class. Modifiable implementation class
-   * might be useful when you either need overflexible builder or, alternatively, partially built
+   * might be useful when you either need over-flexible builder or, alternatively, partially built
    * representation of value type.
    * This annotation could be used as companion to {@link Immutable} to
    * provide modifiable variant that is convertible back and forth to immutable form. When it is
@@ -392,7 +392,7 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.TYPE)
-  public @interface Modifiable {}
+  @interface Modifiable {}
 
   /**
    * Marks attribute for exclusion from auto-generated {@code toString} method. It will
@@ -402,7 +402,20 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  public @interface Redacted {}
+  @interface Redacted {}
+
+  /**
+   * Can be used to mark some abstract no-argument methods in supertypes (about to be implemented/extended by
+   * abstract value types) as regular, non-attribute methods, i.e. annotation processor will not generate field,
+   * accessor, and builder initialized for it, but instead leave it for developer to implement in abstract
+   * value type (and there will be compilation error for generated class about not implementing all abstract
+   * methods as one can expect). This annotation is needed only for methods matching an accessor with zero
+   * parameters, which are to be turned into generated immutable attribute if no annotation specified. In
+   * addition, if you place it on many arguments method it will not be validated and will just hang there unused.
+   */
+  @Documented
+  @Target(ElementType.METHOD)
+  @interface NonAttribute {}
 
   /**
    * Naming and structural style could be used to customize convention of the generated
@@ -423,7 +436,7 @@ public @interface Value {
    * mismatch on enclosing and nested types.</em>
    */
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
-  public @interface Style {
+  @interface Style {
     /**
      * Patterns to recognize accessors. For example <code>get = {"is*", "get*"}</code> will
      * mimick style of bean getters. If none specified or if none matches, then raw accessor name
@@ -490,7 +503,7 @@ public @interface Value {
      * Constructor method name.
      * <p>
      * Since version {@code 2.1.5} you can also use "new" template string to generate public
-     * constructor instead of factory. The public constructor functionality is experimentatal. Note
+     * constructor instead of factory. The public constructor functionality is experimental. Note
      * that having public constructor configured will not work if {@link Check} or
      * {@link Immutable#singleton()} is used and certain other functionality. In such cases compile
      * error would be raised.
@@ -543,7 +556,7 @@ public @interface Value {
      * template will essentially enable generation of this method, acting both as a naming template
      * and as a feature flag.
      * <p>
-     * Generation of build or throws method requires presense of a function type on the classpath,
+     * Generation of build or throws method requires presence of a function type on the classpath,
      * provided either by Java 8 or Guava on Java 7. If used on java 7 without Guava, this style
      * will have no effect: no method will be generated.
      * <p>
@@ -746,7 +759,7 @@ public @interface Value {
 
     /**
      * Specify default options for the generated immutable objects.
-     * If at least one attribute is specifid in inline {@literal @}{@link Immutable} annotation,
+     * If at least one attribute is specified in inline {@literal @}{@link Immutable} annotation,
      * then this default will not be taken into account, objects will be generated using attributes
      * from inline annotation.
      * @return default configuration
@@ -781,7 +794,7 @@ public @interface Value {
     boolean strictBuilder() default false;
 
     /**
-     * When {@code true} @mdash; disables check that all required attributes have been provided to a
+     * When {@code true} &mdash; disables check that all required attributes have been provided to a
      * builder.
      */
     ValidationMethod validationMethod() default ValidationMethod.SIMPLE;
@@ -910,7 +923,7 @@ public @interface Value {
 
     /**
      * Enabling {@code attributelessSingleton} switches to old behavior of 2.0.x version when
-     * immutables wich had no attributes defined acted as automatic singletons having
+     * immutable instances which had no attributes defined we automatically generated as singleton having
      * {@link #instance()} accessor.
      * As of 2.1 we are more strict and explicit with singletons and are not generating it by
      * default, only when {@link Immutable#singleton()} is explicitly enabled.
@@ -924,14 +937,14 @@ public @interface Value {
      * revert to old, unsafe behavior.
      * <p>
      * In order to initialize default and derived attributes method bodies (initializers) will be
-     * invoked. Intializers could refer to other attributes, some of which might be also derived or
+     * invoked. Initializers could refer to other attributes, some of which might be also derived or
      * uninitialized default values. As it's extremely difficult to reliably inspect initializer
      * methods bodies and compute proper ordering, we use some special generated code which figures
      * it out in runtime. If there will be a cycle in initializers, then
      * {@link IllegalStateException} will be thrown.
      * <p>
      * If you set {@code unsafeDefaultAndDerived} to {@code true}, then simpler, unsafe code will be
-     * generated. With usafe code you cannot refer to other default or derived attributes in
+     * generated. With the unsafe code you cannot refer to other default or derived attributes in
      * initializers as otherwise result will be undefined as order of initialization is not
      * guaranteed.
      * @return {@code true} if old unsafe (but potentially with less overhead) generation should be
@@ -975,7 +988,7 @@ public @interface Value {
      * complexity</li>
      * <li>Builder initializers will have overloaded variants with parameters of the attribute value
      * object's constructor (if it has constructor as opposed to the ones which only have builder).
-     * Effectively this is a shortcut to initialize value object in a more consice way. This works
+     * Effectively this is a shortcut to initialize value object in a more concise way. This works
      * for regular and collection attributes (but not for maps or arrays to avoid complex and
      * confusing overload).</li>
      * </ul>
@@ -1069,7 +1082,7 @@ public @interface Value {
     boolean forceJacksonPropertyNames() default true;
 
     /**
-     * @return if put {@code JsonIngore} on fields. default {@code false}
+     * @return if put {@code JsonIgnore} on fields. default {@code false}
      */
     boolean forceJacksonIgnoreFields() default false;
 
@@ -1079,10 +1092,10 @@ public @interface Value {
      * it might get in the way of highly customized Jackson infrastructure. When disabled, there are
      * no any special stuff generated such as {@code JsonProperty} annotations or internal
      * {@code Json} delegate class together with {@code JsonCreator} method. This allows to place
-     * {@code JsonSerialialize/JsonDeserialialize} annotations on the value types without redundand
+     * {@code JsonSerialize/JsonDeserialize} annotations on the value types without redundant
      * support code being generated.
      * @return {@code true} if generate special Jackson code when encountered
-     *         {@code JsonSerialialize/JsonDeserialialize}. Default is {@code true}.
+     *         {@code JsonSerialize/JsonDeserialize}. Default is {@code true}.
      */
     boolean jacksonIntegration() default true;
 
@@ -1097,11 +1110,11 @@ public @interface Value {
 
     /**
      * All initializers (the methods to set attribute values on a builder) usually have public
-     * visibility regardless of the visibility of the attribute accessors. Usually this doen't
+     * visibility regardless of the visibility of the attribute accessors. Usually this doesn't
      * matter, especially for value types defined as interfaces (where all accessors public). But
      * sometimes there's a need to have abstract class with finer-grained access control to
      * attributes, which also require initializers to follow the access level of accessors defining
-     * attributes. Set this flage to {@code false} if initializers (builder setters) should follow
+     * attributes. Set this flag to {@code false} if initializers (builder setters) should follow
      * access level of attributes.
      * <em>Note this flag is disregarded when {@link #stagedBuilder()} is enabled which generates
      * stage interfaces which requires public access anyway.</em>
@@ -1127,8 +1140,8 @@ public @interface Value {
      * specified exception type have public constructor taking array of strings (can be varargs),
      * then missing parameter names will be passed to that constructor. Otherwise, string
      * constructor is always expected to be present to take formatted error message. It is always
-     * advisable have string constructor even in the presense of attribute names array constructor
-     * as some additional generators might use string constuctor for reporting other invalid state
+     * advisable have string constructor even in the presence of attribute names array constructor
+     * as some additional generators might use string constructor for reporting other invalid state
      * issues.
      * <p>
      * <em>Technically we allow exception class to be checked (non-runtime), but not all processor
@@ -1193,7 +1206,7 @@ public @interface Value {
      * <p>
      * This attribute is semi-deprecated in favor of using {@link Depluralize#dictionary()}
      * annotation which may be placed on a package, type or as meta-annotation. And dictionary will
-     * be merged accross all applicable definitions.
+     * be merged across all applicable definitions.
      * @see #depluralize()
      * @see Depluralize#dictionary()
      * @return array of "singular:plural" pairs.
@@ -1202,7 +1215,7 @@ public @interface Value {
 
     /**
      * You can provide classes which must contain copyOf method with relevant overloads which should
-     * not have unambigous cases as it will be fully as subject to JLS rules of static imports and
+     * not have ambiguous cases as it will be fully a subject to JLS rules of static imports and
      * compile time overload resolution.
      * <p>
      * Tha major use case is custom validation and normalization of the attribute values by types.
@@ -1213,7 +1226,7 @@ public @interface Value {
      * </em>
      * </p>
      * @return classes, for which static imports like {@code import static ..Type.immutableCopyOf;}
-     *         will be generated along with corresponding invokations of {@code immutableCopyOf}
+     *         will be generated along with corresponding invocations of {@code immutableCopyOf}
      *         method when accepting parameters.
      */
     Class<?>[] immutableCopyOfRoutines() default {};
@@ -1233,7 +1246,7 @@ public @interface Value {
 
     /**
      * Setting {@code builtinContainerAttributes} to {@code false} would disable generation of
-     * built-in convenience features of automatically recongized container types such as
+     * built-in convenience features of automatically recognized container types such as
      * {@code Optional}, {@link List}, {@link Map}. This will turn all attribute types into nothing
      * special setters(initializers) and getters. However any registered encodings (type
      * customizers) will be still processed. One of the purposes of this style control is to provide
@@ -1247,7 +1260,7 @@ public @interface Value {
     boolean builtinContainerAttributes() default true;
 
     /**
-     * If enabled modifable type will have void setters and will look more like JavaBean. This is
+     * If enabled, modifiable type will have void setters and will look more like JavaBean. This is
      * modifiable companion types only, not for builders and other types of generated artifacts.
      * <p>
      * <em>Note, we are not supporting JavaBean specification in any way except that Immutables can
@@ -1284,7 +1297,7 @@ public @interface Value {
 
     /**
      * Disable final fields only if there are no other way, considered unsafe. This is only about instance fields of
-     * Immutable implementation class, will not apply to a lot of ther places/generators.
+     * Immutable implementation class, will not apply to a lot of their places/generators.
      * @return default is {@code true}, do not switch off.
      */
     boolean finalInstanceFields() default true;
@@ -1462,7 +1475,7 @@ public @interface Value {
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * construction methods. Builder visibility will follow.
      */
-    public enum ImplementationVisibility {
+    enum ImplementationVisibility {
       /**
        * Generated implementation class forced to be public.
        */
@@ -1493,7 +1506,7 @@ public @interface Value {
       PRIVATE
     }
 
-    public enum BuilderVisibility {
+    enum BuilderVisibility {
       /**
        * Generated builder visibility is forced to be public.
        */
@@ -1508,7 +1521,7 @@ public @interface Value {
       PACKAGE
     }
 
-    public enum ValidationMethod {
+    enum ValidationMethod {
       /**
        * Disables null and mandatory attribute checks. Any missing primitives will be initialized to
        * their zero-based values: {@code false}, {@code 0}, {@code '\0'}. Object references will be
@@ -1526,7 +1539,7 @@ public @interface Value {
        * {@literal @}{@code javax.validation.constraints.NotNull} and creates static validator per
        * objects. To better control the usage of JSR 303 Validator objects or enable fail-fast null
        * checks, please use custom validation mixin approach, where you create base abstract class
-       * or interface with default methods to provide `@Value.Check` which would explictly call
+       * or interface with default methods to provide `@Value.Check` which would explicitly call
        * validation of your choice. Please see discussion and examples provided in the following
        * github issue:
        * <a href="https://github.com/immutables/immutables/issues/26">immutables/immutables#26</a>
@@ -1537,11 +1550,11 @@ public @interface Value {
     /**
      * Enables depluratization and may provide depluralization dictionary.
      * The annotation which may be placed on a package, type or as meta-annotation. And dictionary
-     * will be merged accross all applicable definitions.
+     * will be merged across all applicable definitions.
      * @see Style#depluralize()
      */
     @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
-    public @interface Depluralize {
+    @interface Depluralize {
       /**
        * Depluralization dictionary.
        * @see Style#depluralizeDictionary()
