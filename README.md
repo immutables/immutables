@@ -1,6 +1,6 @@
 Read full documentation at http://immutables.org
 
-[![Build Status](https://travis-ci.org/immutables/immutables.svg?branch=master)](https://travis-ci.org/immutables/immutables)
+![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg)
 
 ```java
 // Define abstract value type using interface, abstract class or annotation
