@@ -15,20 +15,12 @@
  */
 package org.immutables.fixture.custann;
 
-import org.immutables.value.Value;
-
 public class CustomImmutables {
 
   @CustomWithStyle
-  // FIXME Schrodinger functionality, it existed but not tested anymore
-  // due to build problems or changes over jdk 8+
-  // just adding immutable annotation for now
-  @Value.Immutable
   interface Od {}
   
   @CustomWithStyle2
-  // FIXME just adding immutable annotation for now
-  @Value.Immutable
   interface Dv {}
 
   @SuppressWarnings("CheckReturnValue")
