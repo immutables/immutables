@@ -203,7 +203,42 @@ public class NestedTest {
             "  call op=EQUAL path=a.value constant=a",
             "  call op=EQUAL path=x.value constant="
     );
+  }
 
+  @Test
+  public void any1() {
+    assertExpressional(RootCriteria.root.x.values.any().is("a"),
+            "call op=ANY path=x.values",
+            "  call op=EQUAL path= constant=a");
+
+    // with
+    assertExpressional(RootCriteria.root.x.values.any().with(a -> a.is("a")),
+            "call op=ANY path=x.values",
+            "  call op=EQUAL path= constant=a");
+
+    assertExpressional(RootCriteria.root.x.y.z.values.any().isNot("a"),
+            "call op=ANY path=x.y.z.values",
+            "  call op=NOT_EQUAL path= constant=a");
+
+    assertExpressional(RootCriteria.root.x.y.z.values.any().with(a -> a.isNot("a")),
+            "call op=ANY path=x.y.z.values",
+            "  call op=NOT_EQUAL path= constant=a");
+
+    assertExpressional(RootCriteria.root.x.manyY.any().z.value.is("a"),
+            "call op=ANY path=x.manyY",
+            "  call op=EQUAL path=z.value constant=a");
+
+    assertExpressional(RootCriteria.root.x.manyY.any().with(a -> a.z.value.is("a")),
+            "call op=ANY path=x.manyY",
+            "  call op=EQUAL path=z.value constant=a");
+
+    assertExpressional(RootCriteria.root.x.manyY.any()
+                    .with(a -> a.z.value.is("a").value.isNot("b")),
+            "call op=ANY path=x.manyY",
+            "  call op=AND",
+            "    call op=EQUAL path=z.value constant=a",
+            "    call op=NOT_EQUAL path=value constant=b"
+    );
   }
 
   @Disabled("doesn't return optional statement")

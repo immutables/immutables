@@ -19,6 +19,7 @@ package org.immutables.criteria.nested;
 import org.immutables.criteria.Criteria;
 import org.immutables.value.Value;
 
+import java.util.List;
 import java.util.Optional;
 
 @Value.Immutable
@@ -30,4 +31,7 @@ public interface Root {
 
   /**  X, Y, Z are required fields (without optional)  */
   X x();
+
+  /** Just a list of X */
+  List<X> manyX();
 }

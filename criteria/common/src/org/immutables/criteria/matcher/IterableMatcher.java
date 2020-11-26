@@ -49,7 +49,13 @@ public interface IterableMatcher<R, S, V> extends Matcher {
   default R hasSize(int size) {
     UnaryOperator<Expression> expr = e -> Expressions.binaryCall(IterableOperators.HAS_SIZE, e, Expressions.constant(size));
     return Matchers.extract(this).applyAndCreateRoot(expr);
+  }
 
+  /**
+   * Match at least one element of this iterable
+   */
+  default S any() {
+    return Matchers.extract(this).any().create();
   }
 
   interface Self<R, V, P> extends Template<Self<R, V, P>, Self<R, V, P>, V, P>, Disjunction<Self<R, V, P>> {}
