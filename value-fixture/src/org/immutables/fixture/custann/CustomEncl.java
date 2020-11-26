@@ -15,17 +15,13 @@
  */
 package org.immutables.fixture.custann;
 
-import org.immutables.value.Value;
-
 /**
  * The Interface CustomEncl.
  */
 @CustomWithEncStyle
-@Value.Immutable
 public interface CustomEncl {
 
   @CustomWithEncStyle
-  @Value.Immutable
   interface Cuzt {}
 
   @SuppressWarnings("CheckReturnValue")

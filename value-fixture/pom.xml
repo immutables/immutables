@@ -69,13 +69,6 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>encode</artifactId>
-      <type>test-jar</type>
-      <version>${project.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
       <artifactId>metainf</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>
@@ -190,37 +183,7 @@
             </path>
             <path>
               <groupId>org.immutables</groupId>
-              <artifactId>serial</artifactId>
-              <version>${project.version}</version>
-            </path>
-            <path>
-              <groupId>org.immutables</groupId>
-              <artifactId>builder</artifactId>
-              <version>${project.version}</version>
-            </path>
-            <path>
-              <groupId>org.immutables</groupId>
-              <artifactId>annotate</artifactId>
-              <version>${project.version}</version>
-            </path>
-            <path>
-              <groupId>org.immutables</groupId>
-              <artifactId>encode</artifactId>
-              <version>${project.version}</version>
-            </path>
-            <path>
-              <groupId>org.immutables</groupId>
               <artifactId>metainf</artifactId>
-              <version>${project.version}</version>
-            </path>
-            <path>
-              <groupId>org.immutables</groupId>
-              <artifactId>gson</artifactId>
-              <version>${project.version}</version>
-            </path>
-            <path>
-              <groupId>org.immutables</groupId>
-              <artifactId>mongo</artifactId>
               <version>${project.version}</version>
             </path>
           </annotationProcessorPaths>

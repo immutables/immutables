@@ -59,6 +59,10 @@ final class StaticEnvironment {
       serviceFiles.clear();
     }
 
+    void preInit(ProcessingEnvironment processing) {
+      this.processing = processing;
+    }
+
     void init(Set<? extends TypeElement> annotations, RoundEnvironment round, ProcessingEnvironment processing) {
       this.components = MutableClassToInstanceMap.create();
       this.processing = processing;
@@ -110,7 +114,7 @@ final class StaticEnvironment {
   }
 
   static ProcessingEnvironment processing() {
-    return state().processing;
+    return state.get().processing;
   }
 
   static RoundEnvironment round() {
@@ -127,6 +131,10 @@ final class StaticEnvironment {
 
   static void writeServiceFiles() {
     state().writeServiceFiles();
+  }
+
+  static void preInit(ProcessingEnvironment processing) {
+    state.get().preInit(processing);
   }
 
   static void init(

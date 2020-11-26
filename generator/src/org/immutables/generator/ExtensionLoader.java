@@ -48,16 +48,14 @@ public final class ExtensionLoader {
         List<String> extensions = Lists.newArrayList();
 
         // best effort to read it from compilation classpath
-        if (StaticEnvironment.isInitialized()) {
-          try {
-            String lines = getClasspathResourceText(
-                StaticEnvironment.processing().getFiler(),
-                resource);
-            extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
-          } catch (RuntimeException | IOException cannotReadCompilationClasspath) {
-            // we ignore this as we did or best effort
-            // and there are no plans to halt whole compilation
-          }
+        try {
+          String lines = getClasspathResourceText(
+              StaticEnvironment.processing().getFiler(),
+              resource);
+          extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
+        } catch (RuntimeException | IOException cannotReadCompilationClasspath) {
+          // we ignore this as we did or best effort
+          // and there are no plans to halt whole compilation
         }
 
         ClassLoader classLoader = ExtensionLoader.class.getClassLoader();

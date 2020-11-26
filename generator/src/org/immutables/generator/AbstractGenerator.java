@@ -80,6 +80,12 @@ public abstract class AbstractGenerator extends AbstractProcessor {
   }
 
   @Override
+  public synchronized void init(ProcessingEnvironment processingEnv) {
+    StaticEnvironment.preInit(processingEnv);
+    super.init(processingEnv);
+  }
+
+  @Override
   public final boolean process(Set<? extends TypeElement> annotations, RoundEnvironment round) {
     try {
       StaticEnvironment.init(annotations, round, processingEnv);
