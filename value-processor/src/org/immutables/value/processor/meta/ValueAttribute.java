@@ -228,7 +228,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   public boolean isOmittable() {
     return !isMandatory() || isDataIgnore();
   }
-  
+
   public boolean isMandatory() {
     return isGenerateAbstract
         && !isGenerateDefault // is the case for defaulted abstract annotation attribute
@@ -484,7 +484,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return IgnoreMirror.isPresent(element)
         || OkIgnoreMirror.isPresent(element);
   }
-  
+
   public boolean isDataIgnore() {
     return DataIgnoreMirror.isPresent(element);
   }
@@ -776,6 +776,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public boolean isGenerateJdk9() {
     return containingType.isGenerateJdk9()
+      // FIXME  && !isNullable()
         && isGenerateJdkOnly()
         && (typeKind.isList() || typeKind.isMap() || typeKind.isSet())
         && nullElements.ban();

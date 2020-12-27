@@ -142,8 +142,8 @@ public @interface InjectAnnotation {
   boolean ifPresent() default false;
 
   /**
-   * The places where to put generated annotation. If annotation type have been spefied by
-   * {@link #type()} (and is not overriden by #code()), then there will be element target check,
+   * The places where to put generated annotation. If annotation type have been specified by
+   * {@link #type()} (and is not overridden by #code()), then there will be element target check,
    * otherwise (if fully specified by {@link #code()} annotation will be always placed and it's
    * better match to target element type.
    */

@@ -2490,31 +2490,23 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [if v.encoding]
   [rr.declareFields v]
   [else]
-  [for anj in v.fieldInjectedAnnotations]
-  [anj]
-  [/for]
+  [eachLine v.fieldInjectedAnnotations]
   [jsonIgnore type]
   private [if v.generateTransientDerived]transient [/if][if type.style.finalInstanceFields]final [/if][v.atNullability][immutableImplementationType v] [v.name];
   [/if]
 [/for]
 [if type.cacheHash]
-  [for anj in type.syntheticFieldsInjectedAnnotations]
-  [anj]
-  [/for]
+  [eachLine type.syntheticFieldsInjectedAnnotations]
   [jsonIgnore type]
   [if type.useLazyhash][hiddenMutableState type][/if]
   private[if not type.serial.simple] transient[/if][if type.usePrehashed] final[/if] int hashCode;[if type.useLazyhash] // hashCode lazily computed[/if]
 [/if]
 [if type.generateOrdinalValue]
   [jsonIgnore type]
-  [for anj in type.syntheticFieldsInjectedAnnotations]
-  [anj]
-  [/for]
+  [eachLine type.syntheticFieldsInjectedAnnotations]
   private final int ordinal;
   [jsonIgnore type]
-  [for anj in type.syntheticFieldsInjectedAnnotations]
-  [anj]
-  [/for]
+  [eachLine type.syntheticFieldsInjectedAnnotations]
   private final Domain domain;
 [/if]
 [if type.useSingleton]
@@ -2694,6 +2686,7 @@ private static final byte STAGE_UNINITIALIZED = 0;
 private static final byte STAGE_INITIALIZED = 1;
 [-- would it remain thread safe if remove volatile? --]
 [hiddenMutableState type]
+[eachLine type.syntheticFieldsInjectedAnnotations]
 private transient volatile InitShim [disambiguateField type 'initShim'] = new InitShim();
 
 [atGenerated type]
