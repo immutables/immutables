@@ -17,7 +17,9 @@
 package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.ImmutableQuery;
+import org.immutables.criteria.expression.IterableOperators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
@@ -139,6 +141,24 @@ public final class CriteriaContext implements Queryable {
 
   public CriteriaContext or() {
     return new CriteriaContext(previous, state.withCombiner(Combiner.or()));
+  }
+
+  /**
+   * Build {@link IterableMatcher#any()} sub-matcher.
+   */
+  public CriteriaContext any() {
+    Path path = path();
+    Class<?> newType; // new path starts at this root
+    try {
+      newType = (Class<?>) Matchers.iterableTypeArgument(path.returnType());
+    } catch (IllegalArgumentException|ClassCastException e) {
+      throw new IllegalArgumentException(String.format("At path %s for %s",
+              path.toStringPath(), path.returnType()), e);
+    }
+
+    Path newPath = Path.ofClass(newType);
+    Combiner combiner = ((left, right) -> Expressions.binaryCall(IterableOperators.ANY, path, right));
+    return new CriteriaContext(previous, state.withCombiner(combiner).withPartial(newPath));
   }
 
   @Override

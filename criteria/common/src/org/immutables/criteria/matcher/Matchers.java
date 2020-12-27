@@ -51,6 +51,26 @@ public final class Matchers {
   }
 
   /**
+   * Argument/component type of {@code Iterable<String>} or {@code String[]} will be {@code String}.
+   */
+  static Type iterableTypeArgument(Type type) {
+    Objects.requireNonNull(type, "type");
+    if (type instanceof ParameterizedType) {
+      return ((ParameterizedType) type).getActualTypeArguments()[0];
+    }
+
+    if (type instanceof Class) {
+      Class<?> clazz = (Class<?>) type;
+      // for arrays
+      if (clazz.isArray()) {
+        return clazz.getComponentType();
+      }
+    }
+
+    throw new IllegalArgumentException("Invalid type " + type + ". Not iterable/array.");
+  }
+
+  /**
    * Gets generic type variable of aggregation interface.
    */
   static Type aggregationType(Class<?> from, Class<?> searchFor, String methodName, Expression fallback) {

@@ -108,8 +108,6 @@ public abstract class BigDecimalTemplate {
 
   }
 
-
-
   private IterableChecker<List<String>, String> ids(BigDecimalHolderCriteria criteria) {
     return CriteriaChecker.<TypeHolder.BigDecimalHolder>ofReader(repository.find(criteria)).toList(TypeHolder.BigDecimalHolder::id);
   }

@@ -404,10 +404,12 @@ public interface TypeHolder {
     IntegerHolder integer();
     Optional<IntegerHolder> optionalInteger();
     @Nullable IntegerHolder nullableInteger();
+    List<IntegerHolder> integerList();
 
     StringHolder string();
     Optional<StringHolder> optionalString();
     @Nullable StringHolder nullableString();
+    List<StringHolder> stringList();
 
     static Supplier<ImmutableCompositeHolder> generator() {
       AtomicLong counter = new AtomicLong();

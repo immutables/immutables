@@ -19,8 +19,11 @@ package org.immutables.criteria.nested;
 import org.immutables.criteria.Criteria;
 import org.immutables.value.Value;
 
+import java.util.List;
+
 @Value.Immutable
 @Criteria
 public interface Z {
   String value();
+  List<String> values();
 }
