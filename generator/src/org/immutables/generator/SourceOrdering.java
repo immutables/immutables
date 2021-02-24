@@ -228,6 +228,11 @@ public final class SourceOrdering {
         if (type.getKind() == TypeKind.DECLARED) {
           return (TypeElement) ((DeclaredType) type).asElement();
         }
+        if (type.getKind() == TypeKind.ERROR) {
+          try {
+            return (TypeElement) ((DeclaredType) type).asElement();
+          } catch (Exception bestEffortToHandleErrorElement) {}
+        }
         return null;
       }
 
@@ -257,8 +262,8 @@ public final class SourceOrdering {
         String rightKey = ToSimpleName.FUNCTION.apply(right);
         Intratype leftIntratype = accessorOrderings.get(leftKey);
         Intratype rightIntratype = accessorOrderings.get(rightKey);
-        Preconditions.checkNotNull(leftIntratype, "intratype not found by key: %s", leftKey);
-        Preconditions.checkNotNull(rightIntratype, "intratype not found by key: %s", rightKey);
+        // can be issue under Eclipse (still?)
+        if (leftIntratype == null || rightIntratype == null) return 0;
         return leftIntratype == rightIntratype
             ? leftIntratype.ordering.compare(leftKey, rightKey)
             : Integer.compare(leftIntratype.rank, rightIntratype.rank);
