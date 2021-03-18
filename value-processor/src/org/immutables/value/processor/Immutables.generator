@@ -700,17 +700,17 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   private static final class InternerHolder {
   [if type.generateJdkOnly]
     [if type.useWeakInterned]
-    private static final java.util.Map<[type.typeImmutable.simple], java.lang.ref.WeakReference<[type.typeImmutable.simple]>> INTERNER =
+    static final java.util.Map<[type.typeImmutable.simple], java.lang.ref.WeakReference<[type.typeImmutable.simple]>> INTERNER =
         new java.util.WeakHashMap<>();
     [else]
-    private static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.relative]> INTERNER =
+    static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.relative]> INTERNER =
         new java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.relative]>();
     [/if]
   [else]
     [if type.useWeakInterned]
-    private static final [guava].collect.Interner<[type.typeImmutable.relative]> INTERNER = [guava].collect.Interners.newWeakInterner();
+    static final [guava].collect.Interner<[type.typeImmutable.relative]> INTERNER = [guava].collect.Interners.newWeakInterner();
     [else]
-    private static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.newStrongInterner();
+    static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.newStrongInterner();
     [/if]
   [/if]
   }
