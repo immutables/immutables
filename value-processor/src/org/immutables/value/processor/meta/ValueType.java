@@ -275,8 +275,11 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return style().jdkOnly() || noGuavaInClasspath();
   }
 
+  // Until we can fix copy constructors generation for new Java9 collections
+  private static final boolean java9CollectionsEnabled = Boolean.getBoolean("immutables.java9-collections");
+
   public boolean isGenerateJdk9() {
-    return constitution.protoclass().environment().hasJava9Collections();
+    return java9CollectionsEnabled && constitution.protoclass().environment().hasJava9Collections();
   }
 
   public boolean isGenerateBuildOrThrow() {
