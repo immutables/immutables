@@ -216,7 +216,7 @@
     <profile>
       <id>jdk11</id>
       <activation>
-        <jdk>11</jdk>
+        <jdk>[11,17)</jdk>
       </activation>
       <properties>
         <maven.compiler.compilerVersion>11</maven.compiler.compilerVersion>
@@ -257,6 +257,9 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
               <compilerId>eclipse</compilerId>
+              <compilerArgs combine.children="override">
+                <arg>-Xlint:unchecked</arg>
+              </compilerArgs>
             </configuration>
             <dependencies>
               <dependency>
