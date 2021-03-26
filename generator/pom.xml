@@ -41,9 +41,9 @@
     </dependency>
     <dependency>
       <!-- only to have compile-time ECJ classes -->
-      <groupId>org.eclipse.jdt.core.compiler</groupId>
+      <groupId>org.eclipse.jdt</groupId>
       <artifactId>ecj</artifactId>
-      <version>4.4</version>
+      <version>3.25.0</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
