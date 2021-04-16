@@ -753,7 +753,7 @@ public abstract class Constitution {
         String superclassString = SourceExtraction.getSuperclassString(t);
         String rawSuperclass = SourceTypes.extract(superclassString).getKey();
         // We need to extend the base class
-        if (!rawSuperclass.equals(typeAbstract().toString())) {
+        if (!typeAbstract().toString().endsWith(rawSuperclass)) {
           protoclass()
                   .report()
                   .withElement(t)

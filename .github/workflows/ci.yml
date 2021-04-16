@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ '8', '11', '13', '14', '15' ]
+        java: [ '8', '11', '15' ]
+        compiler: [ 'javac', 'ecj' ]
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK
@@ -23,4 +24,4 @@ jobs:
     - name: print Java version
       run: java -version
     - name: Run tests
-      run: mvn --batch-mode --no-transfer-progress clean test
+      run: mvn --batch-mode --no-transfer-progress clean test -P${{ matrix.compiler }}
