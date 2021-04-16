@@ -51,4 +51,4 @@ ImmutableValueObject then would not be used outside of generated type. See about
    limitations under the License.
 ```
 
-See releases tab for release history. Archived [changelog](./archive/CHANGELOG.md) for earlier releases.
+See [releases](/immutables/immutables/releases) tab for release history. Archived [changelog](./archive/CHANGELOG.md) for earlier releases.
