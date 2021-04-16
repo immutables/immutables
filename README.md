@@ -2,19 +2,22 @@ Read full documentation at http://immutables.org
 
 ![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg)
 
+## Modern usage style, aka "sandwich"
 ```java
 // Define abstract value type using interface, abstract class or annotation
 @Value.Immutable
 public interface ValueObject extends WithValueObject {
-  // extend not-yet-generated WithValueObject to inherit `with*` method signatures
+  // WithValueObject is not yet genetated, We extend With* to inherit `with*` method signatures
   String getName();
   List<Integer> getCounts();
   Optional<String> getDescription();
 
   class Builder extends ImmutableValueObject.Builder {}
   // ImmutableValueObject.Builder will be generated and
-  // our builder will inherit and reexport methods as it's own
-}
+  // our builder will inherit and reexport methods as it's own.
+  // Static nested Builder will inherit all the public method
+  // signatures of ImmutableValueObject.Builder
+} 
 
 // Use generated immutable implementation and builder
 ValueObject v =
@@ -28,11 +31,12 @@ ValueObject v =
 v = v.withName("Doe");
 ```
 
-License
----------
+ImmutableValueObject then would not be used outside of generated type. See about this and other generation [https://immutables.github.io/style.html](styles here) 
+
+## License
 
 ```
-   Copyright 2013-2018 Immutables Authors and Contributors
+   Copyright 2013-2021 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -47,6 +51,4 @@ License
    limitations under the License.
 ```
 
-Changelog
----------
-See [changelog](CHANGELOG.md) for release history.
+See releases tab for release history. Archived [changelog](./archive/CHANGELOG.md) for earlier releases.
