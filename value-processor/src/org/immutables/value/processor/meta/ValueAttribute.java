@@ -1370,7 +1370,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public String implementationModifiableType() {
-    if (isAttributeValueKindModifyFrom()) {
+    if (isAttributeValueKindModifyFrom() && !isBeanFriendlyModifiable()) {
       return attributeValueType.constitution.typeModifiable().toString();
     }
     return getType();
@@ -1896,6 +1896,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public boolean shouldLimitLengthInToString() {
     return !isPrimitive() && protoclass().styles().style().limitStringLengthInToString() > 0;
+  }
+
+  public boolean isBeanFriendlyModifiable() {
+    return containingType.isBeanFriendlyModifiable();
   }
 
   enum ToName implements Function<ValueAttribute, String> {

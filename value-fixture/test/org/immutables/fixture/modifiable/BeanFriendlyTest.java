@@ -15,12 +15,17 @@
  */
 package org.immutables.fixture.modifiable;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.beans.FeatureDescriptor;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -31,17 +36,29 @@ public class BeanFriendlyTest {
     ImmutableSet<String> rwProperties =
         ImmutableSet.of("primary", "id", "description", "names", "options", "extra");
 
-    FluentIterable<PropertyDescriptor> propertyDescriptors =
+    FluentIterable<PropertyDescriptor> descriptors =
         FluentIterable.of(
             Introspector.getBeanInfo(ModifiableBeanFriendly.class)
                 .getPropertyDescriptors());
 
-    check(propertyDescriptors.transform(p -> p.getName()).toSet().containsAll(rwProperties));
+    check(descriptors.transform(FeatureDescriptor::getName).toSet().containsAll(rwProperties));
 
-    for (PropertyDescriptor pd : propertyDescriptors) {
-      check(pd.getReadMethod()).notNull();
-      if (rwProperties.contains(pd.getName())) {
-        check(pd.getWriteMethod()).notNull();
+    for (PropertyDescriptor pd : descriptors) {
+      String name = pd.getName();
+      try {
+        if (rwProperties.contains(pd.getName())) {
+          Field f = ModifiableBeanFriendly.class.getDeclaredField(name);
+          Method r = pd.getReadMethod();
+          Method w = pd.getWriteMethod();
+          check(r).notNull();
+          check(r.getModifiers() & Modifier.FINAL).is(0);
+          check(f.getModifiers() & Modifier.FINAL).is(0);
+          check(f.getType() == r.getReturnType());
+          check(w).notNull();
+          check(w.getModifiers() & Modifier.FINAL).is(0);
+        }
+      } catch (Exception | AssertionError a) {
+        throw new AssertionError("property '" + name + "': " + a.getMessage(), a);
       }
     }
 
@@ -49,7 +66,8 @@ public class BeanFriendlyTest {
     bean.setPrimary(true);
     bean.setDescription("description");
     bean.setId(1000);
-    bean.setNames(ImmutableList.of("name"));
+    bean.setNames(new HashSet<>());
+    bean.addNames("name");
     bean.addNames("name2");
     bean.putOptions("foo", "bar");
 
@@ -58,7 +76,7 @@ public class BeanFriendlyTest {
     check(immutableBean.isPrimary());
     check(immutableBean.getDescription()).is("description");
     check(immutableBean.getId()).is(1000);
-    check(immutableBean.getNames()).isOf("name", "name2");
+    check(immutableBean.getNames()).hasAll("name", "name2");
     check(immutableBean.getOptions()).is(ImmutableMap.of("foo", "bar"));
 
     // from works as with Immutable

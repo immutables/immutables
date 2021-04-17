@@ -17,6 +17,7 @@ package org.immutables.fixture.modifiable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import org.immutables.value.Value;
 
@@ -36,7 +37,7 @@ public interface BeanFriendly extends Identifiable {
 
   String getDescription();
 
-  List<String> getNames();
+  Set<String> getNames();
 
   Map<String, String> getOptions();
 
