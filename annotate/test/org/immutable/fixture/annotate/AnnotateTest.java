@@ -21,7 +21,7 @@ import org.immutable.fixture.annotate.InjAnn.ToInj;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
-// Validates presense of injected annotations
+// Validates presence of injected annotations
 public class AnnotateTest {
   @Test
   public void hasToInjPresentFromPackage() throws Exception {

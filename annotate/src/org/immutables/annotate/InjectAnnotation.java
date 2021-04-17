@@ -100,13 +100,13 @@ public @interface InjectAnnotation {
    * annotation fully qualified name.
    * Special symbols can be used to further refine code of the annotation:
    * <ul>
-   * <li>{@code [[*]]} inserts all attributes of definiting annotation (the one which is annotated
+   * <li>{@code [[*]]} inserts all attributes of defining annotation (the one which is annotated
    * with {@code InjectAnnotation}) into target annotation code. Obviously those should match: be
    * source-compatible. These will fully format attribute and literals, including commas between,
    * but excluding any surrounding parentheses, so they can be mixed to non-overlapping hardcoded
    * attributes.
    * <li>{@code [[!name]]} inserts the simple name of the target attribute (or type) into annotation
-   * code, insertions are literal, without any quoutes etc.
+   * code, insertions are literal, without any quotes etc.
    * <li>{@code [[*names]]} inserts the simple names of all attributes defined by abstract value
    * type as as comma separated array initializer of quoted string literals. {@code {"a", "b", "c"}}
    * <li>{@code [[}<em>attr_name</em>{@code ]]} inserts source formatted value of injection
@@ -136,7 +136,7 @@ public @interface InjectAnnotation {
    * {@link #type()} is set and corresponding model element have the same annotation. {@link #code}
    * expansion will still work and can override annotation type (if starts with full annotation
    * definition).
-   * @return {@code true} if annotation insertion is triggered by the presense of the same
+   * @return {@code true} if annotation insertion is triggered by the presence of the same
    *         annotation on a model element.
    */
   boolean ifPresent() default false;
@@ -156,7 +156,7 @@ public @interface InjectAnnotation {
    * from most specific to least specific, if there already was annotation injected by the some key,
    * the following annotations by the same key will be discarded.
    * if not specified explicitly (empty string in the annotation attribute) the key will be
-   * auto-inferred as {@code type()} if specifed or from code template string
+   * auto-inferred as {@code type()} if specified or from code template string
    */
   String deduplicationKey() default "";
 
