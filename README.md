@@ -31,7 +31,7 @@ ValueObject v =
 v = v.withName("Doe");
 ```
 
-ImmutableValueObject then would not be used outside of generated type. See about this and other generation [https://immutables.github.io/style.html](styles here) 
+ImmutableValueObject then would not be used outside of generated type. See about this and other generation [styles here](https://immutables.github.io/style.html) 
 
 ## License
 
