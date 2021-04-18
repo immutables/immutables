@@ -1530,6 +1530,12 @@ public @interface Value {
        */
       NONE,
       /**
+       * This validation method is similar to {@link #NONE} in that that there are no null checks.
+       * But all attributes which are not `@Default` or marked with `@Nullable` are still checked
+       * to be provided (even with {@code null} values in case of object references.
+       */
+      MANDATORY_ONLY,
+      /**
        * Simple validation, verifying that non-null attributes have been provided. This is classic
        * fail-fast, null-hostile behavior and works best in most cases.
        */

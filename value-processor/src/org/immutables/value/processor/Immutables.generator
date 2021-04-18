@@ -4437,7 +4437,7 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template maybeCopyOf Attribute v String expression][if v.generateImmutableCopyOf]immutableCopyOf([expression])[else][expression][/if][/template]
 
-[template maybeNonNullValue Attribute v String expression][if v.primitive or v.nullable][expression][else][requireNonNull v.containingType]([expression], "[v.name]")[/if][/template]
+[template maybeNonNullValue Attribute v String expression][if v.primitive or (v.nullable or v.validationCustomized)][expression][else][requireNonNull v.containingType]([expression], "[v.name]")[/if][/template]
 
 [template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this[/template]
 

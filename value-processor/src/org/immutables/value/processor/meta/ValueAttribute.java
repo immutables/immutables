@@ -233,10 +233,15 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return isGenerateAbstract
         && !isGenerateDefault // is the case for defaulted abstract annotation attribute
         && !isContainerType()
-        && !isNullable()
+        && !(isPrimitive() && (validation() == ValidationMethod.NONE
+        || validation() == ValidationMethod.VALIDATION_API))
+        && !(isNullable() && !isNullabilitySynthetic())
         && !isEncoding()
-        && !hasBuilderSwitcherDefault()
-        && !(isPrimitive() && protoclass().styles().style().validationMethod() != ValidationMethod.SIMPLE);
+        && !hasBuilderSwitcherDefault();
+  }
+
+  private ValidationMethod validation() {
+    return protoclass().styles().style().validationMethod();
   }
 
   /**
@@ -248,6 +253,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public boolean isNullable() {
     return nullability != null;
+  }
+
+  public boolean isNullabilitySynthetic() {
+    return nullability != null && nullability.isSynthetic();
   }
 
   public ImmutableList<String> docComment = ImmutableList.of();
@@ -1643,7 +1652,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     }
     if (isCollectionType()
         && nullElements == NullElements.BAN
-        && protoclass().styles().style().validationMethod() == ValidationMethod.NONE) {
+        && (validation() == ValidationMethod.NONE
+        || validation() == ValidationMethod.MANDATORY_ONLY)) {
       nullElements = NullElements.NOP;
     }
     if (annotationInjections != null) {
@@ -1676,9 +1686,14 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     this.docComment = containingType.extractDocComment(element);
     if (!isPrimitive()
         && isMandatory()
-        && protoclass().styles().style().validationMethod() != ValidationMethod.SIMPLE) {
-      this.nullability = NullabilityAnnotationInfo.forTypeUse();
+        && validation() != ValidationMethod.SIMPLE) {
+      boolean synthetic = validation() == ValidationMethod.MANDATORY_ONLY;
+      this.nullability = NullabilityAnnotationInfo.forTypeUse(synthetic);
     }
+  }
+
+  public boolean isValidationCustomized() {
+    return validation() != ValidationMethod.SIMPLE;
   }
 
   private void initBuilderParamsIfApplicable() {
@@ -1749,7 +1764,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       // because privimitive cannot be null
       return true;
     }
-    if (isGenerateDefault && isNullable()) {
+    if (isGenerateDefault && (isNullable() || isValidationCustomized())) {
       // nullable arrays should be able to distinguish null from default
       return true;
     }

@@ -32,4 +32,8 @@ public interface NoValidation {
 
   @Value.Parameter
   int i();
+
+  @Value.Default default String c() {
+    return "C";
+  }
 }

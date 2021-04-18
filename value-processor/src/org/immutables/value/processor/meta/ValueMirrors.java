@@ -282,6 +282,7 @@ public final class ValueMirrors {
 
     public enum ValidationMethod {
       NONE,
+      MANDATORY_ONLY,
       SIMPLE,
       VALIDATION_API
     }

@@ -44,6 +44,10 @@ abstract class NullabilityAnnotationInfo {
     return asPrefix();
   }
 
+  boolean isSynthetic() {
+    return false;
+  }
+
   @Value.Lazy
   String asLocalPrefix() {
     boolean applicableToLocal = Annotations.annotationMatchesTarget(
@@ -55,8 +59,11 @@ abstract class NullabilityAnnotationInfo {
         : "";
   }
 
-  /** Ad-hoc implementation for type-use level nullable annotation. */
   static NullabilityAnnotationInfo forTypeUse() {
+    return forTypeUse(false);
+  }
+  /** Ad-hoc implementation for type-use level nullable annotation. */
+  static NullabilityAnnotationInfo forTypeUse(boolean synthetic) {
     return new NullabilityAnnotationInfo() {
       @Override
       TypeElement element() {
@@ -83,6 +90,10 @@ abstract class NullabilityAnnotationInfo {
       @Override
       String asPrefix() {
         return "";
+      }
+
+      @Override boolean isSynthetic() {
+        return synthetic;
       }
     };
   }

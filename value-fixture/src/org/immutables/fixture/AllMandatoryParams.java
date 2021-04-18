@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 Immutables Authors and Contributors
+   Copyright 2017-2021 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,11 +18,19 @@ package org.immutables.fixture;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Value.Style(allMandatoryParameters = true, defaultAsDefault = true)
+@Value.Style(
+    allMandatoryParameters = true,
+    defaultAsDefault = true,
+    validationMethod = Value.Style.ValidationMethod.MANDATORY_ONLY
+)
 public interface AllMandatoryParams {
   int a();
 
   boolean b();
+
+  String s();
+
+  Object o();
 
   default String c() {
     return "C";
@@ -30,6 +38,6 @@ public interface AllMandatoryParams {
 
   @SuppressWarnings("CheckReturnValue")
   static void use() {
-    ImmutableAllMandatoryParams.of(1, true).withC("ABC");
+    ImmutableAllMandatoryParams.of(1, true, "SA", null).withC("ABC");
   }
 }
