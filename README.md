@@ -7,7 +7,7 @@ Read full documentation at http://immutables.org
 // Define abstract value type using interface, abstract class or annotation
 @Value.Immutable
 public interface ValueObject extends WithValueObject {
-  // WithValueObject is not yet genetated, We extend With* to inherit `with*` method signatures
+  // WithValueObject is not yet generated, We extend With* to inherit `with*` method signatures
   String getName();
   List<Integer> getCounts();
   Optional<String> getDescription();
