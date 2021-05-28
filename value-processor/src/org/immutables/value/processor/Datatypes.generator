@@ -237,7 +237,7 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
           try {
             instance = buildInstance();
           } catch (java.lang.Exception e) {
-            if (violations == null) violations = new java.util.ArrayList<>(1);
+            if (violations.isEmpty()) violations = new java.util.ArrayList<>(1);
             violations.add([dtt].Datatype.Violation.of("check", e.getMessage()));
           }
         }

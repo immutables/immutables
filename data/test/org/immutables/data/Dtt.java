@@ -24,6 +24,10 @@ public interface Dtt {
     return 1;
   }
 
+  @Value.Default
+  default boolean z() {
+    return false;
+  }
 
   class Builder extends ImmutableDtt.Builder {}
 
