@@ -241,6 +241,11 @@ public abstract class EncodedElement {
   }
 
   @Derived
+  boolean usesThis() {
+    return Code.usesThis(code());
+  }
+
+  @Derived
   boolean isInlinable() {
     return isEquals()
         || isToString()

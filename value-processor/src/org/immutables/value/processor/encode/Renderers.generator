@@ -132,7 +132,7 @@ this.[inst.directField f] = [inst.codeThisFields f];
 }
 [if not el.oneLiner]
 
-private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]
+private[if not el.usesThis] static[/if] [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]
 [/if]
 [/for]
 [/template]
@@ -184,7 +184,8 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 
 [declareMethod a.instantiation el]
 [else if el.isInlinable][-- this means from, toString, hashCode, equals, copy]
-  [if not (a.instantiation.isInlined el)]
+  [if el.copy][--noop intentionally, handled elsewhere--]
+  [else if not (a.instantiation.isInlined el)]
 
 [declareMethod a.instantiation el]
   [/if]
