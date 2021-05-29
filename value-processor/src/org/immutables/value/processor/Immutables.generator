@@ -294,7 +294,7 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
     [if v.nullable]if (instance.[v.names.get]() == null) {
       names.add("[v.name]");
       values.add(null);
-    } else [/if]if (!instance.[v.names.get]().isEmpty()) {
+    } else [else]if (!instance.[v.names.get]().isEmpty()) [/if]{
       names.add("[v.name]");
       values.add(instance.[v.names.get]().toArray());
     }
@@ -302,7 +302,7 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
     [if v.nullable]if (instance.[v.names.get]() == null) {
       names.add("[v.name]");
       values.add(null);
-    } else [/if] if (!instance.[v.names.get]().isEmpty()) {
+    } else [else]if (!instance.[v.names.get]().isEmpty()) [/if]{
       names.add("[v.name]");
       values.add(toArray(instance.[v.names.get]().[if v.multimapType]entries[else]entrySet[/if]()));
     }
@@ -340,7 +340,14 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
           continue;
         }
         [/if]
-        for (Object e : toArray(values[arri])) {
+        Object[arr] items = toArray(values[arri]);
+        [if v.nullable]
+        if (items.length == 0) {
+          builder.[v.names.addAll](java.util.Collections.emptySet());
+          continue;
+        }
+        [/if]
+        for (Object e : items) {
           builder.[v.names.add]([castObject v.wrappedElementType]e);
         }
       [else if v.mapType]
@@ -351,6 +358,12 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
         }
         [/if]
         [atNullable v]Object[arr] entries = (Object[arr]) values[arri];
+        [if v.nullable]
+        if (entries.length == 0) {
+          builder.[v.names.putAll](java.util.Collections.emptyMap());
+          continue;
+        }
+        [/if]
         if (entries != null) {
           for (int j = 0; j < entries.length; j += 2) {
           [for String j = '[j]', String j1 = '[j + 1]']
@@ -363,9 +376,7 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
           builder.[v.names.init]([castObject v.wrappedElementType]values[arri]);
         }
       [else if v.nullable]
-        if (values[arri] != null) {
-          builder.[v.names.init]([castObject v.wrapperType]values[arri]);
-        }
+        builder.[v.names.init]([castObject v.wrapperType]values[arri]);
       [else if v.arrayType]
         builder.[v.names.init]([castObject v.wrapperType]values[arri]);
       [else]
