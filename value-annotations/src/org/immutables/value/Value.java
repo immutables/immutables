@@ -1289,7 +1289,7 @@ public @interface Value {
      * {@literal @}{@code Serial.Structural}). When set {@code false}, the processor we will not add
      * any {@code transient} annotations to derived fields. This is only for derived fields. Any
      * fields for lazy attributes are
-     * always {@transient} and ready to be reinitialized lazily after object is deserialized
+     * always {@code transient} and ready to be reinitialized lazily after object is deserialized
      * regardless of serialization/persistence technology.
      * @return default is {@code true} for backward compatibility. Set to {@code false} to disable
      */

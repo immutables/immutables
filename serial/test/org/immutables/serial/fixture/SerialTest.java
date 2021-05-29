@@ -15,11 +15,13 @@
  */
 package org.immutables.serial.fixture;
 
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class SerialTest {
 
@@ -44,5 +46,56 @@ public class SerialTest {
   public void serializablePrehashReadResolve() throws Exception {
     Method readResolve = ImmutableEnabledWithReadResolve.class.getDeclaredMethod("readResolve");
     check(readResolve.getModifiers() & Modifier.PRIVATE).is(Modifier.PRIVATE);
+  }
+
+  @Test
+  public void nullableCollections() throws Exception {
+    NullableCollections original = ImmutableNullableCollections.builder().build();
+    check(original.collection()).isNull();
+    check(original.list()).isNull();
+    check(original.set()).isNull();
+    check(original.map()).isNull();
+    byte[] serializedForm;
+    try (ByteArrayOutputStream bytesStream = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bytesStream)) {
+      oos.writeObject(original);
+      serializedForm = bytesStream.toByteArray();
+    }
+    NullableCollections deserialized;
+    try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(serializedForm))) {
+      deserialized = (ImmutableNullableCollections) ois.readObject();
+    }
+    check(deserialized.collection()).isNull();
+    check(deserialized.list()).isNull();
+    check(deserialized.set()).isNull();
+    check(deserialized.map()).isNull();
+  }
+
+  @Test
+  public void emptyNullableCollections() throws Exception {
+    NullableCollections original = ImmutableNullableCollections.builder()
+        .collection(Collections.emptySet())
+        .list(Collections.emptySet())
+        .set(Collections.emptySet())
+        .map(Collections.emptyMap())
+        .build();
+    check(original.collection()).isEmpty();
+    check(original.list()).isEmpty();
+    check(original.set()).isEmpty();
+    check(original.map().entrySet()).isEmpty();
+    byte[] serializedForm;
+    try (ByteArrayOutputStream bytesStream = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bytesStream)) {
+      oos.writeObject(original);
+      serializedForm = bytesStream.toByteArray();
+    }
+    NullableCollections deserialized;
+    try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(serializedForm))) {
+      deserialized = (ImmutableNullableCollections) ois.readObject();
+    }
+    check(deserialized.collection()).isEmpty();
+    check(deserialized.list()).isEmpty();
+    check(deserialized.set()).isEmpty();
+    check(original.map().entrySet()).isEmpty();
   }
 }

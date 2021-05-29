@@ -78,6 +78,21 @@ final class Code {
     }
   }
 
+  static boolean usesThis(List<Term> code) {
+    for (Term t : code) {
+      if (t.isBinding() && t instanceof Binding) {
+        Binding b = (Binding) t;
+        if (b.isTop() && b.identifier().equals("this")) {
+          return true;
+        }
+        if (b.isField() || b.isMethod()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   static class Binder {
     private final Map<String, String> imports;
     private final Set<Binding> bindings;
