@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.style;
 
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -38,5 +39,25 @@ public class ValidationTest {
 
     check(nv.a()).isNull();
     check(nv.b()).isNull();
+  }
+
+  @Test
+  public void noValidationInJdkCollections() {
+    ImmutableNoValidation nv = ImmutableNoValidation.builder().build();
+
+    check(nv.withSet((String) null).set()).isOf((String) null);
+    check(nv.withList((String) null).list()).isOf((String) null);
+    check(nv.withMap(Collections.singletonMap("a", null)).map()).is(Collections.singletonMap("a", null));
+
+    nv = ImmutableNoValidation.builder()
+        .addSet((String) null)
+        .addList((String) null)
+        .putAllMap(Collections.singletonMap("b", null))
+        .putMap(null, null)
+        .build();
+
+    check(nv.set()).isOf((String) null);
+    check(nv.list()).isOf((String) null);
+    check(nv.map().values()).isOf(null, null);
   }
 }

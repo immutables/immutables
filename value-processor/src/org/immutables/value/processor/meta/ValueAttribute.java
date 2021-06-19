@@ -1650,7 +1650,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         && Proto.isAnnotatedWith(element, Annotations.JACKSON_VALUE)) {
       jacksonValue = true;
     }
-    if (isCollectionType()
+    if ((isCollectionType() || isMapType())
         && nullElements == NullElements.BAN
         && (validation() == ValidationMethod.NONE
         || validation() == ValidationMethod.MANDATORY_ONLY)) {

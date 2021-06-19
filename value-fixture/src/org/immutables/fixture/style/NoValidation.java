@@ -15,11 +15,14 @@
  */
 package org.immutables.fixture.style;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.immutables.value.Value.Style.ValidationMethod;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Value.Style(validationMethod = ValidationMethod.NONE)
+@Value.Style(validationMethod = ValidationMethod.NONE, jdkOnly = true)
 public interface NoValidation {
   @Value.Parameter
   String a();
@@ -32,6 +35,12 @@ public interface NoValidation {
 
   @Value.Parameter
   int i();
+
+  List<String> list();
+
+  Set<String> set();
+
+  Map<String, Object> map();
 
   @Value.Default default String c() {
     return "C";
