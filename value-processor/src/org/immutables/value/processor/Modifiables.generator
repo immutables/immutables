@@ -1349,7 +1349,7 @@ import [starImport];
 
 [template unwrappedOptionalType Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable a][a.wrappedElementType][else][a.unwrappedElementType][/if][/template]
 
-[template atNullable HasStyleInfo s][if s allowsClasspathAnnotation 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
+[template atNullable HasStyleInfo s][atFallbackNullable s][/template]
 
 [template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
 

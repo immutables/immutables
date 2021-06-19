@@ -1,6 +1,9 @@
 package org.immutables.value.processor;
 
+import java.lang.annotation.Inherited;
+import javax.annotation.Nullable;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
@@ -60,14 +63,21 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
   };
 
   protected final Templates.Binary<HasStyleInfo, String, Boolean> allowsClasspathAnnotation =
-      new Templates.Binary<HasStyleInfo, String, Boolean>() {
-        @Override
-        public Boolean apply(HasStyleInfo hasStyle, String annotationClass) {
-          StyleInfo style = hasStyle.style();
-          return (style.allowedClasspathAnnotationsNames().isEmpty()
-              || style.allowedClasspathAnnotationsNames().contains(annotationClass))
-              && classpath.available.apply(annotationClass);
+      (hasStyle, annotationClass) -> {
+        StyleInfo style = hasStyle.style();
+        return (style.allowedClasspathAnnotationsNames().isEmpty()
+            || style.allowedClasspathAnnotationsNames().contains(annotationClass))
+            && classpath.available.apply(annotationClass);
+      };
+
+  protected final Function<HasStyleInfo, String> atFallbackNullable =
+      input -> {
+        String annotation = input.style().fallbackNullableAnnotationName();
+        if (annotation.equals(Inherited.class.getCanonicalName())) {
+          String defaultNullable = "javax.annotation.Nullable";
+          annotation = allowsClasspathAnnotation.apply(input, defaultNullable) ? defaultNullable : "";
         }
+        return !annotation.isEmpty() ? "@" + annotation + " " : "";
       };
 
   protected final Flag flag = new Flag();

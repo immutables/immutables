@@ -16,6 +16,7 @@
 package org.immutables.value.processor.meta;
 
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Inherited;
 import org.immutables.mirror.Mirror;
 
 public final class ValueMirrors {
@@ -265,6 +266,8 @@ public final class ValueMirrors {
     int limitStringLengthInToString() default 0;
 
     Class<? extends Annotation>[] allowedClasspathAnnotations() default {};
+
+    Class<? extends Annotation> fallbackNullableAnnotation() default Inherited.class;
 
     public enum ImplementationVisibility {
       PUBLIC,

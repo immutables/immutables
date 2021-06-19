@@ -371,6 +371,9 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   public abstract ImmutableSet<String> allowedClasspathAnnotationsNames();
 
+  @Value.Parameter
+  public abstract String fallbackNullableAnnotationName();
+
   @Value.Lazy
   public Styles getStyles() {
     return new Styles(this);
@@ -416,6 +419,13 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public Class<? extends Annotation>[] allowedClasspathAnnotations() {
     throw new UnsupportedOperationException("Use StyleInfo.allowedClasspathAnnotationsNames() instead");
+  }
+
+  /** @deprecated no runtime classes, use StyleInfo.fallbackNullableAnnotationName() instead */
+  @Deprecated
+  @Override
+  public Class<? extends Annotation> fallbackNullableAnnotation() {
+    throw new UnsupportedOperationException("Use StyleInfo.fallbackNullableAnnotationName() instead");
   }
 
   @Value.Parameter
@@ -509,6 +519,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.getBuilders(),
         input.nullableAnnotation(),
         ImmutableSet.copyOf(input.allowedClasspathAnnotationsName()),
+        input.fallbackNullableAnnotationName(),
         input.limitStringLengthInToString());
   }
 }

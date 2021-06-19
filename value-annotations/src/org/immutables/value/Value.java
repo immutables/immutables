@@ -1465,6 +1465,23 @@ public @interface Value {
     Class<? extends Annotation>[] allowedClasspathAnnotations() default {};
 
     /**
+     * For many cases of nullable annotation is just copied to generated code when recognized (by simple name, see
+     * {@link #nullableAnnotation()}). But for some cases we need to internally insert some nullable annotation when we
+     * don't know any "original" annotation. By default, we assume that would be {@code javax.annotation.Nullable} (if
+     * it present on the classpath during compilation). When you set {@link #fallbackNullableAnnotation()}
+     * to non-default value (default value is {@code java.lang.annotation.Inherited} which serves as a placeholder
+     * for an unspecified value)
+     * value, we would use that annotation in such cases.
+     * <p><em>Note</em> that this annotation would always be on the compilation classpath (as it is specified as
+     * class literal in a style annotation, but will not be otherwise validated as applicable and will be used verbatim
+     * in all places where we ought to insert nullable annotation without the link to any "original" nullable
+     * annotation in the hand-written code.
+     * @return fallback nullable annotation to use. Default values is unspecified encoded as {@code Inherited.class}
+     * so that {@code javax.annotation.Nullable} annotation will be used if found on classpath.
+     */
+    Class<? extends Annotation> fallbackNullableAnnotation() default Inherited.class;
+
+    /**
      * Setting to trim strings longer than a defined length when calling the toString method.
      * @return string limit, by default {@code 0} i.e. no limit
      */
@@ -1554,7 +1571,7 @@ public @interface Value {
     }
 
     /**
-     * Enables depluratization and may provide depluralization dictionary.
+     * Enables depluralization and may provide depluralization dictionary.
      * The annotation which may be placed on a package, type or as meta-annotation. And dictionary
      * will be merged across all applicable definitions.
      * @see Style#depluralize()

@@ -4482,7 +4482,7 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template atCanIgnoreReturnValue HasStyleInfo s][if s allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue']@com.google.errorprone.annotations.CanIgnoreReturnValue [/if][/template]
 
-[template atNullable HasStyleInfo s][if s allowsClasspathAnnotation 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
+[template atNullable HasStyleInfo s][atFallbackNullable s][/template]
 
 [template atVar HasStyleInfo s][if s allowsClasspathAnnotation 'com.google.errorprone.annotations.Var']@com.google.errorprone.annotations.Var [/if][/template]
 

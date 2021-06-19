@@ -152,4 +152,4 @@ return [type.factoryOf.relative]([for c in type.constructorArguments][if not for
 [-- one liner templates are usually inlined by template compiler --]
 [template castBuildStagedBuilder Type type String expression][for tb = type.telescopicBuild][if tb](([type.typeBuilderImpl.relative]) [expression])[else][expression][/if][/for][/template]
 
-[template atNullable Type type][if type allowsClasspathAnnotation 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
+[template atNullable HasStyleInfo s][atFallbackNullable s][/template]
