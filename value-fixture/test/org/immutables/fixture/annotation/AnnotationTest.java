@@ -55,7 +55,7 @@ public class AnnotationTest {
   @Test
   public void customNullableAnnotations() throws Exception {
     Class<ImmutableFallbackNullable> c = ImmutableFallbackNullable.class;
-    check(c.getDeclaredField("jdkOptional").getAnnotatedType().getAnnotation(Nil.class)).notNull();
-    check(c.getDeclaredField("nullable").getAnnotatedType().getAnnotation(Nil.class)).notNull();
+    check(c.getDeclaredField("jdkOptional").getAnnotation(Nil.class)).notNull();
+    check(c.getDeclaredField("nullable").getAnnotation(Nil.class)).notNull();
   }
 }
