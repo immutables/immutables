@@ -18,6 +18,7 @@ package org.immutables.value.processor.encode;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.immutables.generator.Naming;
@@ -276,18 +277,37 @@ public abstract class EncodedElement {
     @Value.Parameter
     abstract Type type();
 
+    @Value.Parameter
+    abstract List<String> annotations();
+
     @Override
     public String toString() {
-      return name() + ": " + type();
+      String annotationStr = "";
+      if (!annotations().isEmpty()) {
+        annotationStr = Joiner.on(' ').join(annotations()) + ' ';
+      }
+      return annotationStr + name() + ": " + type();
     }
 
     static Param of(String name, Type type) {
-      return ImmutableEncodedElement.Param.of(name, type);
+      return ImmutableEncodedElement.Param.of(name, type, ImmutableList.of());
+    }
+
+    static Param of(String name, Type type, List<String> annotations) {
+      return ImmutableEncodedElement.Param.of(name, type, annotations);
     }
 
     public static Param from(String input, Type.Parser parser) {
+      // continuously take annotations from the start of the string
+      List<String> annotations = new ArrayList<>();
+      while (input.startsWith("@")) {
+        String[] split = input.split(" ", 2);
+        annotations.add(split[0]);
+        input = split[1];
+      }
+
       List<String> parts = COLON_SPLITTER.splitToList(input);
-      return of(parts.get(0), parser.parse(parts.get(1)));
+      return of(parts.get(0), parser.parse(parts.get(1)), annotations);
     }
   }
 
