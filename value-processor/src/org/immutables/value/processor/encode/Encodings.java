@@ -757,7 +757,8 @@ public abstract class Encodings extends AbstractTemplate {
       for (VariableElement v : method.getParameters()) {
         result.add(Param.of(
             v.getSimpleName().toString(),
-            typesReader.get(v.asType())));
+            typesReader.get(v.asType()),
+            ImmutableList.copyOf(annotationsFrom(v))));
       }
       if (!result.isEmpty() && method.isVarArgs()) {
         Param last = Iterables.getLast(result);
