@@ -165,9 +165,9 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven-compiler-plugin.version}</version>
         <configuration>
-          <compilerArgs>
+          <compilerArgs combine.children="append">
             <arg>-XDcompilePolicy=simple</arg>
-            <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:UnnecessaryCheckNotNull:WARN</arg>
+            <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:UnnecessaryCheckNotNull:WARN -Xep:ReturnValueIgnored:WARN</arg>
             <arg>-Xlint:unchecked</arg>
           </compilerArgs>
           <annotationProcessorPaths>
