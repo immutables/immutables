@@ -1,5 +1,5 @@
 /*
-   Copyright 2015 Immutables Authors and Contributors
+   Copyright 2015-2021 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
-import com.google.gson.internal.bind.JsonTreeReader;
-import com.google.gson.internal.bind.TypeAdapters;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -117,16 +115,20 @@ public final class ExpectedSubtypesAdapter<T> extends TypeAdapter<T> {
     gson.toJson(value, value.getClass(), out);
   }
 
+  private interface ReadAttempt {
+    Object read(TypeAdapter<?> typeAdapter) throws Exception;
+  }
+
   // safe unchecked. expected that supplied adapters are producing correct types
   // enforced by constructor parameters.
   @SuppressWarnings("unchecked")
   @Override
   public T read(JsonReader in) throws IOException {
     List<Exception> exceptions = new ArrayList<>(subtypes.length);
-    ReaderSupplier readerSupplier = readForSupplier(in);
+    ReadAttempt attempt = readInAttempt(in);
     for (TypeAdapter<?> typeAdapter : adapters) {
       try {
-        return (T) typeAdapter.read(readerSupplier.create());
+        return (T) attempt.read(typeAdapter);
       } catch (Exception ex) {
         exceptions.add(ex);
       }
@@ -142,52 +144,43 @@ public final class ExpectedSubtypesAdapter<T> extends TypeAdapter<T> {
     throw failure;
   }
 
-  private ReaderSupplier readForSupplier(JsonReader in) throws IOException {
-    // check Callable marker for Jackson implementation.
+  private ReadAttempt readInAttempt(JsonReader in) throws IOException {
+    // check Callable marker for Jackson implementation
     if (in instanceof Callable<?>) {
-      return new JsonParserReaderSupplier(in);
+      // if done inside 'if' we would not leak runtime dependency on Jackson
+      if (in instanceof JsonParserReader) {
+        return newJacksonAttempt((JsonParserReader) in);
+      }
     }
-    return new JsonReaderSupplier(in);
-  }
-
-  private interface ReaderSupplier {
-    JsonReader create();
-  }
-
-  /**
-   * Default implementation for {@link ReaderSupplier} uses {@link JsonElement} as buffer,
-   * while creating {@link JsonReader} to parse using each type adapter.
-   */
-  private static class JsonReaderSupplier implements ReaderSupplier {
-    private final JsonElement element;
-
-    JsonReaderSupplier(JsonReader in) throws IOException {
-      this.element = TypeAdapters.JSON_ELEMENT.read(in);
-    }
-
-    @Override
-    public JsonReader create() {
-      return new JsonTreeReader(element);
-    }
+    return newGsonAttempt(in);
   }
 
   /**
-   * Jackson buffer copy. Use of Jackson's own mechanisms is important to preserve custom elements
-   * such as special embedded objects in BSON or other data formats. Jackson classes should not leak
-   * outside of this class, so when there's no Jackson available in classpath, it will still work
-   * with default {@link JsonReaderSupplier}.
+   * Default Jackson implementation
    */
-  private static class JsonParserReaderSupplier implements ReaderSupplier {
-    private final TokenBuffer buffer;
+  private ReadAttempt newGsonAttempt(JsonReader in) throws IOException {
+    JsonElement element = gson.getAdapter(JsonElement.class).read(in);
+    return new ReadAttempt() {
+      @Override public Object read(TypeAdapter<?> typeAdapter) throws Exception {
+        return typeAdapter.fromJsonTree(element);
+      }
+    };
+  }
 
-    @SuppressWarnings("resource")
-    JsonParserReaderSupplier(JsonReader in) throws IOException {
-      buffer = ((JsonParserReader) in).nextTokenBuffer();
-    }
-
-    @Override
-    public JsonReader create() {
-      return new JsonParserReader(buffer.asParser());
-    }
+  /**
+   * Jackson buffer copy attempt. Use of Jackson's own mechanisms is important to preserve custom elements
+   * such as special embedded objects in BSON or other data formats. Jackson classes should not leak outside
+   * of this' class methods. So when there's no Jackson available in classpath, it will still work
+   * with Gson based implementation.
+   */
+  private ReadAttempt newJacksonAttempt(JsonParserReader in) throws IOException {
+    TokenBuffer buffer = ((JsonParserReader) in).nextTokenBuffer();
+    return new ReadAttempt() {
+      @Override public Object read(TypeAdapter<?> typeAdapter) throws Exception {
+        try(JsonParserReader reader = new JsonParserReader(buffer.asParser())) {
+          return typeAdapter.read(reader);
+        }
+      }
+    };
   }
 }
