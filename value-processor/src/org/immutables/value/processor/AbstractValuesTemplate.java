@@ -1,6 +1,7 @@
 package org.immutables.value.processor;
 
 import java.lang.annotation.Inherited;
+import java.util.HashSet;
 import javax.annotation.Nullable;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -94,5 +95,28 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
       this.is = false;
       return "";
     }
+  }
+
+  public TrackingSet newTrackingSet() {
+    return new TrackingSet();
+  }
+
+  public static class TrackingSet {
+    private final HashSet<Object> set = new HashSet<>();
+    public final Predicate<Object> add = new Predicate<Object>() {
+      @Override public boolean apply(@Nullable Object input) {
+        return set.add(input);
+      }
+    };
+    public final Predicate<Object> includes = new Predicate<Object>() {
+      @Override public boolean apply(@Nullable Object input) {
+        return set.contains(input);
+      }
+    };
+    public final Predicate<Object> excludes = new Predicate<Object>() {
+      @Override public boolean apply(@Nullable Object input) {
+        return !set.contains(input);
+      }
+    };
   }
 }

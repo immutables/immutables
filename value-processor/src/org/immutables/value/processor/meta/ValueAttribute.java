@@ -1761,7 +1761,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public boolean requiresTrackIsSet() {
     if (isGenerateDefault && isPrimitive()) {
-      // because privimitive cannot be null
+      // because primitive cannot be null
       return true;
     }
     if (isGenerateDefault && (isNullable() || isValidationCustomized())) {

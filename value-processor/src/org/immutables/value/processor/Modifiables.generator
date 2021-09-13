@@ -127,7 +127,8 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   }
   [generateFrom type]
   [generateSetters type]
-  [for m in mandatories, BitPosition pos = positions m]
+[for trck = newTrackingSet]
+  [for m in mandatories if trck.excludes m, BitPosition pos = positions m][if trck.add m][/if]
 
   /**
    * Returns {@code true} if the required attribute [sourceDocRef type m] is set.
@@ -138,7 +139,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     return ([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) == 0;
   }
   [/for]
-  [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
+  [for p in nondefaults if trck.excludes p, BitPosition pos = nondefaultsPositions p][if trck.add p][/if]
 
   /**
    * Returns {@code true} if the [if p.generateDefault]default[else]non-required[/if] attribute [sourceDocRef type p] is set.
@@ -149,7 +150,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     return ([disambiguateField type 'optBits'][emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
-  [for v in type.implementedAttributes]
+  [for v in type.implementedAttributes if trck.excludes v][if trck.add v][/if]
     [if v.generateDefault]
       [if v.canUseNullAsUndefined]
 
@@ -173,6 +174,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   }
     [/if]
   [/for]
+[/for]
 
   [for m in mandatories, BitPosition pos = positions m]
 
