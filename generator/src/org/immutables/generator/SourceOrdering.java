@@ -278,7 +278,7 @@ public final class SourceOrdering {
                 elements.getAllMembers(originatingType))));
 
     return new AccessorProvider() {
-      ImmutableListMultimap<String, TypeElement> accessorMapping =
+      final ImmutableListMultimap<String, TypeElement> accessorMapping =
           ImmutableListMultimap.copyOf(ordering.accessorMapping);
 
       @Override

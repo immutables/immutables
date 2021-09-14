@@ -30,15 +30,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import org.immutables.generator.SourceTypes;
@@ -47,13 +49,13 @@ import org.immutables.value.processor.meta.LongBits.LongPositions;
 import org.immutables.value.processor.meta.Reporter.About;
 
 public final class FromSupertypesModel {
+  private final ProcessingEnvironment processing;
   private static final AtomicBoolean typeParseExceptionReported = new AtomicBoolean();
 
   public final ImmutableList<FromSupertypesModel.FromSupertype> supertypes;
   public final ImmutableList<String> repeating;
   public final LongPositions positions;
   private final Reporter reporter;
-  private final Types typeUtils;
 
   public final static class FromSupertype {
     public final String type;
@@ -65,7 +67,7 @@ public final class FromSupertypesModel {
     FromSupertype(String type, Iterable<ValueAttribute> attribute) {
       this.type = type;
       this.hasGenerics = type.indexOf('<') > 0;
-      Entry<String, List<String>> withArgs = SourceTypes.extract(type);
+      Map.Entry<String, List<String>> withArgs = SourceTypes.extract(type);
       this.raw = withArgs.getKey();
       this.wildcard = hasGenerics
           ? SourceTypes.stringify(Maps.immutableEntry(withArgs.getKey(),
@@ -85,16 +87,17 @@ public final class FromSupertypesModel {
       String abstractTypeName,
       Collection<ValueAttribute> attributes,
       ImmutableListMultimap<String, TypeElement> accessorMapping,
-      Types typeUtils) {
+      ProcessingEnvironment processing,
+      List<TypeElement> extendedClasses,
+      Set<TypeElement> implementedInterfaces) {
 
     this.reporter = reporter;
-    this.typeUtils = typeUtils;
+    this.processing = processing;
     SetMultimap<String, String> typesByAttribute = HashMultimap.create();
 
     for (ValueAttribute a : attributes) {
       String name = a.name();
-      ImmutableList<TypeElement> elements = accessorMapping.get(a.names.get);
-      for (TypeElement t : elements) {
+      for (TypeElement t : Iterables.concat(implementedInterfaces, extendedClasses)) {
         if (isEligibleFromType(t, a)) {
           List<String> typeParamNames = new ArrayList<>(t.getTypeParameters().size());
           for (TypeParameterElement typeParameterElement : t.getTypeParameters()) {
@@ -120,7 +123,7 @@ public final class FromSupertypesModel {
 
     ImmutableList.Builder<FromSupertypesModel.FromSupertype> builder = ImmutableList.builder();
 
-    for (Entry<String, Collection<String>> e : attributeByType.asMap().entrySet()) {
+    for (Map.Entry<String, Collection<String>> e : attributeByType.asMap().entrySet()) {
       builder.add(new FromSupertype(e.getKey(), Iterables.transform(e.getValue(), getAttribute)));
     }
 
@@ -133,7 +136,7 @@ public final class FromSupertypesModel {
     this.supertypes = builder.build();
 
     ImmutableList.Builder<String> repeatingBuilder = ImmutableList.builder();
-    for (Entry<String, Collection<String>> e : typesByAttribute.asMap().entrySet()) {
+    for (Map.Entry<String, Collection<String>> e : typesByAttribute.asMap().entrySet()) {
       if (e.getValue().size() > 1) {
         repeatingBuilder.add(e.getKey());
       }
@@ -144,6 +147,7 @@ public final class FromSupertypesModel {
   }
 
   private boolean isDirectAncestor(TypeElement parent, TypeElement child) {
+    Types typeUtils = processing.getTypeUtils();
     TypeMirror erasedParent = typeUtils.erasure(parent.asType());
 
     // check for superclass
@@ -167,7 +171,7 @@ public final class FromSupertypesModel {
     }
 
     for (int i = 0; i < a.size(); i++) {
-      if (!typeUtils.isSameType(a.get(i), b.get(i))) {
+      if (!processing.getTypeUtils().isSameType(a.get(i), b.get(i))) {
         return false;
       }
     }
@@ -176,6 +180,11 @@ public final class FromSupertypesModel {
   }
 
   private boolean isEligibleFromType(TypeElement typeElement, ValueAttribute attr) {
+    @Nullable ExecutableElement accessor = findMethod(typeElement, attr.names.get);
+    if (accessor == null) {
+      // it can be now as we've changed upper loop
+      return false;
+    }
     if (!typeElement.getTypeParameters().isEmpty()) {
       TypeElement containingTypeElement = (TypeElement) attr.containingType.originalElement();
 
@@ -195,11 +204,6 @@ public final class FromSupertypesModel {
           return false;
         }
       }
-    }
-    @Nullable ExecutableElement accessor = findMethod(typeElement, attr.names.get);
-    if (accessor == null) {
-      // it (null) should never happen in theory
-      return false;
     }
     try {
       String ownType = accessor.getReturnType().toString();
@@ -228,7 +232,7 @@ public final class FromSupertypesModel {
   }
 
   private @Nullable ExecutableElement findMethod(TypeElement typeElement, String getter) {
-    for (ExecutableElement m : ElementFilter.methodsIn(typeElement.getEnclosedElements())) {
+    for (ExecutableElement m : ElementFilter.methodsIn(processing.getElementUtils().getAllMembers(typeElement))) {
       if (m.getSimpleName().contentEquals(getter) && m.getParameters().isEmpty()) {
         return m;
       }
