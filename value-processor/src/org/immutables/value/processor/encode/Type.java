@@ -762,7 +762,16 @@ public interface Type {
             // and try again, yep, recursively...
             return type();
           } else if (t.is("(")) {
-            return annotatedType();
+            Type type = annotatedType();
+            while (!terms.isEmpty()) {
+              t = terms.peek();
+              if (t.is("[")) {
+                type = array(type);
+              } else {
+                break;
+              }
+            }
+            return type;
           }
           throw new IllegalStateException("unexpected term '" + t + "'");
         }

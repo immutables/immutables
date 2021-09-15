@@ -65,6 +65,9 @@ public class TypeTest {
     check(parser.parse("java.lang.@javax.validation.constraints.Size(max = 10, @A(a=@B(b=1))) String")).is(Reference.STRING);
     check(parser.parse("@Ann(\"b\") int")).is(Primitive.INT);
     check(parser.parse("(@javax.validation.constraints.NotNull :: java.lang.String)")).is(Reference.STRING);
+    check(parser.parse("(@javax.validation.constraints.NotNull :: byte)[]")).is(factory.array(Primitive.BYTE));
+    check(parser.parse("(@javax.validation.constraints.NotNull:: java.lang.String)[][]"))
+        .is(factory.array(factory.array(Reference.STRING)));
   }
 
   @Test

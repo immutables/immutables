@@ -500,7 +500,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public List<String> typeParameters() {
     ensureTypeIntrospected();
-    return arrayComponent != null ? ImmutableList.of(arrayComponent.toString()) : typeParameters;
+    if (arrayComponent != null) {
+      return typeParameters.subList(0, 1);
+    }
+    return typeParameters;
   }
 
   public boolean isMapType() {

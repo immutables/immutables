@@ -42,5 +42,8 @@ public abstract class HasTypeAnnotation {
   public abstract @TypeA @TypeB String str();
 
   @Nullable
+  public abstract @TypeA @TypeB byte[] bte();
+
+  @Nullable
   public abstract @TypeA @TypeB Map<@TypeA String, @TypeB String> map();
 }

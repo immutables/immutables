@@ -146,7 +146,7 @@ class TypeStringProvider {
 
       // It seems that array type annotations are not exposed in javac
       // Nested type argument's type annotations are not exposed as well (in javac)
-      // So currently we instert only for top level, declared type (here),
+      // So currently we insert only for top level, declared type (here),
       // and primitives (see above)
       TypeKind k = startType.getKind();
       if (k == TypeKind.DECLARED || k == TypeKind.ERROR) {
@@ -345,6 +345,26 @@ class TypeStringProvider {
 
       // just append as toString whatever we have
       buffer.append(type);
+      break;
+    case BOOLEAN:
+    case CHAR:
+    case INT:
+    case DOUBLE:
+    case FLOAT:
+    case SHORT:
+    case LONG:
+    case BYTE:
+      String typeName = Ascii.toLowerCase(type.getKind().name());
+      buffer.append(typeName);
+      /* Just skip type annotations with primitives (for now?) too many problems/breakages
+      List<? extends AnnotationMirror> annotations = null;
+      if (processNestedTypeUseAnnotations
+          && startType != type
+          && !(annotations = AnnotationMirrors.from(type)).isEmpty()) {
+        buffer.append(typeAnnotationsToBuffer(annotations, true)).append(typeName);
+      } else {
+        buffer.append(typeName);
+      }*/
       break;
     default:
       buffer.append(type);
