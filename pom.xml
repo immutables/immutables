@@ -390,7 +390,7 @@
             <configuration>
               <fork>true</fork>
               <compilerArgs combine.children="append">
-                <arg>-J--illegal-access=permit</arg>
+                <arg>-J--add-opens=java.base/java.lang=ALL-UNNAMED</arg>
               </compilerArgs>
             </configuration>
           </plugin>
