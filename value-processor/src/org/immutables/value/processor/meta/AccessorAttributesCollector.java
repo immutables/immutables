@@ -247,9 +247,9 @@ final class AccessorAttributesCollector {
         if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
           report(originalType)
               .warning(About.INCOMPAT,
-                  "Type inherits overriden 'equals' method but have some non-inherited attributes."
+                  "Type inherits overridden 'equals' method but have some non-inherited attributes."
                   + " Please override 'equals' with abstract method to have it generate. Otherwise override"
-                  + " with calling super implemtation to use custom implementation");
+                  + " with calling super implementation to use custom implementation");
         }
       }
       return;
@@ -267,7 +267,7 @@ final class AccessorAttributesCollector {
               .warning(About.INCOMPAT,
                   "Type inherits non-default 'hashCode' method but have some non-inherited attributes."
                   + " Please override 'hashCode' with abstract method to have it generated. Otherwise override"
-                  + " with calling super implemtation to use custom implementation");
+                  + " with calling super implementation to use custom implementation");
         }
       }
       return;
