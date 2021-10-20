@@ -16,6 +16,11 @@ jobs:
       matrix:
         java: [ '8', '11', '17' ]
         compiler: [ 'javac', 'ecj' ]
+        exclude:
+          # ecj has no support for Java 17 yet
+          - java: 17
+            compiler: ecj
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK
