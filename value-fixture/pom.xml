@@ -166,16 +166,9 @@
         <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <compilerArgs combine.children="append">
-            <arg>-XDcompilePolicy=simple</arg>
-            <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:UnnecessaryCheckNotNull:WARN -Xep:ReturnValueIgnored:WARN</arg>
             <arg>-Xlint:unchecked</arg>
           </compilerArgs>
           <annotationProcessorPaths>
-            <path>
-              <groupId>com.google.errorprone</groupId>
-              <artifactId>error_prone_core</artifactId>
-              <version>${errorprone.version}</version>
-            </path>
             <path>
               <groupId>org.immutables</groupId>
               <artifactId>value</artifactId>
@@ -197,6 +190,10 @@
       <id>jdk8</id>
       <activation>
         <jdk>1.8</jdk>
+        <property>
+          <name>extra</name>
+          <value>errorprone</value>
+        </property>
       </activation>
       <build>
         <plugins>
@@ -206,8 +203,17 @@
             <configuration>
               <fork>true</fork>
               <compilerArgs combine.children="append">
+                <arg>-XDcompilePolicy=simple</arg>
+                <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:UnnecessaryCheckNotNull:WARN -Xep:ReturnValueIgnored:WARN</arg>
                 <arg>-J-Xbootclasspath/p:${settings.localRepository}/com/google/errorprone/javac/${javac.version}/javac-${javac.version}.jar</arg>
               </compilerArgs>
+              <annotationProcessorPaths combine.children="append">
+                <path>
+                  <groupId>com.google.errorprone</groupId>
+                  <artifactId>error_prone_core</artifactId>
+                  <version>${errorprone.version}</version>
+                </path>
+              </annotationProcessorPaths>
             </configuration>
           </plugin>
         </plugins>
@@ -228,6 +234,10 @@
       <id>jdk16</id>
       <activation>
         <jdk>[16,)</jdk>
+        <property>
+          <name>extra</name>
+          <value>errorprone</value>
+        </property>
       </activation>
       <build>
         <plugins>
@@ -237,6 +247,9 @@
             <configuration>
               <fork>true</fork>
               <compilerArgs combine.children="append">
+                <arg>-XDcompilePolicy=simple</arg>
+                <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:UnnecessaryCheckNotNull:WARN -Xep:ReturnValueIgnored:WARN</arg>
+
                 <!-- required by errorprone -->
                 <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
                 <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
@@ -249,6 +262,13 @@
                 <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
                 <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
               </compilerArgs>
+              <annotationProcessorPaths combine.children="append">
+                <path>
+                  <groupId>com.google.errorprone</groupId>
+                  <artifactId>error_prone_core</artifactId>
+                  <version>${errorprone.version}</version>
+                </path>
+              </annotationProcessorPaths>
             </configuration>
           </plugin>
         </plugins>
