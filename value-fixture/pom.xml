@@ -165,9 +165,6 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven-compiler-plugin.version}</version>
         <configuration>
-          <compilerArgs combine.children="append">
-            <arg>-Xlint:unchecked</arg>
-          </compilerArgs>
           <annotationProcessorPaths>
             <path>
               <groupId>org.immutables</groupId>

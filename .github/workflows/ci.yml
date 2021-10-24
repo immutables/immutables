@@ -18,6 +18,9 @@ jobs:
         compiler: [ 'javac', 'ecj' ]
         extra: [ 'none', 'errorprone' ]
         exclude:
+          # java 8 without errorprone has some nullability logic issues
+          - java: 8
+            extra: none
           # ecj has no support for Java 17 yet
           - java: 17
             compiler: ecj
