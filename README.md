@@ -29,6 +29,10 @@ ValueObject v =
         .build();
 
 v = v.withName("Doe");
+
+//fetch values via standard getters
+List<Integer> counts = v.getCounts();
+Optional<String> description = v.getDescription();
 ```
 
 ImmutableValueObject then would not be used outside of generated type. See about this and other generation [styles here](https://immutables.github.io/style.html) 
