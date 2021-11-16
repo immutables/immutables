@@ -50,7 +50,7 @@ import java.lang.annotation.*;
  *   String of();
  * }
  * 
- * &#64;InjectAnnotation(type = TargetAnn.class, code = "(message=[[echo]], of=\"[[!name]]\"", target = Where.BUILDER_TYPE)
+ * &#64;InjectAnnotation(type = TargetAnn.class, code = "(message=[[echo]], of=\"[[!name]]\")", target = Where.BUILDER_TYPE)
  * &#64;interface InjectBuilderTarget {
  *   String echo();
  * }
@@ -124,7 +124,7 @@ public @interface InjectAnnotation {
   /**
    * Specify annotation type, this is an alternative to specifying {@link #code()}. All the
    * attributes from the annotated annotation (the one which is annotated by
-   * {@link InjectAnnotation} and placed on abstract value type or abstract attribute.
+   * {@link InjectAnnotation}) are placed on abstract value type or abstract attribute.
    * Default value is {@code InjectAnnotation.class} which is just a placeholder for unspecified
    * value.
    * @see #code()
@@ -144,7 +144,7 @@ public @interface InjectAnnotation {
   /**
    * The places where to put generated annotation. If annotation type have been specified by
    * {@link #type()} (and is not overridden by #code()), then there will be element target check,
-   * otherwise (if fully specified by {@link #code()} annotation will be always placed and it's
+   * otherwise (if fully specified by {@link #code()}) annotation will be always placed and it's
    * better match to target element type.
    */
   Where[] target();
