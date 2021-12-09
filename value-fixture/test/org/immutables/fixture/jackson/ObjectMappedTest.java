@@ -149,8 +149,9 @@ public class ObjectMappedTest {
   @Test
   public void anyGetterSetter() throws Exception {
     String json = "{\"A\":1,\"B\":true}";
+    String jsonRegex = "\\{(?:\"A\":1,\"B\":true|\"B\":true,\"A\":1)}";
     AnyGetterSetter value = OBJECT_MAPPER.readValue(json, AnyGetterSetter.class);
-    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+    check(OBJECT_MAPPER.writeValueAsString(value)).matches(jsonRegex);
   }
 
   @Test
@@ -163,15 +164,19 @@ public class ObjectMappedTest {
   @Test
   public void jacksonMetaAnnotated() throws Exception {
     String json = "{\"X\":1,\"A\":1,\"B\":true}";
+    String jsonRegex = "\\{(?:\"X\":1,(?:\"A\":1,\"B\":true|\"B\":true,\"A\":1)|"
+            + "\"B\":true,(?:\"X\":1,\"A\":1|\"A\":1,\"X\":1)|"
+            + "\"A\":1,(?:\"B\":true,\"X\":1|\"X\":1,\"B\":true))}";
     ImmutableJacksonUsingMeta value = OBJECT_MAPPER.readValue(json, ImmutableJacksonUsingMeta.class);
-    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+    check(OBJECT_MAPPER.writeValueAsString(value)).matches(jsonRegex);
   }
 
   @Test
   public void keywordNames() throws Exception {
     String json = "{\"long\":111,\"default\":true}";
+    String jsonRegex = "\\{(?:\"long\":111,\"default\":true|\"default\":true,\"long\":111)}";
     KeywordNames value = OBJECT_MAPPER.readValue(json, KeywordNames.class);
-    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+    check(OBJECT_MAPPER.writeValueAsString(value)).matches(jsonRegex);
   }
 
   @Test
