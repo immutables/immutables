@@ -65,6 +65,7 @@ public class BugsTest {
     check(info.abraCadabra()).is(1);
     check(info.focusPocus());
 
-    check(json).is("{'abra_cadabra':1,'focus_pocus':true}".replace('\'', '"'));
+    check(json).matches("\\{(?:'abra_cadabra':1,'focus_pocus':true|'focus_pocus':true,'abra_cadabra':1)}"
+            .replace('\'', '"'));
   }
 }
