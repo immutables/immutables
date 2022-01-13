@@ -193,7 +193,8 @@ public abstract class Round {
     }
 
     void collect(Element element) {
-      switch (element.getKind()) {
+      ElementKind kind = element.getKind();
+      switch (kind) {
       case ANNOTATION_TYPE:
       case INTERFACE:
       case CLASS:
@@ -208,9 +209,14 @@ public abstract class Round {
         collectIncludedBy((PackageElement) element);
         break;
       default:
-        Reporter.from(processing())
-            .withElement(element)
-            .warning(About.INCOMPAT, "Unmatched annotation will be skipped for annotation processing");
+        // Outside the switch, since ElementKind.RECORD is only available in JDK >= 14, and we support 8 and 11
+        if(kind.name().equals("RECORD")) {
+          collectIncludedAndDefinedBy((TypeElement) element);
+        } else {
+          Reporter.from(processing())
+              .withElement(element)
+              .warning(About.INCOMPAT, "Unmatched annotation will be skipped for annotation processing");
+        }
       }
     }
 

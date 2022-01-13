@@ -30,7 +30,7 @@ import javax.tools.Diagnostic;
 import org.immutables.generator.Generator.SupportedAnnotations;
 
 /**
- * Extend this abstract processor to propertly initalize and call templates.
+ * Extend this abstract processor to properly initalize and call templates.
  * @see #process()
  */
 public abstract class AbstractGenerator extends AbstractProcessor {
