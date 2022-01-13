@@ -264,24 +264,28 @@ public final class Output {
 
     private void readExistingEntriesInto(Collection<String> services) {
       try {
-        FileObject existing = getFiler().getResource(StandardLocation.CLASS_OUTPUT, key.packageName, key.relativeName);
-        FluentIterable.from(CharStreams.readLines(existing.openReader(true)))
-            .filter(Predicates.not(Predicates.contains(SERVICE_FILE_COMMENT_LINE)))
-            .copyInto(services);
+        FileObject existing = getFiler()
+            .getResource(StandardLocation.CLASS_OUTPUT, key.packageName, key.relativeName);
+        try (Reader r = existing.openReader(true)) {
+          for (String line : CharStreams.readLines(r)) {
+            if (!SERVICE_FILE_COMMENT_LINE.matcher(line).find()) {
+              services.add(line.trim());
+            }
+          }
+        }
       } catch (Exception ex) {
         // unable to read existing file
       }
     }
 
     private void writeLinesFrom(Iterable<String> services) throws IOException {
-      new CharSink() {
-        @Override
-        public Writer openStream() throws IOException {
-          return getFiler()
-              .createResource(StandardLocation.CLASS_OUTPUT, key.packageName, key.relativeName)
-              .openWriter();
+      FileObject resource = getFiler().createResource(StandardLocation.CLASS_OUTPUT, key.packageName, key.relativeName);
+      try (Writer w = resource.openWriter()) {
+        for (String line : services) {
+          w.write(line);
+          w.write('\n');
         }
-      }.writeLines(services, "\n");
+      }
     }
 
     private void removeBlankLinesIn(Iterable<String> services) {
@@ -289,10 +293,10 @@ public final class Output {
     }
 
     private void copyNewMetaservicesInto(Collection<String> services) {
-      FluentIterable.from(Splitter.on("\n").split(consumer.asCharSequence()))
-          .copyInto(services);
+      for (String line : Splitter.on("\n").split(consumer.asCharSequence())) {
+        services.add(line);
+      }
     }
-
   }
 
   private static class SourceFile {
@@ -316,6 +320,7 @@ public final class Output {
 
         try (Writer writer = sourceFile.openWriter()) {
           writer.append(sourceCode);
+          writer.flush();
         }
       } catch (FilerException ex) {
         if (identicalFileIsAlreadyGenerated(sourceCode)) {
@@ -336,19 +341,14 @@ public final class Output {
 
     private boolean identicalFileIsAlreadyGenerated(CharSequence sourceCode) {
       try {
-        String existingContent = new CharSource() {
-          final String packagePath = !key.packageName.isEmpty() ? (key.packageName.replace('.', '/') + '/') : "";
-          final String filename = key.relativeName + ".java";
+        String packagePath = !key.packageName.isEmpty() ? (key.packageName.replace('.', '/') + '/') : "";
+        String filename = key.relativeName + ".java";
+        FileObject resource = getFiler().getResource(StandardLocation.SOURCE_OUTPUT, "", packagePath + filename);
 
-          @Override
-          public Reader openStream() throws IOException {
-            return getFiler()
-                .getResource(StandardLocation.SOURCE_OUTPUT,
-                    "",
-                    packagePath + filename)
-                .openReader(true);
-          }
-        }.read();
+        String existingContent;
+        try (Reader r = resource.openReader(true)) {
+          existingContent = CharStreams.toString(r);
+        }
 
         if (existingContent.contentEquals(sourceCode)) {
           // We are ok, for some reason the same file is already generated,

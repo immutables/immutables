@@ -21,10 +21,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.io.CharStreams;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.List;
@@ -144,10 +146,10 @@ public final class SourceExtraction {
             StandardLocation.SOURCE_PATH,
             "",
             toFilename(element));
-
-        return resource.getCharContent(true);
+        try (Reader r = resource.openReader(true)) {
+          return CharStreams.toString(r);
+        }
       } catch (UnsupportedOperationException | IllegalArgumentException ex) {
-
         return UNABLE_TO_EXTRACT;
       }
     }
@@ -181,7 +183,9 @@ public final class SourceExtraction {
       if (typeElement instanceof ClassSymbol) {
         ClassSymbol classSymbol = (ClassSymbol) typeElement;
         if (classSymbol.sourcefile != null) {
-          return classSymbol.sourcefile.getCharContent(true);
+          try (Reader r = classSymbol.sourcefile.openReader(true)) {
+            return CharStreams.toString(r);
+          }
         }
       }
       return UNABLE_TO_EXTRACT;

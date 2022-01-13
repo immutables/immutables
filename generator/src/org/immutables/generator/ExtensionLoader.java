@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.List;
 import javax.annotation.processing.Filer;
+import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
 public final class ExtensionLoader {
@@ -76,9 +77,10 @@ public final class ExtensionLoader {
   }
 
   private static String getClasspathResourceText(Filer filer, String resourceName) throws IOException {
-    return filer.getResource(StandardLocation.CLASS_OUTPUT, "", resourceName)
-        .getCharContent(true)
-        .toString();
+    FileObject resource = filer.getResource(StandardLocation.CLASS_OUTPUT, "", resourceName);
+    try (Reader r = resource.openReader(true)) {
+      return CharStreams.toString(r);
+    }
   }
 
   private static String getClasspathResourceText(URL requestURL) throws IOException {

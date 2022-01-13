@@ -19,7 +19,9 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.io.CharStreams;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +35,7 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.immutables.generator.Generator;
@@ -87,13 +90,12 @@ public final class Processor extends AbstractProcessor {
         new TemplateWriter(knife, templateType, GeneratedTypes.getSimpleName(templateType));
 
     CharSequence template = writingTransformer.toCharSequence(resolved);
-
-    JavaFileObject templateFile =
+    JavaFileObject implementationFile =
         knife.environment.getFiler().createSourceFile(
             GeneratedTypes.getQualifiedName(knife.elements, templateType),
             templateType);
 
-    try (Writer writer = templateFile.openWriter()) {
+    try (Writer writer = implementationFile.openWriter()) {
       writer.append(template);
     }
   }
@@ -107,6 +109,12 @@ public final class Processor extends AbstractProcessor {
         packageElement);
   }
 
+  private String readCharContent(FileObject resource) throws IOException {
+    try (Reader r = resource.openReader(true)) {
+      return CharStreams.toString(r);
+    }
+  }
+
   private String getTemplateText(
       Filer filer,
       TypeElement templateType,
@@ -115,23 +123,17 @@ public final class Processor extends AbstractProcessor {
     CharSequence packageName = packageElement.getQualifiedName();
     List<Exception> suppressed = Lists.newArrayList();
     try {
-      return filer.getResource(StandardLocation.SOURCE_PATH, packageName, relativeName)
-          .getCharContent(true)
-          .toString();
+      return readCharContent(filer.getResource(StandardLocation.SOURCE_PATH, packageName, relativeName));
     } catch (Exception cannotGetFromSourcePath) {
       suppressed.add(cannotGetFromSourcePath);
       try {
-        return filer.getResource(StandardLocation.CLASS_OUTPUT, packageName, relativeName)
-            .getCharContent(true)
-            .toString();
+        return readCharContent(filer.getResource(StandardLocation.CLASS_OUTPUT, packageName, relativeName));
       } catch (Exception cannotGetFromOutputPath) {
         suppressed.add(cannotGetFromOutputPath);
         try {
-          return filer.getResource(StandardLocation.CLASS_PATH,
+          return readCharContent(filer.getResource(StandardLocation.CLASS_PATH,
               "",
-              packageName.toString().replace('.', '/') + '/' + relativeName)
-              .getCharContent(true)
-              .toString();
+              packageName.toString().replace('.', '/') + '/' + relativeName));
         } catch (IOException cannotGetFromClasspath) {
           for (Exception e : suppressed) {
             cannotGetFromClasspath.addSuppressed(e);
