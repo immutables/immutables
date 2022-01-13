@@ -129,7 +129,7 @@
 
   <profiles>
     <profile>
-      <id>java16</id>
+      <id>jdk16</id>
       <activation>
         <jdk>[16,)</jdk>
       </activation>

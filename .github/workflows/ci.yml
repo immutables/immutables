@@ -16,6 +16,12 @@ jobs:
       matrix:
         java: [ '8', '11', '17' ]
         compiler: [ 'javac', 'ecj' ]
+        extra: [ 'none', 'errorprone' ]
+        exclude:
+          # ecj has no support for Java 17 yet
+          - java: 17
+            compiler: ecj
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK
@@ -27,4 +33,4 @@ jobs:
     - name: print Java version
       run: java -version
     - name: Run tests
-      run: mvn --batch-mode --no-transfer-progress clean test -P${{ matrix.compiler }}
+      run: mvn --batch-mode --no-transfer-progress clean test -P${{ matrix.compiler }} -Dextra=${{ matrix.extra }}

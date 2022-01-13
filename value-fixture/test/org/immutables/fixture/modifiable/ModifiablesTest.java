@@ -210,8 +210,8 @@ public class ModifiablesTest {
     check(m.a()).isOf("a", "b", "c");
     check(m.b()).isOf("d", "e");
 
-    check(m.c().values()).isOf(1, 2);
-    check(m.c().keySet()).isOf("x", "y");
+    check(m.c().values()).hasContentInAnyOrder(1, 2);
+    check(m.c().keySet()).hasContentInAnyOrder("x", "y");
 
     check(m.d().isEmpty());
 
