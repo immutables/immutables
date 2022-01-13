@@ -528,7 +528,7 @@ public @interface Value {
     String builder() default "builder";
 
     /**
-     * Builder creator method, it differes from {@link #builder()} in that this naming is used for
+     * Builder creator method, it differs from {@link #builder()} in that this naming is used for
      * builders that are external to immutable objects, such as top level builders for values or
      * factories. This naming allow special keyword "new" value, which is the default.
      * "new" will customize builder to be created using constructor rather than
