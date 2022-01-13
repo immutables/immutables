@@ -312,7 +312,7 @@ public final class AnnotationMirrors {
       if (Compiler.JAVAC.isPresent()
           && "com.sun.tools.javac.code.Attribute.UnresolvedClass".equals(value.getClass().getCanonicalName())) {
         Attribute.UnresolvedClass unresolved = ((Attribute.UnresolvedClass) value);
-        String typeString = unresolved.classType.tsym.name.toString();
+        String typeString = ((Name) unresolved.classType.tsym.name).toString();
         builder.append(unresovedImportsResolver.apply(typeString)).append(".class");
       } else {
         visitValue(value);
