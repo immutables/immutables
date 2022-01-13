@@ -23,7 +23,7 @@
     <version>2.9.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>testing-java17</artifactId>
+  <artifactId>tests-java17</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Testing module with source level of 17 for testing Records and Sealed Types. Not to be published</description>
 
@@ -57,7 +57,6 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-
   <build>
     <pluginManagement>
       <plugins>

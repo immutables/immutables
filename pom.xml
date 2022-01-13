@@ -378,7 +378,7 @@
       </build>
     </profile>
     <profile>
-      <id>java16</id>
+      <id>jdk16</id>
       <activation>
         <jdk>[16,)</jdk>
       </activation>
@@ -411,7 +411,7 @@
       </build>
     </profile>
     <profile>
-      <id>java17</id>
+      <id>jdk17</id>
       <activation>
         <jdk>[17,)</jdk>
       </activation>
