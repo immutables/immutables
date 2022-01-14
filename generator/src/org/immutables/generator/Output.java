@@ -324,7 +324,7 @@ public final class Output {
         }
       } catch (FilerException ex) {
         if (identicalFileIsAlreadyGenerated(sourceCode)) {
-          getMessager().printMessage(Kind.MANDATORY_WARNING, "Regenerated file with the same content: " + key);
+          getMessager().printMessage(Kind.NOTE, "Regenerated file with the same content: " + key);
         } else {
           getMessager().printMessage(Kind.MANDATORY_WARNING,
               String.format(
