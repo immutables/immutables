@@ -19,6 +19,6 @@ package org.immutables.tests;
 public class RecordTests {
 
     // TODO: Test asserting that @Value.Immutable on records generates a compilation error
-    //    @Value.Immutable
+    //    @org.immutables.value.Value.Immutable
     //    public record DisallowedValueAnnotationOnRecord(String field) {};
 }

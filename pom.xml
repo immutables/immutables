@@ -100,7 +100,7 @@
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     <!-- Shared versions -->
     <retro.version>2.5.1</retro.version>
-    <errorprone.version>2.9.0</errorprone.version>
+    <errorprone.version>2.10.0</errorprone.version>
     <javac.version>9+181-r4173-1</javac.version>
     <mongo-java-driver.version>4.3.1</mongo-java-driver.version>
     <elasticsearch.version>7.1.0</elasticsearch.version>
@@ -392,7 +392,6 @@
               <compilerArgs combine.children="append">
                 <!-- required by parboiled -->
                 <arg>-J--add-opens=java.base/java.lang=ALL-UNNAMED</arg>
-
                 <!-- required by errorprone -->
                 <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
                 <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
