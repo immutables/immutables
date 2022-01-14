@@ -116,12 +116,14 @@ public final class SourceExtraction {
       return EXTRACTOR.extract(processing, element);
     } catch (UnsupportedOperationException | IllegalArgumentException cannotReadSourceFile) {
     } catch (IOException cannotReadSourceFile) {
-      processing.getMessager().printMessage(
-          Diagnostic.Kind.MANDATORY_WARNING,
-          String.format("Was unable to read source file for %s[%s.class]: %s",
-              element,
-              element.getClass().getName(),
-              cannotReadSourceFile));
+      if (moreDiagnostic) {
+        processing.getMessager().printMessage(
+            Diagnostic.Kind.NOTE,
+            String.format("Was unable to read source file for %s[%s.class]: %s",
+                element,
+                element.getClass().getName(),
+                cannotReadSourceFile));
+      }
     }
     return SourceExtractor.UNABLE_TO_EXTRACT;
   }
@@ -329,7 +331,7 @@ public final class SourceExtraction {
     private final SourceExtractor[] extractors;
 
     CompositeExtractor(List<SourceExtractor> extractors) {
-      this.extractors = extractors.toArray(new SourceExtractor[extractors.size()]);
+      this.extractors = extractors.toArray(new SourceExtractor[0]);
     }
 
     @Override
@@ -408,4 +410,7 @@ public final class SourceExtraction {
     }
     return element.getSuperclass().toString();
   }
+
+  // IDK what would be the appropriate way to configure this, for now, we just disable this
+  private static final boolean moreDiagnostic = false;
 }
