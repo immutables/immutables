@@ -18,17 +18,23 @@ package org.immutables.fixture;
 
 import org.immutables.check.Checkers;
 import org.junit.jupiter.api.Test;
+import static org.immutables.check.Checkers.check;
 
-class LazyHashTest {
+class HashTest {
+  @Test
+  void includeHash() {
+    check(ImmutableIncludeHashCode.builder().build().hashCode())
+        .is(IncludeHashCode.class.hashCode() + 42);
+  }
 
   @Test
   void lazyHash() {
     ImmutableLazyHash h1 = ImmutableLazyHash.builder().s("a").i(1).b(true).build();
     ImmutableLazyHash h2 = ImmutableLazyHash.builder().s("b").i(2).b(false).build();
 
-    Checkers.check(h1.hashCode()).not().is(0); // ensure hashcode is computed
-    Checkers.check(h1.hashCode()).not().is(h2.hashCode());
-    Checkers.check(h1.equals(ImmutableLazyHash.builder().s("a").i(1).b(true).build()));
-    Checkers.check(!h1.equals(h2));
+    check(h1.hashCode()).not().is(0); // ensure hashcode is computed
+    check(h1.hashCode()).not().is(h2.hashCode());
+    check(h1.equals(ImmutableLazyHash.builder().s("a").i(1).b(true).build()));
+    check(!h1.equals(h2));
   }
 }

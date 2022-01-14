@@ -1093,10 +1093,17 @@ private boolean equalTo([equalToType] another) {
 [/if]
 [/for]
   return [h];
-[else if getters.isEmpty]
+[else if not getters]
+  [if type.generateIncludeHashCode]
+  return [type.includedHashCode];
+  [else]
   return [type.hashCode];
+  [/if]
 [else]
   int [h] = 5381;
+[if type.generateIncludeHashCode]
+  [h] += ([h] << 5) + [type.includedHashCode];
+[/if]
 [for v in getters]
   [if v.generateDerived or v.generateDefault]
   [v.type] [v.name] = [v.names.get]();

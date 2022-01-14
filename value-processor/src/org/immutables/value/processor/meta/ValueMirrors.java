@@ -135,6 +135,8 @@ public final class ValueMirrors {
 
     String delegateToString() default "";
 
+    String includeHashCode() default "";
+
     String isInitialized() default "isInitialized";
 
     String isSet() default "*IsSet";

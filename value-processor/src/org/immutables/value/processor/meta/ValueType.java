@@ -1930,6 +1930,15 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
         getDeclaringPackageAnnotationInjections());
   }
 
+  public boolean isGenerateIncludeHashCode() {
+    return !style().includeHashCode().isEmpty();
+  }
+
+  public String getIncludedHashCode() {
+    return style().includeHashCode().replace("[[type]]",
+        constitution.typeAbstract().relativeRaw());
+  }
+
   public @Nullable UnderrideMethod underrideToString;
   public @Nullable UnderrideMethod underrideHashCode;
   public @Nullable UnderrideMethod underrideEquals;

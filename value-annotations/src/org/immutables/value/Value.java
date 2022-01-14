@@ -628,6 +628,25 @@ public @interface Value {
     String delegateToString() default "";
 
     /**
+     * If {@code includeHashCode} is not empty it will be used as part of generated `hashCode`. This will be a verbatim
+     * line of code used with the tag-placeholder {@code [[type]]} will be replaced with the simple
+     * (or relative to top level) name of the abstract value type.
+     * It's the responsibility of the user to put well-formed code to be put in context, including parenthesis, etc,
+     * use try-see-fix approach here. Other fields will be included as usual, coming after this custom value.
+     * <p>Examples might give you better ideas how to use it:
+     * <pre>
+     *   includeHashCode = "this.baseHashCode()"
+     *   includeHashCode = "super.hashCode()"
+     *   includeHashCode = "getClass().hashCode()"
+     *   includeHashCode = "[[type]].class.hashCode()"
+     *   includeHashCode = "(\"[[type]]\".length() + 1)"
+     * </pre>
+     * <p><em>Note: this will be ignored if `hashCode` will be manually written in the abstract value class or {@link #underrideHashCode()} will be used for the same purpose</em>
+     * @return interpolated code snippet, by default empty and have no effect
+     */
+    String includeHashCode() default "";
+
+    /**
      * Method to determine if all required attributes are set.
      * Default method name choice for this is mostly random.
      * @return naming template

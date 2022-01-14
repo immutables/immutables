@@ -3143,10 +3143,17 @@ public boolean equals([atNullable type]Object another) {
 [/if]
 [/for]
   return [h];
-[else if getters.isEmpty]
+[else if not getters]
+  [if type.generateIncludeHashCode]
+  return [type.includedHashCode];
+  [else]
   return [type.hashCode];
+  [/if]
 [else]
   [atVar type]int [h] = 5381;
+[if type.generateIncludeHashCode]
+  [h] += ([h] << 5) + [type.includedHashCode];
+[/if]
 [for v in getters]
 [if v.encoding]
   [h] += ([h] << 5) + ([rr.hash v]);
@@ -3202,7 +3209,11 @@ public int hashCode() {
   [if type.usePrehashed]
   return hashCode;
   [else if not getters]
-  return 0;
+    [if type.generateIncludeHashCode]
+  return [type.includedHashCode];
+    [else]
+  return [type.hashCode];
+    [/if]
   [else if type.useLazyhash]
   int h = this.hashCode;
   if (h == 0) {
