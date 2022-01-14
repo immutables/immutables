@@ -1307,6 +1307,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isGenerateConstructorUseCopyConstructor() {
     return isUseCopyMethods()
+        && !style().deepImmutablesDetection()
         && hasNonNullCheckableParametersInDefaultOrder()
         && getConstructorExcluded().isEmpty();
   }
