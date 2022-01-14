@@ -217,6 +217,8 @@ public final class ValueMirrors {
 
     boolean forceJacksonIgnoreFields() default false;
 
+    boolean forceEqualsInWithers() default false;
+
     boolean jacksonIntegration() default true;
 
     boolean weakInterning() default false;

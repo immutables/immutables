@@ -1930,6 +1930,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
         getDeclaringPackageAnnotationInjections());
   }
 
+  public boolean forceEqualsInWithers() {
+    return style().forceEqualsInWithers();
+  }
+
   public boolean isGenerateIncludeHashCode() {
     return !style().includeHashCode().isEmpty();
   }

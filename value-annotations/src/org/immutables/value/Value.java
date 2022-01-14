@@ -1101,9 +1101,19 @@ public @interface Value {
     boolean forceJacksonPropertyNames() default true;
 
     /**
-     * @return if put {@code JsonIgnore} on fields. default {@code false}
+     * @return if put {@code JsonIgnore} on fields, defaults to {@code false}
      */
     boolean forceJacksonIgnoreFields() default false;
+
+    /**
+     * If {@code forceEqualsInWithers} enabled, generated with-copy methods will have
+     * equality check forced. {@code ==} for integer primitives, {@code floatToIntBits ==} for floating point,
+     * and {@code .equals()} for the reference values.
+     * Some usage patterns might require strict equality check during copy to function properly,
+     * while for other usages it's just an optimisation.
+     * @return if equality check should be forced in withers, defaults to {@code false}
+     */
+    boolean forceEqualsInWithers() default false;
 
     /**
      * Setting this to {@code false} would disable any special jackson integration capabilities.

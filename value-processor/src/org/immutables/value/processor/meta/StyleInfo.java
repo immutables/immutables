@@ -281,6 +281,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean forceEqualsInWithers();
+
+  @Value.Parameter
+  @Override
   public abstract boolean jacksonIntegration();
 
   @Value.Parameter
@@ -499,6 +503,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.implementationNestedInBuilder(),
         input.forceJacksonPropertyNames(),
         input.forceJacksonIgnoreFields(),
+        input.forceEqualsInWithers(),
         input.jacksonIntegration(),
         input.weakInterning(),
         input.alwaysPublicInitializers(),

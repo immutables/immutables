@@ -3439,6 +3439,9 @@ return [validated type true]new [type.typeImmutable.relativeRaw][type.generics.d
 [varargsSafety v]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.elementType]... elements) {
+  [if type.forceEqualsInWithers]
+  if (java.util.Arrays.equals(this.[v.name], elements)) return this;
+  [/if]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if]elements.clone();
   [generateReturnCopyContextual type v]
 }
@@ -3479,7 +3482,11 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.un
  */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+  [if type.forceEqualsInWithers]
+  if ([objectsEqual type](this.[v.name], elements)) return this;
+  [else]
   if (this.[v.name] == elements) return this;
+  [/if]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if][if v.isGenerateJdk9]elements instanceof java.util.Collection<?>
       ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[v.consumedElementType]>) elements)
       : java.util.stream.StreamSupport.stream(elements.spliterator(), false)
@@ -3501,7 +3508,9 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
   [else]
   [immutableImplementationType v] newValue = [maybeCopyOf v][requireNonNull type](value, "[v.name]")[/maybeCopyOf];
   [/if]
-  [if v.hasSimpleScalarElementType andnot v.enumType]
+  [if type.forceEqualsInWithers]
+  if ([objectsEqual type](this.[v.name], newValue)) return this;
+  [else if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
   [else]
   if (this.[v.name] == newValue) return this;
@@ -3541,7 +3550,9 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
 public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
 [if v.jdkOptional]
-  [if v.hasSimpleScalarElementType andnot v.enumType]
+  [if type.forceEqualsInWithers]
+  if ([objectsEqual type](this.[v.name], value)) return this;
+  [else if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](this.[v.name], value)) return this;
   [else]
   if (this.[v.name] == value) return this;
@@ -3553,6 +3564,8 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
     [else]
   if (this.[v.name].equals(value)) return this;
     [/if]
+  [else if type.forceEqualsInWithers]
+  if (this.[v.name].equals(value)) return this;
   [else]
   if (!this.[v.name].[optionalPresent v] && !value.[optionalPresent v]) return this;
   if (this.[v.name].[optionalPresent v] && value.[optionalPresent v] && this.[v.name].[optionalGet v] == value.[optionalGet v]) return this;
@@ -3572,7 +3585,11 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
  */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [if type.forceEqualsInWithers]
+  if ([objectsEqual type](this.[v.name], entries)) return this;
+  [else]
   if (this.[v.name] == entries) return this;
+  [/if]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'entries'];
   [generateReturnCopyContextual type v]
 }
@@ -3601,6 +3618,8 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
     [else if v.primitive]
   if (this.[v.name] == value) return this;
+    [else if type.forceEqualsInWithers]
+  if ([objectsEqual type](this.[v.name], value)) return this;
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved to after value assignment --]
     [else]
@@ -3616,7 +3635,8 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
     [else if v.primitive]
   [generateReturnCopy type v 'value']
     [else if v.nullable]
-    [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
+    [if type.forceEqualsInWithers][-- do nothing, in the beginning --]
+    [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
       [if v.enumType]
   if (this.[v.name] == value) return this;
@@ -3629,7 +3649,8 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [generateReturnCopy type v 'value']
     [else]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
-    [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
+    [if type.forceEqualsInWithers][-- do nothing, handled in the beginning --]
+    [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
       [if v.enumType]
   if (this.[v.name] == newValue) return this;

@@ -17,7 +17,7 @@ package org.immutables.fixture.style;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.List;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -120,5 +120,34 @@ public class StyleTest {
   public void trimToString() {
     ImmutableTrimToString b = ImmutableTrimToString.builder().a(true).b("fffff").build();
     check(b).hasToString("TrimToString{a=true, b=ff…}");
+  }
+
+  @Test
+  public void forceEqualsInWithers() {
+    ImmutableForceEqualsInWithers z = ImmutableForceEqualsInWithers.builder()
+        .f(0.1f)
+        .d(0.2d)
+        .s("a")
+        .b(true)
+        .c('_')
+        .o("")
+        .addL(1, 2)
+        .addSt("a", "b", "c")
+        .putMp("x", 1)
+        .putMp("y", 2)
+        .build();
+
+    ImmutableForceEqualsInWithers w = z.withF(z.f())
+        .withD(z.d())
+        .withS(z.s())
+        .withB(z.b())
+        .withC(z.c())
+        .withS(String.copyValueOf(z.s().toCharArray()))
+        .withO(Optional.of(z.o().orElseThrow(AssertionError::new)))
+        .withL(new ArrayList<>(z.l()))
+        .withSt(new HashSet<>(Objects.requireNonNull(z.st())))
+        .withMp(new HashMap<>(z.mp()));
+
+    check(w).same(z);
   }
 }
