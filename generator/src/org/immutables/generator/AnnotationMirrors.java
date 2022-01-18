@@ -331,7 +331,7 @@ public final class AnnotationMirrors {
       } else if (Float.isNaN(value)) {
         appendConstant(Float.class, CONSTANT_NAN);
       } else {
-        builder.append(Float.toString(value));
+        builder.append(value);
       }
     }
 
@@ -351,7 +351,7 @@ public final class AnnotationMirrors {
       } else if (Double.isNaN(value)) {
         appendConstant(Double.class, CONSTANT_NAN);
       } else {
-        builder.append(Double.toString(value));
+        builder.append(value);
       }
     }
 
@@ -361,7 +361,7 @@ public final class AnnotationMirrors {
       } else if (value == Long.MIN_VALUE) {
         appendConstant(Long.class, CONSTANT_MIN_VALUE);
       } else {
-        builder.append(Long.toString(value));
+        builder.append(value);
       }
     }
 
@@ -371,17 +371,17 @@ public final class AnnotationMirrors {
       } else if (value == Integer.MIN_VALUE) {
         appendConstant(Integer.class, CONSTANT_MIN_VALUE);
       } else {
-        builder.append(Integer.toString(value));
+        builder.append(value);
       }
     }
 
     private void appendLiteral(short value) {
       if (value == Short.MAX_VALUE) {
         appendConstant(Short.class, CONSTANT_MAX_VALUE);
-      } else if (value == Integer.MIN_VALUE) {
+      } else if (value == Short.MIN_VALUE) {
         appendConstant(Short.class, CONSTANT_MIN_VALUE);
       } else {
-        builder.append(Short.toString(value));
+        builder.append(value);
       }
     }
 
@@ -391,7 +391,7 @@ public final class AnnotationMirrors {
       } else if (value == Byte.MIN_VALUE) {
         appendConstant(Byte.class, CONSTANT_MIN_VALUE);
       } else {
-        builder.append(Integer.toHexString(value));
+        builder.append(value);
       }
     }
   }
