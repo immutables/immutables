@@ -120,4 +120,17 @@ public class AnnotateTest {
     ToInj b = ImmutableOnTypeAndBuilderMany.Builder.class.getAnnotation(ToInj.class);
     check(b.a()).is(2);
 	}
+
+  @Test
+  public void transferYetToGeneratedClassesFromAnnotation() throws Exception {
+    Class<?> aab = ImmutableMappingInjectee.class.getDeclaredField("aab")
+        .getAnnotation(OriginalMapping.class)
+        .target();
+    Class<?> bbc = ImmutableMappingInjectee.class.getDeclaredField("bbc")
+        .getAnnotation(OriginalMapping.class)
+        .target();
+
+    check(aab == ImmutableMappingInjectee.class);
+    check(bbc == ImmutableMappingInjectee.class);
+  }
 }

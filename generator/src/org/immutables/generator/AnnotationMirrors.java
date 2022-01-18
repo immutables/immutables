@@ -77,7 +77,7 @@ public final class AnnotationMirrors {
 
   public static CharSequence toCharSequence(AnnotationValue value) {
     PrintVisitor printer = new PrintVisitor();
-    printer.visit(value, null);
+    printer.printValue(value);
     return printer.builder;
   }
 
@@ -307,10 +307,10 @@ public final class AnnotationMirrors {
       return null;
     }
 
-    private void printValue(AnnotationValue value) {
+    void printValue(AnnotationValue value) {
       // doing string comparison here because this class may not be available in Javac JDK7
       if (Compiler.JAVAC.isPresent()
-          && "com.sun.tools.javac.code.Attribute.UnresolvedClass".equals(value.getClass().getCanonicalName())) {
+          && JAVAC_UNRESOLVED_CLASS.equals(value.getClass().getCanonicalName())) {
         Attribute.UnresolvedClass unresolved = ((Attribute.UnresolvedClass) value);
         String typeString = ((Name) unresolved.classType.tsym.name).toString();
         builder.append(unresovedImportsResolver.apply(typeString)).append(".class");
@@ -394,5 +394,7 @@ public final class AnnotationMirrors {
         builder.append(value);
       }
     }
+
+    private static final String JAVAC_UNRESOLVED_CLASS = "com.sun.tools.javac.code.Attribute.UnresolvedClass";
   }
 }
