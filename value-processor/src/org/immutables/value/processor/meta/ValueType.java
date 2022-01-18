@@ -1641,7 +1641,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
           if (m.getModifiers().contains(Modifier.ABSTRACT)) {
             TypeMirror returnType = m.getReturnType();
-            if (!AccessorAttributesCollector.isEclipseImplementation(m)) {
+            if (!ProcessingEnvironments.isEclipseImplementation(constitution.protoclass().processing())) {
               returnType = AccessorAttributesCollector.asInheritedMemberReturnType(
                   constitution.protoclass().processing(),
                   CachingElements.getDelegate((TypeElement) element),

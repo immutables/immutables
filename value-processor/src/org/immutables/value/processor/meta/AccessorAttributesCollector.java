@@ -18,7 +18,15 @@ package org.immutables.value.processor.meta;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Lists;
-import java.util.List;
+import org.immutables.generator.SourceOrdering;
+import org.immutables.generator.SourceOrdering.AccessorProvider;
+import org.immutables.value.processor.encode.Instantiator;
+import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
+import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Reporter.About;
+import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
+
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -34,14 +42,7 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-import org.immutables.generator.SourceOrdering;
-import org.immutables.generator.SourceOrdering.AccessorProvider;
-import org.immutables.value.processor.encode.Instantiator;
-import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
-import org.immutables.value.processor.meta.Proto.Protoclass;
-import org.immutables.value.processor.meta.Reporter.About;
-import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
+import java.util.List;
 
 final class AccessorAttributesCollector {
   private static final String ORDINAL_ORDINAL_ATTRIBUTE_NAME = "ordinal";
@@ -80,7 +81,7 @@ final class AccessorAttributesCollector {
     this.styles = protoclass.styles();
     this.type = type;
     this.reporter = protoclass.report();
-    this.isEclipseImplementation = isEclipseImplementation(type.element);
+    this.isEclipseImplementation = ProcessingEnvironments.isEclipseImplementation(processing);
   }
 
   void collect() {
@@ -568,9 +569,5 @@ final class AccessorAttributesCollector {
 
   private Reporter report(Element type) {
     return Reporter.from(protoclass.processing()).withElement(type);
-  }
-
-  static boolean isEclipseImplementation(Element element) {
-    return CachingElements.getDelegate(element).getClass().getCanonicalName().startsWith(ORG_ECLIPSE);
   }
 }

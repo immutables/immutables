@@ -32,6 +32,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,6 +54,8 @@ public class RepositoryModel {
   // processor utils
   private final Types types;
   private final Elements elements;
+  private final boolean isEclipseImplementation;
+  private final ProcessingEnvironment environment;
 
   private List<Facet> cachedFacets;
 
@@ -62,6 +65,8 @@ public class RepositoryModel {
     final ProcessingEnvironment env = type.constitution.protoclass().environment().processing();
     this.types = env.getTypeUtils();
     this.elements = env.getElementUtils();
+    this.isEclipseImplementation = ProcessingEnvironments.isEclipseImplementation(env);
+    this.environment = env;
   }
 
   public List<Facet> facets() {
@@ -69,15 +74,15 @@ public class RepositoryModel {
       return cachedFacets;
     }
 
-    final CriteriaRepositoryMirror mirror = annotation();
+    final CriteriaRepositoryMirror annotation = annotation();
     final List<Facet> facets = new ArrayList<>();
 
-    for (TypeMirror type: mirror.facetsMirror()) {
-      final Element element = types.asElement(type);
+    for (TypeMirror mirror: annotation.facetsMirror()) {
+      final Element element = types.asElement(mirror);
       if (MoreElements.isType(element)) {
-        final TypeElement typed = MoreElements.asType(element);
-        final FacetConsumer facetConsumer = new FacetConsumer(facets, typed);
-        for (TypeMirror iface: typed.getInterfaces()) {
+        final TypeElement type = isEclipseImplementation ? elements.getTypeElement(MoreElements.asType(element).getQualifiedName()) : MoreElements.asType(element);
+        final FacetConsumer facetConsumer = new FacetConsumer(facets, type);
+        for (TypeMirror iface: type.getInterfaces()) {
           facetConsumer.consume(iface);
         }
       }
@@ -160,8 +165,12 @@ public class RepositoryModel {
       final List<ExecutableElement> objectMethods = ElementFilter.methodsIn(elements.getAllMembers(MoreElements.asType(elements.getTypeElement(Object.class.getCanonicalName()))));
       ifaceMethods.removeAll(objectMethods);
 
-      for (ExecutableElement exec: ifaceMethods) {
-        // figure out implemented method signature
+      for (ExecutableElement exec : ifaceMethods) {
+        if (isEclipseImplementation && exec.isDefault()) {
+          // Eclipse ECJ doesn't resolve (as in Types.asMemberOf) correctly default methods.
+          // Skip default methods in Eclipse compiler.
+          continue;
+        }
         ExecutableType type1 = MoreTypes.asExecutable(types.asMemberOf(interfaceType, exec));
         facet.addMethods(new DelegateMethod(type1, exec, name));
       }
