@@ -19,7 +19,7 @@
 
   <groupId>org.immutables</groupId>
   <artifactId>immutables</artifactId>
-  <version>2.9.0-SNAPSHOT</version>
+  <version>2.9.0</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}.${project.artifactId}</name>
@@ -99,7 +99,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     <!-- Shared versions -->
-    <retro.version>2.5.1</retro.version>
+    <retro.version>2.7.5</retro.version>
     <errorprone.version>2.10.0</errorprone.version>
     <javac.version>9+181-r4173-1</javac.version>
     <mongo-java-driver.version>4.3.1</mongo-java-driver.version>
@@ -172,34 +172,6 @@
     </testResources>
 
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.0.2</version>
-
-        <executions>
-          <execution>
-            <id>default-jar</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <manifestEntries>
-                  <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
-                </manifestEntries>
-              </archive>
-            </configuration>
-          </execution>
-          <execution>
-            <id>test-jar</id>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -284,6 +256,34 @@
             <useReleaseProfile>false</useReleaseProfile>
             <arguments>-Psonatype-oss-release</arguments>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.0.2</version>
+
+          <executions>
+            <execution>
+              <id>default-jar</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+              <configuration>
+                <archive>
+                  <addMavenDescriptor>false</addMavenDescriptor>
+                  <manifestEntries>
+                    <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
+                  </manifestEntries>
+                </archive>
+              </configuration>
+            </execution>
+            <execution>
+              <id>test-jar</id>
+              <goals>
+                <goal>test-jar</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
