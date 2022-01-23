@@ -17,6 +17,7 @@ package samplegenerators;
 
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
+import javax.tools.Diagnostic;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.generator.Generator;
 import org.immutables.metainf.Metainf;
@@ -27,6 +28,10 @@ import org.immutables.metainf.Metainf;
 public class DoitProcessor extends AbstractGenerator {
   @Override
   protected void process() {
-    invoke(new Generator_Doer().main());
+    processing().getMessager().printMessage(Diagnostic.Kind.MANDATORY_WARNING, "!!ROUND " + round());
+    Generator_Doer doer = new Generator_Doer();
+    invoke(doer.main());
+    processing().getMessager().printMessage(Diagnostic.Kind.MANDATORY_WARNING, "!!ROUND " + round());
+    processing().getMessager().printMessage(Diagnostic.Kind.MANDATORY_WARNING, "!!ELEMENTS " + doer.elements().size());
   }
 }
