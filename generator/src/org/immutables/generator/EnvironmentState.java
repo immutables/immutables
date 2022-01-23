@@ -66,6 +66,7 @@ public class EnvironmentState {
   void initRound(Set<? extends TypeElement> annotations, RoundEnvironment round) {
     this.round = round;
     this.annotations = ImmutableSet.copyOf(annotations);
+    currentState.set(this);
   }
 
   void completeRound() {
@@ -74,7 +75,7 @@ public class EnvironmentState {
     }
     afterRound.clear();
     annotations = null;
-    round = null;
+    //round = null;
   }
 
   void completeProcessing() {
