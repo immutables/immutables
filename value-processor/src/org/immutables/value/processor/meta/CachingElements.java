@@ -62,14 +62,12 @@ public final class CachingElements {
     return new CachingTypeElement(element);
   }
 
-  @SuppressWarnings("unchecked")
   public static <E extends Element> E getDelegate(E element) {
-    return Delegated.Delegates.unwrap(element);
+    return Delegated.unwrap(element);
   }
 
-  @SuppressWarnings("unchecked")
   public static <E extends AnnotationMirror> E getDelegate(E element) {
-    return Delegated.Delegates.unwrap(element);
+    return Delegated.unwrap(element);
   }
 
   public static PackageElement asCaching(PackageElement element) {

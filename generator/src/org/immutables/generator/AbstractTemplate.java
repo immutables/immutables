@@ -29,14 +29,14 @@ public abstract class AbstractTemplate extends Builtins {
   public final ClasspathAvailability classpath = new ClasspathAvailability();
 
   protected final ProcessingEnvironment processing() {
-    return StaticEnvironment.processing();
+    return EnvironmentState.processing();
   }
 
   protected final RoundEnvironment round() {
-    return StaticEnvironment.round();
+    return EnvironmentState.round();
   }
 
   protected final Set<TypeElement> annotations() {
-    return StaticEnvironment.annotations();
+    return EnvironmentState.annotations();
   }
 }

@@ -235,7 +235,7 @@ public class Builtins {
 
     @Override
     public String apply(Object input) {
-      return StaticEnvironment.processing().getElementUtils().getConstantExpression(input);
+      return EnvironmentState.processing().getElementUtils().getConstantExpression(input);
     }
 
     public final Function<Object, String> string = new Function<Object, String>() {

@@ -22,12 +22,9 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
-import com.google.common.io.CharSink;
-import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
 import java.io.IOException;
 import java.io.Reader;
@@ -49,7 +46,6 @@ import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
-import org.immutables.generator.Delegated.Delegates;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -61,7 +57,7 @@ public final class Output {
     @Override
     @Nullable
     public Invokable invoke(Invokation invokation, Object... parameters) {
-      Messager messager = StaticEnvironment.processing().getMessager();
+      Messager messager = EnvironmentState.processing().getMessager();
       String message = CharMatcher.whitespace().trimFrom(parameters[parameters.length - 1].toString());
       Element element = (Element) Iterators.find(
           Iterators.forArray(parameters),
@@ -172,10 +168,9 @@ public final class Output {
       Element originatingElement = (Element) parameters[2];
       Invokable body = (Invokable) parameters[3];
 
-      ResourceKey key = new ResourceKey(packageName, simpleName, Delegates.unwrap(originatingElement));
+      ResourceKey key = new ResourceKey(packageName, simpleName, Delegated.unwrap(originatingElement));
       SourceFile javaFile = getFiles().sourceFiles.get(key);
       body.invoke(new Invokation(javaFile.consumer));
-      javaFile.complete();
       return null;
     }
   };
@@ -248,7 +243,7 @@ public final class Output {
       try {
         writeFile();
       } catch (Exception ex) {
-        StaticEnvironment.processing().getMessager().printMessage(
+        EnvironmentState.processing().getMessager().printMessage(
             Diagnostic.Kind.MANDATORY_WARNING,
             "Cannot write service files: " + key + ex.toString());
       }
@@ -371,15 +366,15 @@ public final class Output {
   }
 
   private static Filer getFiler() {
-    return StaticEnvironment.processing().getFiler();
+    return EnvironmentState.processing().getFiler();
   }
 
   private static Messager getMessager() {
-    return StaticEnvironment.processing().getMessager();
+    return EnvironmentState.processing().getMessager();
   }
 
   private static Files getFiles() {
-    return StaticEnvironment.getInstance(Files.class, FilesSupplier.INSTANCE);
+    return EnvironmentState.getPerRound(Files.class, FilesSupplier.INSTANCE);
   }
 
   private enum FilesSupplier implements Supplier<Files> {
@@ -392,7 +387,7 @@ public final class Output {
   }
 
   private static ServiceFiles getServiceFiles() {
-    return StaticEnvironment.getServiceFilesInstance(ServiceFiles.class, ServiceFilesSupplier.INSTANCE);
+    return EnvironmentState.getPerProcessing(ServiceFiles.class, ServiceFilesSupplier.INSTANCE);
   }
 
   private enum ServiceFilesSupplier implements Supplier<ServiceFiles> {
@@ -429,7 +424,7 @@ public final class Output {
     }
   }
 
-  private static class Files implements StaticEnvironment.Completable {
+  private static class Files implements Runnable {
     final Cache<ResourceKey, SourceFile> sourceFiles = new Cache<ResourceKey, SourceFile>() {
       @Override
       public SourceFile load(ResourceKey key) throws Exception {
@@ -438,11 +433,14 @@ public final class Output {
     };
 
     @Override
-    public void complete() {
+    public void run() {
+      for (SourceFile file : sourceFiles.asMap().values()) {
+        file.complete();
+      }
     }
   }
 
-  private static class ServiceFiles implements StaticEnvironment.Completable {
+  private static class ServiceFiles implements Runnable {
     final Cache<ResourceKey, AppendServiceFile> appendResourceFiles = new Cache<ResourceKey, AppendServiceFile>() {
       @Override
       public AppendServiceFile load(ResourceKey key) throws Exception {
@@ -451,7 +449,7 @@ public final class Output {
     };
 
     @Override
-    public void complete() {
+    public void run() {
       for (AppendServiceFile file : appendResourceFiles.asMap().values()) {
         file.complete();
       }

@@ -22,14 +22,10 @@ package org.immutables.generator;
 public interface Delegated {
   Object delegate();
 
-  static class Delegates {
-    private Delegates() {}
-
-    @SuppressWarnings("unchecked")
-    public static <T> T unwrap(T object) {
-      return object instanceof Delegated
-          ? (T) ((Delegated) object).delegate()
-          : object;
-    }
+  @SuppressWarnings("unchecked")
+  static <T> T unwrap(T object) {
+    return object instanceof Delegated
+        ? (T) ((Delegated) object).delegate()
+        : object;
   }
 }

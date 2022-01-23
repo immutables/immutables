@@ -34,6 +34,7 @@ import org.immutables.generator.Generator.SupportedAnnotations;
  * @see #process()
  */
 public abstract class AbstractGenerator extends AbstractProcessor {
+  private EnvironmentState env = new EnvironmentState();
 
   /**
    * Override process method and call {@link #invoke(org.immutables.generator.Templates.Invokable)}
@@ -42,15 +43,15 @@ public abstract class AbstractGenerator extends AbstractProcessor {
   protected abstract void process();
 
   protected final ProcessingEnvironment processing() {
-    return StaticEnvironment.processing();
+    return EnvironmentState.processing();
   }
 
   protected final RoundEnvironment round() {
-    return StaticEnvironment.round();
+    return EnvironmentState.round();
   }
 
   protected final Set<TypeElement> annotations() {
-    return StaticEnvironment.annotations();
+    return EnvironmentState.annotations();
   }
 
   protected final void invoke(Templates.Invokable invokable) {
@@ -81,21 +82,21 @@ public abstract class AbstractGenerator extends AbstractProcessor {
 
   @Override
   public synchronized void init(ProcessingEnvironment processingEnv) {
-    StaticEnvironment.preInit(processingEnv);
+    env.initProcessing(processingEnv);
     super.init(processingEnv);
   }
 
   @Override
   public final boolean process(Set<? extends TypeElement> annotations, RoundEnvironment round) {
     try {
-      StaticEnvironment.init(annotations, round, processingEnv);
-      if (!round.processingOver() && !round.errorRaised()) {
+      if (!round.processingOver() && !round.errorRaised()) { // idk if we should ignore errorRaised
+        env.initRound(annotations, round);
         process();
+        env.completeRound();
       }
       if (round.processingOver()) {
-        StaticEnvironment.writeServiceFiles();
+        env.completeProcessing();
       }
-      StaticEnvironment.shutdown();
     } catch (Exception ex) {
       processingEnv.getMessager()
           .printMessage(Diagnostic.Kind.ERROR,

@@ -28,7 +28,7 @@ public final class ClasspathAvailability {
       Collections.synchronizedMap(new HashMap<String, Boolean>());
 
   public boolean isJava8() {
-    SourceVersion sourceVersion = StaticEnvironment.processing().getSourceVersion();
+    SourceVersion sourceVersion = EnvironmentState.processing().getSourceVersion();
     return sourceVersion.compareTo(SourceVersion.RELEASE_7) > 0;
   }
 
@@ -52,7 +52,7 @@ public final class ClasspathAvailability {
 
     private TypeElement loadTypeElement(String input) {
       try {
-        return StaticEnvironment.processing()
+        return EnvironmentState.processing()
             .getElementUtils()
             .getTypeElement(input);
       } catch (Exception ex) {

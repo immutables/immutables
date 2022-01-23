@@ -18,7 +18,6 @@ package org.immutables.generator;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
@@ -51,7 +50,7 @@ public final class ExtensionLoader {
         // best effort to read it from compilation classpath
         try {
           String lines = getClasspathResourceText(
-              StaticEnvironment.processing().getFiler(),
+              EnvironmentState.processing().getFiler(),
               resource);
           extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
         } catch (RuntimeException | IOException cannotReadCompilationClasspath) {
@@ -71,7 +70,7 @@ public final class ExtensionLoader {
           // we ignore this as we did or best effort
           // and there are no plans to halt whole compilation
         }
-        return FluentIterable.from(extensions).toSet();
+        return ImmutableSet.copyOf(extensions);
       }
     });
   }
