@@ -28,10 +28,6 @@ import org.immutables.metainf.Metainf;
 public class DoitProcessor extends AbstractGenerator {
   @Override
   protected void process() {
-    processing().getMessager().printMessage(Diagnostic.Kind.MANDATORY_WARNING, "!!ROUND " + round());
-    Generator_Doer doer = new Generator_Doer();
-    invoke(doer.main());
-    processing().getMessager().printMessage(Diagnostic.Kind.MANDATORY_WARNING, "!!ROUND " + round());
-    processing().getMessager().printMessage(Diagnostic.Kind.MANDATORY_WARNING, "!!ELEMENTS " + doer.elements().size());
+    invoke(new Generator_Doer().main());
   }
 }
