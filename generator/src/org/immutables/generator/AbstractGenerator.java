@@ -89,11 +89,11 @@ public abstract class AbstractGenerator extends AbstractProcessor {
   @Override
   public final boolean process(Set<? extends TypeElement> annotations, RoundEnvironment round) {
     try {
+      env.initRound(annotations, round);
       if (!round.processingOver() && !round.errorRaised()) { // idk if we should ignore errorRaised
-        env.initRound(annotations, round);
         process();
-        env.completeRound();
       }
+      env.completeRound();
       if (round.processingOver()) {
         env.completeProcessing();
       }

@@ -1837,9 +1837,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   private TypeExtractor getTypeExtractor() {
     if (typeExtractor == null) {
-      this.typeExtractor = new TypeExtractor(
-          Proto.TYPE_FACTORY,
-          (Parameterizable) element);
+      this.typeExtractor = new TypeExtractor(Proto.typeFactory(), (Parameterizable) element);
     }
     return typeExtractor;
   }

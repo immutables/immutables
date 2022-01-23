@@ -263,7 +263,7 @@ public final class Templates {
     }
 
     /**
-     * Ability to pass caputured fragment and evaluate it as a string.
+     * Ability to pass captured fragment and evaluate it as a string.
      * For non-captured fragments or fragments which expects parameters, plain {@code toString}
      * returned.
      */

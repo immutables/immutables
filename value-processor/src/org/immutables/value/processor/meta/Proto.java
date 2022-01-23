@@ -52,6 +52,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
 import org.immutables.generator.ClasspathFence;
+import org.immutables.generator.EnvironmentState;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.value.Value;
 import org.immutables.value.processor.encode.EncMetadataMirror;
@@ -70,9 +71,19 @@ import static com.google.common.base.Verify.verify;
 public class Proto {
   private Proto() {}
 
-  static final Type.Factory TYPE_FACTORY = new Type.Producer();
+  public static Type.Factory typeFactory() {
+    return typeFactoryAndInflater().factory;
+  }
 
-  private static final Inflater ENCODING_INFLATER = new Inflater(TYPE_FACTORY);
+  private static TypeFactoryAndInflater typeFactoryAndInflater() {
+    return EnvironmentState.getPerProcessing(TypeFactoryAndInflater.class, TypeFactoryAndInflater::new);
+  }
+
+  private static class TypeFactoryAndInflater implements Runnable {
+    final Type.Factory factory = new Type.Producer();
+    final Inflater inflater = new Inflater(factory);
+    @Override public void run() {}
+  }
 
   final static class Interning {
     private final Interner<DeclaringPackage> packageInterner = Interners.newStrongInterner();
@@ -94,8 +105,6 @@ public class Proto {
 
   @Value.Immutable(builder = false)
   public static abstract class MetaAnnotated {
-    private static final ConcurrentMap<String, MetaAnnotated> cache = new ConcurrentHashMap<>(16, 0.7f, 1);
-
     @Value.Parameter
     @Value.Auxiliary
     public abstract Element element();
@@ -116,7 +125,9 @@ public class Proto {
           || style().isPresent()) {
 
         // See if it is encoding enabled itself
-        Optional<EncodingInfo> encoding = EncMetadataMirror.find(element()).transform(ENCODING_INFLATER);
+        Optional<EncodingInfo> encoding = EncMetadataMirror.find(element())
+            .transform(typeFactoryAndInflater().inflater);
+
         if (encoding.isPresent()) {
           return encoding.asSet();
         }
@@ -129,7 +140,7 @@ public class Proto {
         }
 
         if (!result.isEmpty()) {
-          return FluentIterable.from(result).toSet();
+          return ImmutableSet.copyOf(result);
         }
       }
       return ImmutableSet.of();
@@ -233,17 +244,21 @@ public class Proto {
     public static MetaAnnotated from(AnnotationMirror mirror, Environment environment) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
       String name = element.getQualifiedName().toString();
+      return metaAnnotatedCache()
+          .computeIfAbsent(name, n -> ImmutableProto.MetaAnnotated.of(element, name, environment));
+    }
 
-      @Nullable MetaAnnotated metaAnnotated = cache.get(name);
-      if (metaAnnotated == null) {
-        metaAnnotated = ImmutableProto.MetaAnnotated.of(element, name, environment);
-        @Nullable MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
-        if (existing != null) {
-          metaAnnotated = existing;
-        }
-      }
+    private static ConcurrentMap<String, MetaAnnotated> metaAnnotatedCache() {
+      return EnvironmentState.getPerProcessing(MetaAnnotatedCache.class, MetaAnnotatedCache::new).cache;
+    }
+  }
 
-      return metaAnnotated;
+  private static class MetaAnnotatedCache implements Runnable {
+    final ConcurrentMap<String, MetaAnnotated> cache = new ConcurrentHashMap<>(16, 0.7f, 1);
+    @Override public void run() {
+      // these clear() calls are not strictly necessary, just subject to GC after processing or round
+      // but we try to be "paranoidaly consistent"
+      cache.clear();
     }
   }
 
@@ -476,12 +491,8 @@ public class Proto {
     private final Map<Set<EncodingInfo>, Instantiator> instantiators = new HashMap<>();
 
     Instantiator instantiatorFor(Set<EncodingInfo> encodings) {
-      @Nullable Instantiator instantiator = instantiators.get(encodings);
-      if (instantiator == null) {
-        instantiator = ENCODING_INFLATER.instantiatorFor(encodings);
-        instantiators.put(encodings, instantiator);
-      }
-      return instantiator;
+      return instantiators.computeIfAbsent(encodings,
+          key -> typeFactoryAndInflater().inflater.instantiatorFor(key));
     }
 
     public boolean isCheckedException(TypeMirror throwable) {

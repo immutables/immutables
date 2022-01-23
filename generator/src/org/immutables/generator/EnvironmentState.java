@@ -14,14 +14,14 @@ import com.google.common.collect.MutableClassToInstanceMap;
 /**
  * Next iteration of the same flawed design in hopes to untangle it at least a bit.
  */
-class EnvironmentState {
+public class EnvironmentState {
   static final ThreadLocal<EnvironmentState> currentState = new ThreadLocal<EnvironmentState>();
 
   private static EnvironmentState state() {
     return Preconditions.checkNotNull(currentState.get(), "Static environment should be initialized");
   }
 
-  static <T extends Runnable> T getPerRound(Class<T> type, Supplier<T> supplier) {
+  public static <T extends Runnable> T getPerRound(Class<T> type, Supplier<T> supplier) {
     EnvironmentState state = state();
     @Nullable T instance = state.afterRound.getInstance(type);
     if (instance == null) {
@@ -30,7 +30,7 @@ class EnvironmentState {
     return instance;
   }
 
-  static <T extends Runnable> T getPerProcessing(Class<T> type, Supplier<T> supplier) {
+  public static <T extends Runnable> T getPerProcessing(Class<T> type, Supplier<T> supplier) {
     EnvironmentState state = state();
     @Nullable T instance = state.afterProcessing.getInstance(type);
     if (instance == null) {
@@ -39,11 +39,11 @@ class EnvironmentState {
     return instance;
   }
 
-  static ProcessingEnvironment processing() {
+  public static ProcessingEnvironment processing() {
     return state().processing;
   }
 
-  static RoundEnvironment round() {
+  public static RoundEnvironment round() {
     return state().round;
   }
 

@@ -171,6 +171,7 @@ public final class Output {
       ResourceKey key = new ResourceKey(packageName, simpleName, Delegated.unwrap(originatingElement));
       SourceFile javaFile = getFiles().sourceFiles.get(key);
       body.invoke(new Invokation(javaFile.consumer));
+      javaFile.complete();
       return null;
     }
   };
@@ -196,7 +197,7 @@ public final class Output {
     final String packageName;
     final String relativeName;
     // not included in equals/hashcode
-    final @Nullable Element originatingElement;
+    @Nullable Element originatingElement;
 
     ResourceKey(String packageName, String simpleName) {
       this(packageName, simpleName, null);
@@ -301,12 +302,15 @@ public final class Output {
      */
     final ResourceKey key;
     final Templates.CharConsumer consumer = new Templates.CharConsumer();
+    boolean completed = false;
 
     SourceFile(ResourceKey key) {
       this.key = key;
     }
 
     void complete() {
+      if (completed) return;
+      completed = true;
       CharSequence sourceCode = extractSourceCode();
       try {
         JavaFileObject sourceFile = key.originatingElement != null
@@ -331,6 +335,8 @@ public final class Output {
         }
       } catch (IOException ex) {
         throw Throwables.propagate(ex);
+      } finally {
+        key.originatingElement = null; //attempt to not drag any round elements
       }
     }
 
@@ -422,6 +428,10 @@ public final class Output {
     public Map<K, V> asMap() {
       return map;
     }
+
+    void clear() {
+      map.clear();
+    }
   }
 
   private static class Files implements Runnable {
@@ -434,9 +444,9 @@ public final class Output {
 
     @Override
     public void run() {
-      for (SourceFile file : sourceFiles.asMap().values()) {
-        file.complete();
-      }
+      // file.complete() are called in-line, not here, to not force dragging
+      // file content/char sequences till the end of a round
+      sourceFiles.clear();
     }
   }
 
@@ -450,9 +460,10 @@ public final class Output {
 
     @Override
     public void run() {
-      for (AppendServiceFile file : appendResourceFiles.asMap().values()) {
-        file.complete();
+      for (AppendServiceFile f : appendResourceFiles.asMap().values()) {
+        f.complete();
       }
+      appendResourceFiles.clear();
     }
   }
 }

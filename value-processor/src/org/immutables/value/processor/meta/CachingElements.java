@@ -168,12 +168,12 @@ public final class CachingElements {
 
     @SuppressWarnings("unused")
     public boolean isDefault() {
-      throw throwInteroperabilityStub();
+      return delegate.isDefault();
     }
 
     @SuppressWarnings("unused")
     public TypeMirror getReceiverType() {
-      throw throwInteroperabilityStub();
+      return delegate.getReceiverType();
     }
   }
 
@@ -337,7 +337,7 @@ public final class CachingElements {
 
     @SuppressWarnings("unused")
     public <A extends Annotation> A[] getAnnotationsByType(Class<A> type) {
-      throw throwInteroperabilityStub();
+      return delegate.getAnnotationsByType(type);
     }
 
     @Override
@@ -426,26 +426,22 @@ public final class CachingElements {
 
     @SuppressWarnings("unused")
     public <A extends Annotation> A getAnnotation(Class<A> type) {
-      throw throwInteroperabilityStub();
+      return delegate.getAnnotation(type);
     }
 
     @SuppressWarnings("unused")
     public <A extends Annotation> A[] getAnnotationsByType(Class<A> type) {
-      throw throwInteroperabilityStub();
+      return delegate.getAnnotationsByType(type);
     }
 
     @SuppressWarnings("unused")
     public List<? extends AnnotationMirror> getAnnotationMirrors() {
-      throw throwInteroperabilityStub();
+      return delegate.getAnnotationMirrors();
     }
 
     @Override
     public String toString() {
       return delegate.toString();
     }
-  }
-
-  private static RuntimeException throwInteroperabilityStub() {
-    throw new UnsupportedOperationException("due Java7/Java8 interoperability");
   }
 }
