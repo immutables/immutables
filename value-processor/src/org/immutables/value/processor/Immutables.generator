@@ -3897,7 +3897,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [/output.trim][/template]
 
 [template public equalsAttribute Attribute a Boolean useAccessor][output.trim]
-[let thisAttr][if a.name eq 'another']this.[/if][a.name][/let]
+[let thisAttr][if ((a.name eq 'another') or (a.name eq 'synthetic'))]this.[/if][a.name][/let]
 [let getOther]another.[if useAccessor][a.names.get]()[else][a.name][/if][/let]
 [if a.encoding]
   [rr.equals a]another[/rr.equals]
