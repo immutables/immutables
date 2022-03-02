@@ -2512,7 +2512,7 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [eachLine type.syntheticFieldsInjectedAnnotations]
   [jsonIgnore type]
   [if type.useLazyhash][hiddenMutableState type][/if]
-  private[if not type.serial.simple] transient[/if][if type.usePrehashed] final[/if] int hashCode;[if type.useLazyhash] // hashCode lazily computed[/if]
+  private[if ((not type.serial.simple) or type.useLazyhash)] transient[/if][if type.usePrehashed] final[/if] int hashCode;[if type.useLazyhash] // hashCode lazily computed[/if]
 [/if]
 [if type.generateOrdinalValue]
   [jsonIgnore type]
