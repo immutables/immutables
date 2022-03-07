@@ -15,6 +15,9 @@
  */
 package org.immutables.fixture.nullable;
 
+import java.util.HashMap;
+import java.util.Map;
+import org.immutables.fixture.ImmutableEntityWithMap;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nullable;
@@ -329,5 +332,34 @@ public class NullableAttributesTest {
 
     check(s.a()).is("a");
     check(s.b()).is("b");
+  }
+
+  @Test
+  @SuppressWarnings("CheckReturnValue")
+  public void nullValuesInJdkMapErrorMsg() {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("a", "a val");
+    properties.put("b", null);
+    properties.put("c", "c val");
+    try {
+      ImmutableEntityWithMap.builder().properties(properties).build();
+    } catch (NullPointerException e) {
+      check(e.getMessage()).is("properties value for key: b");
+    }
+    try {
+      ImmutableEntityWithMap.builder().properties(new HashMap<>()).build().withProperties(properties);
+    } catch (NullPointerException e) {
+      check(e.getMessage()).is("value for key: b");
+    }
+    try {
+      ImmutableEntityWithMap.builder().putAllProperties(properties).build();
+    } catch (NullPointerException e) {
+      check(e.getMessage()).is("properties value for key: b");
+    }
+    try {
+      ImmutableEntityWithMap.builder().putProperties("a", "a").putProperties("c", null).build();
+    } catch (NullPointerException e) {
+      check(e.getMessage()).is("properties value for key: c");
+    }
   }
 }
