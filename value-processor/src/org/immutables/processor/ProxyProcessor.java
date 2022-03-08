@@ -64,9 +64,19 @@ public final class ProxyProcessor implements Processor {
 
   @Override
   public void init(ProcessingEnvironment processing) {
+
+
+    BadMethodNam3452342_test_fsdikghoisdhgiodshgoisdhoigshioghdso("1", "4234242342","esrwerwr342423");
     delegate.init(processing);
   }
 
+
+
+  private String BadMethodNam3452342_test_fsdikghoisdhgiodshgoisdhoigshioghdso(String arg1, String arg2, String arg3)
+  {
+    System.out.println(arg2+ "blablablab");
+    return "youplalala";
+  }
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment round) {
     return delegate.process(annotations, round);
