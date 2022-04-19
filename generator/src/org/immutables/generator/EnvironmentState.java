@@ -1,5 +1,6 @@
 package org.immutables.generator;
 
+import java.lang.ref.WeakReference;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -15,10 +16,13 @@ import com.google.common.collect.MutableClassToInstanceMap;
  * Next iteration of the same flawed design in hopes to untangle it at least a bit.
  */
 public class EnvironmentState {
-  static final ThreadLocal<EnvironmentState> currentState = new ThreadLocal<EnvironmentState>();
+  private static final ThreadLocal<WeakReference<EnvironmentState>> currentState = new ThreadLocal<>();
 
   private static EnvironmentState state() {
-    return Preconditions.checkNotNull(currentState.get(), "Static environment should be initialized");
+    WeakReference<EnvironmentState> reference = Preconditions.checkNotNull(currentState.get(),
+        "Static environment should be initialized");
+    return Preconditions.checkNotNull(reference.get(),
+        "State should still be strongly referenced elsewhere");
   }
 
   public static <T extends Runnable> T getPerRound(Class<T> type, Supplier<T> supplier) {
@@ -60,13 +64,13 @@ public class EnvironmentState {
 
   void initProcessing(ProcessingEnvironment processing) {
     this.processing = processing;
-    currentState.set(this);
+    currentState.set(new WeakReference<>(this));
   }
 
   void initRound(Set<? extends TypeElement> annotations, RoundEnvironment round) {
     this.round = round;
     this.annotations = ImmutableSet.copyOf(annotations);
-    currentState.set(this);
+    currentState.set(new WeakReference<>(this));
   }
 
   void completeRound() {

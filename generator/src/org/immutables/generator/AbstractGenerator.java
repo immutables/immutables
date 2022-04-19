@@ -34,7 +34,7 @@ import org.immutables.generator.Generator.SupportedAnnotations;
  * @see #process()
  */
 public abstract class AbstractGenerator extends AbstractProcessor {
-  private EnvironmentState env = new EnvironmentState();
+  private final EnvironmentState env = new EnvironmentState();
 
   /**
    * Override process method and call {@link #invoke(org.immutables.generator.Templates.Invokable)}
