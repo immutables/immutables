@@ -43,21 +43,45 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>${junit5.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apiguardian</groupId>
+          <artifactId>apiguardian-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
       <version>${junit5.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apiguardian</groupId>
+          <artifactId>apiguardian-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
       <version>${junit5.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apiguardian</groupId>
+          <artifactId>apiguardian-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.junit.vintage</groupId>
       <artifactId>junit-vintage-engine</artifactId>
       <version>${junit5.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apiguardian</groupId>
+          <artifactId>apiguardian-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -72,11 +96,6 @@
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
-      <version>${hamcrest.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-integration</artifactId>
       <version>${hamcrest.version}</version>
     </dependency>
     <dependency>
