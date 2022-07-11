@@ -57,8 +57,8 @@ public interface Datatype<T> {
         String name,
         TypeToken<F> type,
         boolean nullable,
-        boolean getter,
         boolean setter,
+        boolean getter,
         boolean omittable,
         boolean ignorable) {
       return new Feature<T, F>() {
@@ -84,12 +84,12 @@ public interface Datatype<T> {
 
         @Override
         public boolean supportsInput() {
-          return getter;
+          return setter;
         }
 
         @Override
         public boolean supportsOutput() {
-          return setter;
+          return getter;
         }
 
         @Override
