@@ -1,0 +1,41 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+    <changeSet author="test" id="1">
+        <createTable tableName="notes">
+            <column name="id" type="varchar">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_on" type="bigint"/>
+            <column name="message" type="varchar(255)"/>
+        </createTable>
+        <insert tableName="notes">
+            <column name="id" value="7aae20e3-9144-40ba-86f0-c9de8f143269"/>
+            <column name="created_on" value="1640995200000"/> <!-- 1/1/2022 12:00 AM -->
+            <column name="message" value="Message #1"/>
+        </insert>
+        <insert tableName="notes">
+            <column name="id" value="75b90525-38be-41b9-b43d-df427a66893c"/>
+            <column name="created_on" value="1609459200000"/> <!-- 1/1/2021 12:00 AM -->
+            <column name="message" value="Message #2"/>
+        </insert>
+        <insert tableName="notes">
+            <column name="id" value="578f932f-c972-4d3b-92b4-bf8fda9599f9"/>
+            <column name="created_on" value="1577836800000"/> <!-- 1/1/2020 12:00 AM -->
+            <column name="message" value="Message #3"/>
+        </insert>
+        <insert tableName="notes">
+            <column name="id" value="cf508c17-8217-4f30-a99f-70fdfbcdc643"/>
+            <column name="created_on" value="1546300800000"/> <!-- 1/1/2019 12:00 AM -->
+            <column name="message" value="Message #4"/>
+        </insert>
+        <insert tableName="notes">
+            <column name="id" value="c49371f3-8cda-4ddf-ad74-877ee6f67abe"/>
+            <column name="created_on" value="0"/> <!-- 1/1/1970 12:00 AM -->
+            <column name="message" value="Message #5"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
