@@ -51,6 +51,10 @@ import org.immutables.generator.Templates.Invokation;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class Output {
+  /**
+   * Pragma-like comment indicator just at beginning of the source file used to disable import
+   * post-processing.
+   */
   public static final String NO_IMPORTS = "//-no-import-rewrite";
 
   public final Templates.Invokable error = new Templates.Invokable() {
@@ -64,7 +68,7 @@ public final class Output {
           Predicates.instanceOf(Element.class),
           null);
       if (element != null) {
-        messager.printMessage(Diagnostic.Kind.ERROR, message, element);
+        messager.printMessage(Diagnostic.Kind.ERROR, message, Delegated.unwrap(element));
       } else {
         messager.printMessage(Diagnostic.Kind.ERROR, message);
       }
@@ -168,7 +172,7 @@ public final class Output {
       Element originatingElement = (Element) parameters[2];
       Invokable body = (Invokable) parameters[3];
 
-      ResourceKey key = new ResourceKey(packageName, simpleName, Delegated.unwrap(originatingElement));
+      ResourceKey key = new ResourceKey(packageName, simpleName, originatingElement);
       SourceFile javaFile = getFiles().sourceFiles.get(key);
       body.invoke(new Invokation(javaFile.consumer));
       javaFile.complete();
@@ -246,7 +250,7 @@ public final class Output {
       } catch (Exception ex) {
         EnvironmentState.processing().getMessager().printMessage(
             Diagnostic.Kind.MANDATORY_WARNING,
-            "Cannot write service files: " + key + ex.toString());
+            "Cannot write service files: " + key + ex);
       }
     }
 
@@ -296,10 +300,6 @@ public final class Output {
   }
 
   private static class SourceFile {
-    /**
-     * Pragma-like comment indicator just at beginning of the source file used to disable import
-     * post-processing.
-     */
     final ResourceKey key;
     final Templates.CharConsumer consumer = new Templates.CharConsumer();
     boolean completed = false;
@@ -314,7 +314,7 @@ public final class Output {
       CharSequence sourceCode = extractSourceCode();
       try {
         JavaFileObject sourceFile = key.originatingElement != null
-            ? getFiler().createSourceFile(key.toString(), key.originatingElement)
+            ? getFiler().createSourceFile(key.toString(), Delegated.unwrap(key.originatingElement))
             : getFiler().createSourceFile(key.toString());
 
         try (Writer writer = sourceFile.openWriter()) {

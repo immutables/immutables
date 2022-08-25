@@ -244,8 +244,18 @@ public class Proto {
     public static MetaAnnotated from(AnnotationMirror mirror, Environment environment) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
       String name = element.getQualifiedName().toString();
-      return metaAnnotatedCache()
-          .computeIfAbsent(name, n -> ImmutableProto.MetaAnnotated.of(element, name, environment));
+
+      ConcurrentMap<String, MetaAnnotated> cache = metaAnnotatedCache();
+      @Nullable MetaAnnotated metaAnnotated = cache.get(name);
+      if (metaAnnotated == null) {
+        metaAnnotated = ImmutableProto.MetaAnnotated.of(element, name, environment);
+        @Nullable MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
+        if (existing != null) {
+          metaAnnotated = existing;
+        }
+      }
+
+      return metaAnnotated;
     }
 
     private static ConcurrentMap<String, MetaAnnotated> metaAnnotatedCache() {
