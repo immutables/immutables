@@ -740,6 +740,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/for]
    * @return An immutable [type.name] instance
    */
+  [eachLine type.constructorInjectedAnnotations]
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][v.type] [v.name][/for]) {
     return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
   }
@@ -753,6 +754,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/for]
    * @return An immutable [type.name] instance
    */
+  [eachLine type.constructorInjectedAnnotations]
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][constructorAcceptType v] [v.name][/for]) {
     return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
@@ -766,6 +768,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/for]
    * @return An immutable [type.name] instance
    */
+  [eachLine type.constructorInjectedAnnotations]
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][if v.isOptionalType][unwrappedOptionalType v][else][constructorAcceptType v][/if] [v.name][/for]) {
     return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
@@ -3703,6 +3706,7 @@ private static <T> T cast(Object object) {
 [javadocGenerics type]
  * @return An immutable instance of [type.name]
  */
+// constructor NOT HERE !!
 public static[type.generics.def] [type.typeValue.relative] [type.factoryInstance.simple]() {
   return [type.typeImmutable.relative].[type.names.instance]();
 }
@@ -3720,6 +3724,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryInstance
  */
 [eachLine type.constructorAnnotations]
 [eachLine type.constructorInjectedAnnotations]
+// constructor HERE TOO!!!!
 public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][v.type] [v.name][/for]) {
   return [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
 }
@@ -3735,6 +3740,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
  */
 [eachLine type.constructorAnnotations]
 [eachLine type.constructorInjectedAnnotations]
+// constructor HERE!!!!
 public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }
