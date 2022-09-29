@@ -141,6 +141,7 @@
             <configuration>
               <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
               <argLine>--add-opens=java.base/java.util=ALL-UNNAMED</argLine>
+              <argLine>--add-opens=java.base/java.util.regex=ALL-UNNAMED</argLine>
               <argLine>--add-opens=java.base/java.time=ALL-UNNAMED</argLine>
             </configuration>
           </plugin>
