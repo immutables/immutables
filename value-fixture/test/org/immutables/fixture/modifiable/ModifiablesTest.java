@@ -343,4 +343,16 @@ public class ModifiablesTest {
     check(m1.getPrices()).isOf(1.00f, 2.00f);
     check(m1.getPricesWithSalesTax()).isOf(1.06f, 2.12f);
   }
+
+  @Test
+  public void nullableMap() {
+    ModifiableNullableListMap nlm = ModifiableNullableListMap.create()
+        .addObjects("a");
+
+    ModifiableNullableListMap nlm2 = ModifiableNullableListMap.create()
+        .from(nlm); // no NPE here
+
+    check(nlm).is(nlm2);
+    nlm2.clear(); // no NPE
+  }
 }
