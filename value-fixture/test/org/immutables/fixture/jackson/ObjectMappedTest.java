@@ -243,4 +243,14 @@ public class ObjectMappedTest {
 
     check(OBJECT_MAPPER.writeValueAsString(values)).is(json);
   }
+
+  @Test
+  public void jsonStagedEntityRoundtrip() throws Exception {
+    String json = "{\"required\":\"id\",\"optional\":null,\"optionalPrimitive\":null}";
+
+    StagedEntity nullable =
+        OBJECT_MAPPER.readValue(json, StagedEntity.class);
+
+    check(OBJECT_MAPPER.writeValueAsString(nullable)).is("{\"required\":\"id\",\"optional\":\"default\",\"optionalPrimitive\":false}");
+  }
 }

@@ -2879,8 +2879,10 @@ static final [output.linesShortable]class Json[type.generics]
   [eachLine v.initializerInjectedAnnotations]
   public void [v.names.beanSet]([v.atNullability][v.type] [v.name]) {
     this.[v.name] = [v.name];
-    [if v.primitive or (v.requiresTrackIsSet andnot v.jacksonAnyGetter)]
+    [if v.primitive]
     this.[disambiguateField type (v.name 'IsSet')] = true;
+    [else if v.requiresTrackIsSet andnot v.jacksonAnyGetter]
+    this.[disambiguateField type (v.name 'IsSet')] = [if v.nullable]true[else]null != [v.name][/if];
     [/if]
   }
 [/for]
