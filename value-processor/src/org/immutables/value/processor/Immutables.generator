@@ -3605,7 +3605,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
  */[-- TODO maybe support type.forceEqualsInWithers and change javadoc --]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
-[if v.jdkOptional][-- ?? andnot v.jdkSpecializedOptional --]
+[if v.jdkOptional]
   if (this.[v.name] == null) return this;
   [immutableImplementationType v] value = operator.apply(this.[v.name]);
   [generateReturnCopy type v 'value']
