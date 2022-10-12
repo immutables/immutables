@@ -3496,6 +3496,24 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Itera
           .collect(java.util.stream.Collectors.toUnmodifiable[v.rawCollectionType]())[else][immutableCollectionCopyOf v 'elements'][/if];
   [generateReturnCopyContextual type v]
 }
+[if type.generateWithUnaryOperator]
+
+/**
+ * Copy the current immutable object with elements that replace the content of [sourceDocRef v],
+ * transformed by passing each element to the provided {@code UnaryOperator}.
+ * It always returns a new copy unless collection is empty.
+ * @param operator Unary operator to transform each element of [v.name]
+ * @return A modified copy of {@code this} object
+ */[-- TODO support type.forceEqualsInWithers and change javadoc --]
+[deprecation v]
+public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.elementType]> operator) {
+  if ([if v.nullable]this.[v.name] == null || [/if]this.[v.name].isEmpty()) return this;
+  java.util.List<[v.elementType]> elements = this.[v.name].stream().map(operator)
+      .collect(java.util.stream.Collectors.toList());
+  [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'elements'];
+  [generateReturnCopyContextual type v]
+}
+[/if]
     [else if v.optionalType]
 
 /**
@@ -3509,7 +3527,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
   [if v.primitiveElement or (v.jdkSpecializedOptional or v.optionalAcceptNullable)]
   [immutableImplementationType v] newValue = value;
   [else]
-  [immutableImplementationType v] newValue = [maybeCopyOf v][requireNonNull type](value, "[v.name]")[/maybeCopyOf];
+  [unwrappedOptionalType v] newValue = [maybeCopyOf v][requireNonNull type](value, "[v.name]")[/maybeCopyOf];
   [/if]
   [if type.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
@@ -3576,6 +3594,28 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
 [/if]
   [generateReturnCopy type v 'value']
 }
+[if type.generateWithUnaryOperator]
+
+/**
+ * Copy the current immutable object by transforming optional value of [sourceDocRef v]
+ * using the provided {@code UnaryOperator}.
+ * It always returns a new copy if optional is present, otherwise {@code this} is returned.
+ * @param operator Unary operator to transform optional value of [v.name]
+ * @return A modified copy of {@code this} object
+ */[-- TODO maybe support type.forceEqualsInWithers and change javadoc --]
+[deprecation v]
+public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+[if v.jdkOptional][-- ?? andnot v.jdkSpecializedOptional --]
+  if (this.[v.name] == null) return this;
+  [immutableImplementationType v] value = operator.apply(this.[v.name]);
+  [generateReturnCopy type v 'value']
+[else]
+  if (!this.[v.name].[optionalPresent v]) return this;
+  [immutableImplementationType v] value = [optionalOf v](operator.apply(this.[v.name].[optionalGet v]));
+  [generateReturnCopy type v 'value']
+[/if]
+}
+[/if]
     [else if v.mapType]
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 
@@ -3666,6 +3706,20 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [generateReturnCopyContextual type v]
     [/if]
 }
+[if type.generateWithUnaryOperator]
+
+/**
+ * Copy the current immutable object by transforming value of [sourceDocRef v]
+ * using the provided {@code UnaryOperator}. It always returns a new copy.
+ * @param operator Unary operator to transform value of [v.name]
+ * @return A modified copy of {@code this} object
+ */[-- TODO maybe support type.forceEqualsInWithers and change javadoc --]
+[deprecation v]
+public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+  [v.atNullabilityLocal][immutableImplementationType v] value = operator.apply(this.[v.name]);
+  [generateReturnCopy type v 'value']
+}
+[/if]
     [/if]
   [/for]
 [/if]
