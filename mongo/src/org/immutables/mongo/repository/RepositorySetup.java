@@ -120,21 +120,21 @@ public final class RepositorySetup {
         return member.getName();
       }
     };
+  }
 
-    /**
-     * Uses {@link Gson#fieldNamingStrategy()} to translate names.
-     */
-    class GsonNamingStrategy implements FieldNamingStrategy {
-      private final Gson gson;
+  /**
+   * Uses {@link Gson#fieldNamingStrategy()} to translate names.
+   */
+  public static class GsonNamingStrategy implements FieldNamingStrategy {
+    private final Gson gson;
 
-      private GsonNamingStrategy(Gson gson) {
-        this.gson = Preconditions.checkNotNull(gson, "gson");
-      }
+    public GsonNamingStrategy(Gson gson) {
+      this.gson = Preconditions.checkNotNull(gson, "gson");
+    }
 
-      @Override
-      public String translateName(Member member) {
-        return gson.fieldNamingStrategy().translateName((Field) member);
-      }
+    @Override
+    public String translateName(Member member) {
+      return gson.fieldNamingStrategy().translateName((Field) member);
     }
   }
 
@@ -224,7 +224,7 @@ public final class RepositorySetup {
       // expose new Gson as CodecRegistry. Using fromRegistries() for caching
       CodecRegistry codecRegistry = CodecRegistries.fromRegistries(GsonCodecs.codecRegistryFromGson(newGson));
 
-      return codecRegistry(codecRegistry, new FieldNamingStrategy.GsonNamingStrategy(gson));
+      return codecRegistry(codecRegistry, new GsonNamingStrategy(gson));
     }
 
     /**
