@@ -9,7 +9,7 @@ public interface WithMapUnary extends WithUnaryOperator, WithWithMapUnary {
   class Builder extends ImmutableWithMapUnary.Builder {}
 
   default void compiledAndUsable() {
-    WithMapUnary u = new ImmutableWithMapUnary.Builder()
+    WithMapUnary u = new Builder()
         .a(1)
         .b("B")
         .build();
