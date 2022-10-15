@@ -95,6 +95,7 @@ public final class Styles {
     Naming[] get = Naming.fromAll(style.get());
     Naming init = Naming.from(style.init());
     Naming with = Naming.from(style.with());
+    Naming withUnaryOperator = Naming.from(style.withUnaryOperator());
 
     Naming add = Naming.from(style.add());
     Naming addAll = Naming.from(style.addAll());
@@ -277,6 +278,10 @@ public final class Styles {
       public final String var = apply(Naming.identity(), false);
       public final String init = apply(scheme.init, false);
       public final String with = apply(scheme.with, false);
+
+      public String withUnaryOperator() {
+        return apply(scheme.withUnaryOperator, false);
+      }
 
       public String add() {
         return forCollection().add;

@@ -442,7 +442,7 @@ public @interface Value {
      * mimick style of bean getters. If none specified or if none matches, then raw accessor name
      * will be taken literally.
      * <p>
-     * By default only {@code get*} prefix is recognized, along with falling back to use accessor
+     * By default, only {@code get*} prefix is recognized, along with falling back to use accessor
      * name literally. It is up to you if you want to use "get" prefixes or not. Original author is
      * leaning towards not using noisy prefixes for attributes in immutable objects, drawing
      * similarity with annotation attributes, however usage of "get" is neither recommended, nor
@@ -468,6 +468,19 @@ public @interface Value {
      * @return naming template
      */
     String with() default "with*";
+
+    /**
+     * Modify-by-copy method which receives {@link java.util.function.UnaryOperator}
+     * to transform an attribute before constructing a copy of immutable object.
+     * This feature is disabled by default, unless you specify a naming template for this method.
+     * A template can be something like {@code "with*Mapped"}, {@code "update*"},
+     * or {@code "transform*"} – the choice is yours.
+     * Can even be {@code "with*"} or {@code "*"} in hope there will be no overload  collisions.
+     * <p>
+     * Unary operator transforms values, optional values and collection elements. (currently JDK Optional only, use Encodings for custom optional and containers).
+     * @return naming template. By default, it is empty and feature is disabled.
+     */
+    String withUnaryOperator() default "";
 
     /**
      * Add value to collection attribute from iterable
@@ -631,7 +644,7 @@ public @interface Value {
      * If {@code includeHashCode} is not empty it will be used as part of generated `hashCode`. This will be a verbatim
      * line of code used with the tag-placeholder {@code [[type]]} will be replaced with the simple
      * (or relative to top level) name of the abstract value type.
-     * It's the responsibility of the user to put well-formed code to be put in context, including parenthesis, etc,
+     * It's the responsibility of the user to put well-formed code to be put in context, including parenthesis, etc.
      * use try-see-fix approach here. Other fields will be included as usual, coming after this custom value.
      * <p>Examples might give you better ideas how to use it:
      * <pre>

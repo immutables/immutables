@@ -48,6 +48,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract String withUnaryOperator();
+
+  @Value.Parameter
+  @Override
   public abstract String add();
 
   @Value.Parameter
@@ -444,6 +448,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.get(),
         input.init(),
         input.with(),
+        input.withUnaryOperator(),
         input.add(),
         input.addAll(),
         input.put(),

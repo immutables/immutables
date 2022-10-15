@@ -543,6 +543,18 @@ private Object writeReplace() {
    */
   [deprecation v]
   [type.typeAbstract.relative] [v.names.with](Iterable<[v.consumedElementType]> elements);
+[if type.generateWithUnaryOperator]
+
+  /**
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef v],
+   * transformed by passing each element to the provided {@code UnaryOperator}.
+   * It always returns a new copy unless collection is empty.
+   * @param operator Unary operator to transform each element of [v.name]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator);
+  [/if]
       [else if v.optionalType]
 
   /**
@@ -561,6 +573,18 @@ private Object writeReplace() {
    */
   [deprecation v]
   [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional);
+[if type.generateWithUnaryOperator]
+
+  /**
+   * Copy the current immutable object by transforming optional value of [sourceDocRef v]
+   * using the provided {@code UnaryOperator}.
+   * It always returns a new copy if optional is present, otherwise {@code this} is returned.
+   * @param operator Unary operator to transform optional value of [v.name]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator);
+[/if]
       [else if v.mapType]
       [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 
@@ -588,6 +612,17 @@ private Object writeReplace() {
    */
   [deprecation v]
   [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] value);
+[if type.generateWithUnaryOperator]
+
+  /**
+   * Copy the current immutable object by transforming value of [sourceDocRef v]
+   * using the provided {@code UnaryOperator}. It always returns a new copy.
+   * @param operator Unary operator to transform value of [v.name]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator);
+[/if]
       [/if]
     [/for]
 }
@@ -3496,6 +3531,24 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Itera
           .collect(java.util.stream.Collectors.toUnmodifiable[v.rawCollectionType]())[else][immutableCollectionCopyOf v 'elements'][/if];
   [generateReturnCopyContextual type v]
 }
+[if type.generateWithUnaryOperator]
+
+/**
+ * Copy the current immutable object with elements that replace the content of [sourceDocRef v],
+ * transformed by passing each element to the provided {@code UnaryOperator}.
+ * It always returns a new copy unless collection is empty.
+ * @param operator Unary operator to transform each element of [v.name]
+ * @return A modified copy of {@code this} object
+ */[-- TODO support type.forceEqualsInWithers and change javadoc --]
+[deprecation v]
+public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+  if ([if v.nullable]this.[v.name] == null || [/if]this.[v.name].isEmpty()) return this;
+  java.util.List<[v.wrappedElementType]> elements = this.[v.name].stream().map(operator)
+      .collect(java.util.stream.Collectors.toList());
+  [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'elements'];
+  [generateReturnCopyContextual type v]
+}
+[/if]
     [else if v.optionalType]
 
 /**
@@ -3509,7 +3562,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
   [if v.primitiveElement or (v.jdkSpecializedOptional or v.optionalAcceptNullable)]
   [immutableImplementationType v] newValue = value;
   [else]
-  [immutableImplementationType v] newValue = [maybeCopyOf v][requireNonNull type](value, "[v.name]")[/maybeCopyOf];
+  [unwrappedOptionalType v] newValue = [maybeCopyOf v][requireNonNull type](value, "[v.name]")[/maybeCopyOf];
   [/if]
   [if type.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
@@ -3576,6 +3629,28 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
 [/if]
   [generateReturnCopy type v 'value']
 }
+[if type.generateWithUnaryOperator]
+
+/**
+ * Copy the current immutable object by transforming optional value of [sourceDocRef v]
+ * using the provided {@code UnaryOperator}.
+ * It always returns a new copy if optional is present, otherwise {@code this} is returned.
+ * @param operator Unary operator to transform optional value of [v.name]
+ * @return A modified copy of {@code this} object
+ */[-- TODO maybe support type.forceEqualsInWithers and change javadoc --]
+[deprecation v]
+public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+[if v.jdkOptional]
+  if (this.[v.name] == null) return this;
+  [immutableImplementationType v] value = operator.apply(this.[v.name]);
+  [generateReturnCopy type v 'value']
+[else]
+  if (!this.[v.name].[optionalPresent v]) return this;
+  [immutableImplementationType v] value = [optionalOf v](operator.apply(this.[v.name].[optionalGet v]));
+  [generateReturnCopy type v 'value']
+[/if]
+}
+[/if]
     [else if v.mapType]
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 
@@ -3666,6 +3741,20 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [generateReturnCopyContextual type v]
     [/if]
 }
+[if type.generateWithUnaryOperator]
+
+/**
+ * Copy the current immutable object by transforming value of [sourceDocRef v]
+ * using the provided {@code UnaryOperator}. It always returns a new copy.
+ * @param operator Unary operator to transform value of [v.name]
+ * @return A modified copy of {@code this} object
+ */[-- TODO maybe support type.forceEqualsInWithers and change javadoc --]
+[deprecation v]
+public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+  [v.atNullabilityLocal][immutableImplementationType v] value = operator.apply(this.[v.name]);
+  [generateReturnCopy type v 'value']
+}
+[/if]
     [/if]
   [/for]
 [/if]
@@ -3706,7 +3795,6 @@ private static <T> T cast(Object object) {
 [javadocGenerics type]
  * @return An immutable instance of [type.name]
  */
-// constructor NOT HERE !!
 public static[type.generics.def] [type.typeValue.relative] [type.factoryInstance.simple]() {
   return [type.typeImmutable.relative].[type.names.instance]();
 }
@@ -3724,7 +3812,6 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryInstance
  */
 [eachLine type.constructorAnnotations]
 [eachLine type.constructorInjectedAnnotations]
-// constructor HERE TOO!!!!
 public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][v.type] [v.name][/for]) {
   return [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
 }
@@ -3740,7 +3827,6 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
  */
 [eachLine type.constructorAnnotations]
 [eachLine type.constructorInjectedAnnotations]
-// constructor HERE!!!!
 public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }
