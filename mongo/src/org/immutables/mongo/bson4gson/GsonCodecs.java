@@ -19,9 +19,11 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
+import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.mongodb.MongoClientSettings;
 import org.bson.AbstractBsonReader;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
@@ -150,9 +152,35 @@ public final class GsonCodecs {
     };
   }
 
+  /**
+   * Appends a TypeAdapterFactory to allow Gson and Bson adapters to co-exist.
+   * Avoids registering the TypeAdapterFactory if Gson already has factories for BSON types.
+   *
+   * @param gson preconfigured instance
+   * @return {@code gson} configured with delegating type adapter factory.
+   */
+  public static Gson newGsonWithBsonSupport(Gson gson) {
+    // Will be used as a factory for BSON types (if Gson does not have one). By default, uses
+    // TypeAdapter(s) from Gson if they're explicitly defined (not a ReflectiveTypeAdapter).
+    // Otherwise delegate to BSON codec.
+    TypeAdapterFactory bsonAdapterFactory = delegatingTypeAdapterFactory(
+        MongoClientSettings.getDefaultCodecRegistry()
+    );
+
+    // Appending new TypeAdapterFactory to allow Gson and Bson adapters to co-exists.
+    // Depending on the type we may need to use one or another. For instance,
+    // Date should be serialized by Gson (even if Bson has codec for it).
+    // But ObjectId / Decimal128 by BSON (if Gson doesn't have a type adapter for it).
+    // Document or BsonDocument should only be handled by BSON (it's unlikely that users have direct dependency on them in POJOs).
+    // So newGson is a way to extend existing Gson instance with "BSON TypeAdapter(s)"
+    return gson.newBuilder()
+        .registerTypeAdapterFactory(bsonAdapterFactory)
+        .create();
+  }
+
   static <A> boolean isReflectiveTypeAdapter(TypeAdapter<A> adapter) {
     Preconditions.checkNotNull(adapter, "adapter");
-    return adapter instanceof com.google.gson.internal.bind.ReflectiveTypeAdapterFactory.Adapter;
+    return adapter instanceof ReflectiveTypeAdapterFactory.Adapter;
   }
 
   /**
