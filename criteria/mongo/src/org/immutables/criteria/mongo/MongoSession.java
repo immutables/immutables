@@ -237,7 +237,7 @@ class MongoSession implements Backend.Session {
     Publisher<BulkWriteResult> publisher = ((MongoCollection<Object>) collection).bulkWrite(docs);
     return Flowable.fromPublisher(publisher).map(x -> WriteResult.empty()
             .withUpdatedCount(x.getModifiedCount())
-            .withInsertedCount(x.getInsertedCount())
+            .withInsertedCount(operation.upsert() ? x.getUpserts().size() : x.getInsertedCount())
             .withDeletedCount(x.getDeletedCount()));
   }
 

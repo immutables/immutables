@@ -88,4 +88,24 @@ class MongoWriteResultTest {
     check(result2.insertedCount().getAsLong()).is(0L);
     check(result2.deletedCount().getAsLong()).is(0L);
   }
+
+  @Test
+  void upsert() {
+    ImmutablePerson person1 = generator.next();
+    WriteResult result = repository.upsert(person1);
+    check(result.insertedCount().getAsLong()).is(1L);
+    check(result.deletedCount().getAsLong()).is(0L);
+    check(result.updatedCount().getAsLong()).is(0L);
+
+    result = repository.upsert(person1.withFullName("name1"));
+    check(result.insertedCount().getAsLong()).is(0L);
+    check(result.deletedCount().getAsLong()).is(0L);
+    check(result.updatedCount().getAsLong()).is(1L);
+
+    WriteResult result2 = repository.upsertAll(ImmutableList.of(person1.withFullName("name2"), generator.next()));
+    check(result2.insertedCount().getAsLong()).is(1L);
+    check(result2.deletedCount().getAsLong()).is(0L);
+    check(result2.updatedCount().getAsLong()).is(1L);
+  }
+
 }
