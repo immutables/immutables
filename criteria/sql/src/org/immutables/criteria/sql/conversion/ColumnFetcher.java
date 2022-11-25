@@ -19,5 +19,5 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public interface ColumnFetcher<T> {
-    T apply(ResultSet row, int index) throws SQLException;
+  T apply(ResultSet row, String name) throws SQLException;
 }

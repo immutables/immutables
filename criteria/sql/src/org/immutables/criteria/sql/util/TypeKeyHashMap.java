@@ -20,20 +20,20 @@ import java.util.Optional;
 
 @SuppressWarnings("serial")
 public class TypeKeyHashMap<V> extends HashMap<Class<?>, V> {
-    @Override
-    public boolean containsKey(final Object key) {
-        return findEntry((Class<?>) key).isPresent();
-    }
+  @Override
+  public boolean containsKey(final Object key) {
+    return findEntry((Class<?>) key).isPresent();
+  }
 
-    @Override
-    public V get(final Object key) {
-        final Optional<Entry<Class<?>, V>> entry = findEntry((Class<?>) key);
-        return entry.map(Entry::getValue).orElse(null);
-    }
+  @Override
+  public V get(final Object key) {
+    final Optional<Entry<Class<?>, V>> entry = findEntry((Class<?>) key);
+    return entry.map(Entry::getValue).orElse(null);
+  }
 
-    private Optional<Entry<Class<?>, V>> findEntry(final Class<?> key) {
-        return entrySet().stream()
-                .filter(e -> e.getKey().isAssignableFrom(key))
-                .findFirst();
-    }
+  private Optional<Entry<Class<?>, V>> findEntry(final Class<?> key) {
+    return entrySet().stream()
+        .filter(e -> e.getKey().isAssignableFrom(key))
+        .findFirst();
+  }
 }

@@ -15,8 +15,6 @@
  */
 package org.immutables.criteria.sql.note;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.criteria.Criteria;
 import org.immutables.criteria.sql.SQL;
 import org.immutables.value.Value;
@@ -28,16 +26,14 @@ import java.util.UUID;
 @Criteria.Repository
 @Value.Immutable
 @SQL.Table("notes")
-@JsonDeserialize(as = ImmutableNote.class)
-@JsonSerialize(as = ImmutableNote.class)
 public interface Note {
-    String message();
+  String message();
 
-    @SQL.Column(type = long.class, name = "created_on")
-    Instant created();
+  @SQL.Column(type = long.class, name = "created_on")
+  Instant created();
 
-    @Criteria.Id
-    @SQL.Column(type = String.class)
-    UUID id();
+  @Criteria.Id
+  @SQL.Column(type = String.class)
+  UUID id();
 }
 

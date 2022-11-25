@@ -19,9 +19,9 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 public interface ColumnMapping {
-    String name();
+  String name();
 
-    Class type();
+  Class type();
 
-    ColumnFetcher<?> fetcher();
+  ColumnFetcher<?> fetcher();
 }

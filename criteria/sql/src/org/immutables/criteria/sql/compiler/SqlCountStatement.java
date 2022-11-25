@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.immutables.criteria.sql.note;
+package org.immutables.criteria.sql.compiler;
 
-import org.immutables.criteria.sql.SQLBackend;
-import org.immutables.criteria.sql.SQLSetup;
-import org.immutables.criteria.sql.reflection.SQLTypeMetadata;
+import org.immutables.value.Value;
 
-import javax.sql.DataSource;
+import java.util.Optional;
+import java.util.OptionalLong;
+import java.util.Set;
 
-public class NoteSetup {
-    public static SQLBackend backend(final DataSource datasource) {
-        return SQLBackend.of(setup(datasource));
-    }
+@Value.Immutable
+public interface SqlCountStatement extends SqlStatement {
+  Optional<Boolean> distinct();
 
-    public static SQLSetup setup(final DataSource datasource) {
-        final SQLSetup setup = SQLSetup.of(datasource, SQLTypeMetadata.of(Note.class));
-        return setup;
-    }
+  String qualifier();
+
+  OptionalLong limit();
+
+  OptionalLong offset();
+
+  Set<String> columns();
+
+  Optional<String> ordering();
+
+  Optional<SqlFilterExpression> filter();
 }

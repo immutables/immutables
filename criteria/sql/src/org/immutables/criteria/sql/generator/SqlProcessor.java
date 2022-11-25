@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.immutables.criteria.sql.compiler;
+package org.immutables.criteria.sql.generator;
 
-import org.immutables.value.Value;
+import org.immutables.criteria.sql.SQL;
+import org.immutables.generator.AbstractGenerator;
+import org.immutables.generator.Generator;
+import org.immutables.metainf.Metainf;
 
-import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.Set;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 
-@Value.Immutable
-public interface SqlCountStatement extends SqlStatement {
-  Optional<Boolean> distinct();
-
-  String qualifier();
-
-  OptionalLong limit();
-
-  OptionalLong offset();
-
-  Set<String> columns();
-
-  Optional<String> ordering();
-
-  Optional<SqlFilterExpression> filter();
+@Metainf.Service
+@Generator.SupportedAnnotations({SQL.Table.class})
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
+public class SqlProcessor extends AbstractGenerator {
+  @Override
+  protected void process() {
+    invoke(new Generator_Sql().generate());
+  }
 }
