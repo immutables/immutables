@@ -290,6 +290,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return !style().canBuild().isEmpty();
   }
 
+  public boolean isGenerateWithUnaryOperator() {
+    return !style().withUnaryOperator().isEmpty();
+  }
+
   public boolean isBeanFriendlyModifiable() {
     return style().beanFriendlyModifiables();
   }

@@ -23,7 +23,7 @@ final class WriteResults {
 
   static final ImmutableWriteResult UNKNOWN = ImmutableWriteResult.builder().build();
 
-  static final ImmutableWriteResult EMPTY = ImmutableWriteResult.builder().deletedCount(0).updatedCount(0).updatedCount(0).build();
+  static final ImmutableWriteResult EMPTY = ImmutableWriteResult.builder().deletedCount(0).updatedCount(0).insertedCount(0).build();
 
   private WriteResults () {}
 }

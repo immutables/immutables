@@ -1,7 +1,10 @@
 package org.immutables.mongo.bson4gson;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
+import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory;
+import org.bson.BsonDecimal128;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentWriter;
 import org.bson.BsonType;
@@ -22,7 +25,7 @@ public class GsonCodecsTest {
   }
 
   @Test
-  public void dateCodec() throws IOException {
+  public void typeAdapterFromDateCodec() throws IOException {
     TypeAdapter<Date> adapter = GsonCodecs.typeAdapterFromCodec(new DateCodec());
     Date date = new Date();
     BsonDocument doc = new BsonDocument();
@@ -36,4 +39,16 @@ public class GsonCodecsTest {
     check(doc.get("$date").getBsonType()).is(BsonType.DATE_TIME);
     check(doc.get("$date").asDateTime().getValue()).is(date.getTime());
   }
+
+  @Test
+  public void newGsonWithBsonSupport() {
+    Gson gson = new Gson();
+    Gson actual = GsonCodecs.newGsonWithBsonSupport(gson);
+
+    check(actual).not().same(gson);
+
+    check(gson.getAdapter(BsonDecimal128.class)).isA(ReflectiveTypeAdapterFactory.Adapter.class);
+    check(actual.getAdapter(BsonDecimal128.class)).not().isA(ReflectiveTypeAdapterFactory.Adapter.class);
+  }
+
 }

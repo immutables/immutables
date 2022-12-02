@@ -74,7 +74,7 @@ import java.lang.annotation.*;
  * &#64;InjectAnnotation(code = "@Point([[*]])", target = Where.FIELD)
  * // watch-out for the relative or qualified name when putting annotation name into code attribute
  * // that would be inserted and resolved from a generated code. Putting FQCN is recommended.
- * &#64;interface PoinInject {
+ * &#64;interface PointInject {
  *   int x();
  * 
  *   int y();
@@ -82,10 +82,10 @@ import java.lang.annotation.*;
  * 
  * &#64;Value.Immutable
  * interface Val2 {
- *   &#64;PoinInject(x = 2, y = 3)
+ *   &#64;PointInject(x = 2, y = 3)
  *   String a();
  * 
- *   &#64;PoinInject(x = 4, y = 5)
+ *   &#64;PointInject(x = 4, y = 5)
  *   String b();
  * }
  * </pre>
@@ -96,7 +96,7 @@ import java.lang.annotation.*;
 public @interface InjectAnnotation {
   /**
    * Used to specify whole source code for the annotation. Can specify whole target annotation(s)
-   * code or just attributes in parenthesis and the {@code type} attribute will be used for the
+   * code or just attributes in parentheses and the {@code type} attribute will be used for the
    * annotation fully qualified name.
    * Special symbols can be used to further refine code of the annotation:
    * <ul>
@@ -153,7 +153,7 @@ public @interface InjectAnnotation {
    * Unique key is used when there's a need to prevent putting multiple conflicting annotations on
    * the element if it's covered by injection annotations. Putting it straight: when traversing all
    * injection annotations (or as meta-annotations) which covers the element in question, starting
-   * from most specific to least specific, if there already was annotation injected by the some key,
+   * from most specific to least specific, if there already was annotation injected by some key,
    * the following annotations by the same key will be discarded.
    * if not specified explicitly (empty string in the annotation attribute) the key will be
    * auto-inferred as {@code type()} if specified or from code template string
@@ -171,6 +171,7 @@ public @interface InjectAnnotation {
     BUILDER_TYPE,
     IMMUTABLE_TYPE,
     MODIFIABLE_TYPE,
-    CONSTRUCTOR
+    /** Constructor if public or a factory method constructor otherwise.  */
+    CONSTRUCTOR,
   }
 }

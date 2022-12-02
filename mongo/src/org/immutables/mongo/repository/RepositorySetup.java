@@ -24,7 +24,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoClientURI;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
@@ -121,21 +120,21 @@ public final class RepositorySetup {
         return member.getName();
       }
     };
+  }
 
-    /**
-     * Uses {@link Gson#fieldNamingStrategy()} to translate names.
-     */
-    class GsonNamingStrategy implements FieldNamingStrategy {
-      private final Gson gson;
+  /**
+   * Uses {@link Gson#fieldNamingStrategy()} to translate names.
+   */
+  public static class GsonNamingStrategy implements FieldNamingStrategy {
+    private final Gson gson;
 
-      private GsonNamingStrategy(Gson gson) {
-        this.gson = Preconditions.checkNotNull(gson, "gson");
-      }
+    public GsonNamingStrategy(Gson gson) {
+      this.gson = Preconditions.checkNotNull(gson, "gson");
+    }
 
-      @Override
-      public String translateName(Member member) {
-        return gson.fieldNamingStrategy().translateName((Field) member);
-      }
+    @Override
+    public String translateName(Member member) {
+      return gson.fieldNamingStrategy().translateName((Field) member);
     }
   }
 
@@ -220,27 +219,12 @@ public final class RepositorySetup {
     public Builder gson(Gson gson) {
       checkNotNull(gson, "gson");
 
-      // Will be used as a factory for BSON types (if Gson does not have one). By default, uses
-      // TypeAdapter(s) from Gson if they're explicitly defined (not a ReflectiveTypeAdapter).
-      // Otherwise delegate to BSON codec.
-      TypeAdapterFactory bsonAdapterFactory = GsonCodecs.delegatingTypeAdapterFactory(
-              MongoClientSettings.getDefaultCodecRegistry()
-      );
-
-      // Appending new TypeAdapterFactory to allow Gson and Bson adapters to co-exists.
-      // Depending on the type we may need to use one or another. For instance,
-      // Date should be serialized by Gson (even if Bson has codec for it).
-      // But ObjectId / Decimal128 by BSON (if Gson doesn't have a type adapter for it).
-      // Document or BsonDocument should only be handled by BSON (it's unlikely that users have direct dependency on them in POJOs).
-      // So newGson is a way to extend existing Gson instance with "BSON TypeAdapter(s)"
-      Gson newGson = gson.newBuilder()
-              .registerTypeAdapterFactory(bsonAdapterFactory)
-              .create();
+      Gson newGson = GsonCodecs.newGsonWithBsonSupport(gson);
 
       // expose new Gson as CodecRegistry. Using fromRegistries() for caching
       CodecRegistry codecRegistry = CodecRegistries.fromRegistries(GsonCodecs.codecRegistryFromGson(newGson));
 
-      return codecRegistry(codecRegistry, new FieldNamingStrategy.GsonNamingStrategy(gson));
+      return codecRegistry(codecRegistry, new GsonNamingStrategy(gson));
     }
 
     /**

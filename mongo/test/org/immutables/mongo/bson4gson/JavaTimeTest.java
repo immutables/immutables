@@ -19,16 +19,8 @@ package org.immutables.mongo.bson4gson;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
-import com.google.gson.TypeAdapterFactory;
-import org.bson.BsonDateTime;
-import org.bson.BsonDocument;
-import org.bson.BsonDocumentWriter;
-import org.bson.BsonType;
-import org.bson.BsonValue;
+import org.bson.*;
 import org.bson.codecs.DateCodec;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.jsr310.Jsr310CodecProvider;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,10 +43,10 @@ public class JavaTimeTest {
 
   @Before
   public void setUp() {
-    CodecRegistry registry = CodecRegistries.fromProviders(new Jsr310CodecProvider());
-    TypeAdapterFactory factory = GsonCodecs.delegatingTypeAdapterFactory(registry);
     TypeAdapter<Date> dateTypeAdapter = GsonCodecs.typeAdapterFromCodec(new DateCodec());
-    gson = new GsonBuilder().registerTypeAdapter(Date.class, dateTypeAdapter).registerTypeAdapterFactory(factory).create();
+    gson = GsonCodecs.newGsonWithBsonSupport(
+            new GsonBuilder().registerTypeAdapter(Date.class, dateTypeAdapter).create()
+    );
   }
 
   @Test
@@ -114,7 +106,7 @@ public class JavaTimeTest {
     Date now = new Date();
     long epoch = now.getTime();
 
-    TypeAdapter<Date> adapter = GsonCodecs.typeAdapterFromCodec(new DateCodec());
+    TypeAdapter<Date> adapter = gson.getAdapter(Date.class);
 
     // read
     Date date = adapter.read(Jsons.readerAt(new BsonDateTime(epoch)));
@@ -126,7 +118,31 @@ public class JavaTimeTest {
     check(new Date(bson.asDateTime().getValue())).is(now);
   }
 
+  @Test
+  public void javaUtilDateUsingGson() throws IOException {
+
+    Gson gsonWithInternalDateTypeAdapter = GsonCodecs.newGsonWithBsonSupport(new Gson());
+
+    TypeAdapter<Date> adapter = gsonWithInternalDateTypeAdapter.getAdapter(Date.class);
+
+    Date now = Date.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+
+    // write
+    BsonValue bson = writeAndReadBsonUsingGson(now, gsonWithInternalDateTypeAdapter);
+    check(bson.getBsonType()).is(BsonType.STRING);
+    String dateAsString = bson.asString().getValue();
+    check(dateAsString).isNonEmpty();
+
+    // read
+    Date date = adapter.read(Jsons.readerAt(new BsonString(dateAsString)));
+    check(date).is(now);
+  }
+
   private <T> BsonValue writeAndReadBson(T value) throws IOException {
+    return writeAndReadBsonUsingGson(value, gson);
+  }
+
+  private static <T> BsonValue writeAndReadBsonUsingGson(T value, Gson gson) throws IOException {
     TypeAdapter<T> adapter = gson.getAdapter((Class<T>) value.getClass());
     BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
     writer.writeStartDocument();

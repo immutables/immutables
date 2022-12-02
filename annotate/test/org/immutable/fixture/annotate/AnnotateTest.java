@@ -15,6 +15,7 @@
  */
 package org.immutable.fixture.annotate;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import org.immutable.fixture.annotate.InjAnn.OnTypeAndAccessorCascadeToInitializerInterpolate;
 import org.immutable.fixture.annotate.InjAnn.ToInj;
@@ -132,5 +133,17 @@ public class AnnotateTest {
 
     check(aab == ImmutableMappingInjectee.class);
     check(bbc == ImmutableMappingInjectee.class);
+  }
+
+  @Test
+  public void constructorFactoryInjection() throws Exception {
+    check(ImmutableTargetToo.class.getMethod("of", String.class)
+        .getAnnotation(TooThese.class)).notNull();
+  }
+
+  @Test
+  public void constructorInjection() throws Exception {
+    check(ImmutableTooGoal.class.getConstructor(int.class, int.class)
+        .getAnnotation(TooThese.class)).notNull();
   }
 }

@@ -235,7 +235,10 @@ class MongoSession implements Backend.Session {
             .collect(Collectors.toList());
 
     Publisher<BulkWriteResult> publisher = ((MongoCollection<Object>) collection).bulkWrite(docs);
-    return Flowable.fromPublisher(publisher).map(x -> WriteResult.unknown());
+    return Flowable.fromPublisher(publisher).map(x -> WriteResult.empty()
+            .withUpdatedCount(x.getModifiedCount())
+            .withInsertedCount(operation.upsert() ? x.getUpserts().size() : x.getInsertedCount())
+            .withDeletedCount(x.getDeletedCount()));
   }
 
   private Publisher<WriteResult> updateByQuery(StandardOperations.UpdateByQuery operation) {
@@ -255,8 +258,8 @@ class MongoSession implements Backend.Session {
     });
 
     return Flowable.fromPublisher(collection.updateMany(filter, new Document("$set", set)))
-            .map(x -> WriteResult.unknown());
-
+            .map(x -> WriteResult.empty()
+                    .withUpdatedCount(x.getModifiedCount()));
   }
 
   private Publisher<WriteResult> delete(StandardOperations.Delete delete) {
@@ -278,7 +281,7 @@ class MongoSession implements Backend.Session {
   private Publisher<WriteResult> insert(StandardOperations.Insert insert) {
     final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
     final List<Object> values = insert.values();
-    return Flowable.fromPublisher(collection.insertMany(values)).map(r -> WriteResult.unknown());
+    return Flowable.fromPublisher(collection.insertMany(values)).map(r -> WriteResult.empty().withInsertedCount(r.getInsertedIds().size()));
   }
 
   private Publisher<?> getByKey(StandardOperations.GetByKey getByKey) {

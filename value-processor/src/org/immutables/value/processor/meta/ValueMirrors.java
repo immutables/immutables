@@ -99,6 +99,8 @@ public final class ValueMirrors {
 
     String with() default "with*";
 
+    String withUnaryOperator() default "";
+
     String add() default "add*";
 
     String addAll() default "addAll*";
