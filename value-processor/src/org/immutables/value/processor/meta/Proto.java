@@ -1143,12 +1143,9 @@ public class Proto {
     @Value.Auxiliary
     public boolean isJavaBean() {
       return element().getKind().isClass()
-          &&
-          element().getKind() != ElementKind.ENUM
-          &&
-          !element().getModifiers().contains(Modifier.PRIVATE)
-          &&
-          !element().getModifiers().contains(Modifier.ABSTRACT)
+          && element().getKind() != ElementKind.ENUM
+          && !element().getModifiers().contains(Modifier.PRIVATE)
+          && !element().getModifiers().contains(Modifier.ABSTRACT)
           &&
           // restrict to Criteria and Repository annotations for now
           (CriteriaMirror.find(element()).isPresent() || CriteriaRepositoryMirror.find(element()).isPresent());
@@ -1723,7 +1720,9 @@ public class Proto {
       INCLUDED_CONSTRUCTOR_ON_TYPE,
       INCLUDED_IN_TYPE,
       DEFINED_FACTORY,
+      DEFINED_NESTED_FACTORY,
       DEFINED_CONSTRUCTOR,
+      DEFINED_NESTED_CONSTRUCTOR,
       DEFINED_TYPE,
       DEFINED_JAVABEAN,
       DEFINED_TYPE_AND_COMPANION,
@@ -1736,6 +1735,16 @@ public class Proto {
         switch (this) {
         case INCLUDED_IN_TYPE:
         case DEFINED_NESTED_TYPE:
+          return true;
+        default:
+          return false;
+        }
+      }
+
+      public boolean isNestedFactoryOrConstructor() {
+        switch (this) {
+        case DEFINED_NESTED_FACTORY:
+        case DEFINED_NESTED_CONSTRUCTOR:
           return true;
         default:
           return false;
@@ -1810,12 +1819,28 @@ public class Proto {
         }
       }
 
-      public boolean isFactory() {
+      public boolean isFactoryNotNested() {
         switch (this) {
         case DEFINED_FACTORY:
         case INCLUDED_FACTORY_IN_PACKAGE:
         case INCLUDED_FACTORY_ON_TYPE:
         case DEFINED_CONSTRUCTOR:
+        case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
+        case INCLUDED_CONSTRUCTOR_ON_TYPE:
+          return true;
+        default:
+          return false;
+        }
+      }
+
+      public boolean isFactory() {
+        switch (this) {
+        case DEFINED_FACTORY:
+        case DEFINED_NESTED_FACTORY:
+        case INCLUDED_FACTORY_IN_PACKAGE:
+        case INCLUDED_FACTORY_ON_TYPE:
+        case DEFINED_CONSTRUCTOR:
+        case DEFINED_NESTED_CONSTRUCTOR:
         case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
         case INCLUDED_CONSTRUCTOR_ON_TYPE:
           return true;

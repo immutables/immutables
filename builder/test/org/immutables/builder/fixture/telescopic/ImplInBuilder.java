@@ -16,6 +16,7 @@
 package org.immutables.builder.fixture.telescopic;
 import org.immutables.value.Value;
 
+// in current implementation stagedBuilder is ignored
 @Value.Immutable
 @Value.Style(stagedBuilder = true, implementationNestedInBuilder = true)
 public interface ImplInBuilder {
