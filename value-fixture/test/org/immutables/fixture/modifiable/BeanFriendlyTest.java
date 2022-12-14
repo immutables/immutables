@@ -21,8 +21,10 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Set;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -36,12 +38,12 @@ public class BeanFriendlyTest {
     ImmutableSet<String> rwProperties =
         ImmutableSet.of("primary", "id", "description", "names", "options", "extra");
 
-    FluentIterable<PropertyDescriptor> descriptors =
-        FluentIterable.of(
-            Introspector.getBeanInfo(ModifiableBeanFriendly.class)
-                .getPropertyDescriptors());
+    PropertyDescriptor[] descriptors = Introspector.getBeanInfo(ModifiableBeanFriendly.class).getPropertyDescriptors();
 
-    check(descriptors.transform(FeatureDescriptor::getName).toSet().containsAll(rwProperties));
+    Set<String> names = new HashSet<>();
+    for (PropertyDescriptor pd : descriptors) names.add(pd.getName());
+
+    check(names).hasAll(rwProperties);
 
     for (PropertyDescriptor pd : descriptors) {
       String name = pd.getName();
