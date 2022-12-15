@@ -38,17 +38,7 @@ import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.BackendException;
-import org.immutables.criteria.backend.DefaultResult;
-import org.immutables.criteria.backend.ExpressionNaming;
-import org.immutables.criteria.backend.KeyExtractor;
-import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.backend.ProjectedTuple;
-import org.immutables.criteria.backend.StandardOperations;
-import org.immutables.criteria.backend.UniqueCachedNaming;
-import org.immutables.criteria.backend.WatchEvent;
-import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.backend.*;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Path;
@@ -78,13 +68,14 @@ class MongoSession implements Backend.Session {
     this.collection = Objects.requireNonNull(collection, "collection");
     this.keyExtractor = Objects.requireNonNull(keyExtractor, "keyExtractor");
 
-    PathNaming pathNaming = PathNaming.defaultNaming();
-    KeyExtractor.KeyMetadata metadata = keyExtractor.metadata();
+
+    final KeyExtractor.KeyMetadata metadata = keyExtractor.metadata();
     if (metadata.isKeyDefined() && metadata.isExpression() && metadata.keys().size() == 1) {
-      Path idProperty = Visitors.toPath(Iterables.getOnlyElement(metadata.keys()));
-      pathNaming = new MongoPathNaming(idProperty, pathNaming);
+      final Path idProperty = Visitors.toPath(Iterables.getOnlyElement(metadata.keys()));
+      this.pathNaming = new MongoPathNaming(idProperty, new JavaBeanNaming());
+    } else {
+      this.pathNaming = new JavaBeanNaming();
     }
-    this.pathNaming = pathNaming;
     this.converter = Mongos.converter(this.pathNaming, collection.getCodecRegistry());
   }
 
