@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
     TypeElement.class,
     PackageElement.class
 })
-abstract class Sql extends AbstractTemplate {
+public class Sql extends AbstractTemplate {
   static String tableName(TypeElement e) {
     final SQL.Table annotation = e.getAnnotation(SQL.Table.class);
     if (annotation == null || annotation.value().isEmpty()) {

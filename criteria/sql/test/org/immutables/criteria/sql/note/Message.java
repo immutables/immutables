@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.immutables.criteria.sql.generator;
+package org.immutables.criteria.sql.note;
 
+import org.immutables.criteria.Criteria;
 import org.immutables.criteria.sql.SQL;
-import org.immutables.generator.AbstractGenerator;
-import org.immutables.generator.Generator;
-import org.immutables.metainf.Metainf;
+import org.immutables.value.Value;
 
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
+import java.time.Instant;
+import java.util.UUID;
 
-@Metainf.Service
-@Generator.SupportedAnnotations({SQL.Table.class})
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
-public class SqlProcessor extends AbstractGenerator {
-  @Override
-  protected void process() {
-    System.out.println("----------------------------------------");invoke(new Generator_Sql().generate());
-  }
+@Criteria
+@Criteria.Repository
+@Value.Immutable
+@SQL.Table("messages")
+public interface Message {
+  String message();
+
+  @SQL.Column(type = long.class, name = "created_on")
+  Instant created();
+
+  @Criteria.Id
+  @SQL.Column(type = String.class)
+  UUID id();
 }
+

@@ -60,6 +60,7 @@ public class [_row_mapper_class_name_] implements RowMapper<[_mapping_.mappingCl
   public [_row_mapper_class_name_](SqlTypeMetadata metadata) {
      this.metadata = metadata;
   }
+  @Override
   public [_mapping_.mappingClassName] map(ResultSet row) throws SQLException
   {
      [_builder_] builder = [_immutable_].builder();
