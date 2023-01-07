@@ -18,6 +18,7 @@ package org.immutables.criteria.mongo;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.KeyExtractor;
+import org.immutables.criteria.backend.PathNaming;
 
 import java.util.Objects;
 
@@ -31,17 +32,20 @@ public class MongoBackend implements Backend {
   private final CollectionResolver collectionResolver;
   private final KeyExtractor.Factory keyExtractorFactory;
 
+  private final PathNaming pathNaming;
+
   public MongoBackend(MongoSetup setup) {
     Objects.requireNonNull(setup, "setup");
     this.collectionResolver = setup.collectionResolver();
     this.keyExtractorFactory = setup.keyExtractorFactory();
+    this.pathNaming = setup.pathNaming();
   }
 
   @Override
   public Session open(Class<?> entityType) {
     Objects.requireNonNull(entityType, "context");
     KeyExtractor keyExtractor = keyExtractorFactory.create(entityType);
-    return new MongoSession(collectionResolver.resolve(entityType), keyExtractor);
+    return new MongoSession(collectionResolver.resolve(entityType), keyExtractor, pathNaming);
   }
 
 }

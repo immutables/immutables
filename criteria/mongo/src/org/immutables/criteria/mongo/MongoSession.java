@@ -74,11 +74,10 @@ class MongoSession implements Backend.Session {
   private final PathNaming pathNaming;
   private final KeyExtractor keyExtractor;
 
-  MongoSession(MongoCollection<?> collection, KeyExtractor keyExtractor) {
+  MongoSession(MongoCollection<?> collection, KeyExtractor keyExtractor, PathNaming pathNaming) {
     this.collection = Objects.requireNonNull(collection, "collection");
     this.keyExtractor = Objects.requireNonNull(keyExtractor, "keyExtractor");
 
-    PathNaming pathNaming = PathNaming.defaultNaming();
     KeyExtractor.KeyMetadata metadata = keyExtractor.metadata();
     if (metadata.isKeyDefined() && metadata.isExpression() && metadata.keys().size() == 1) {
       Path idProperty = Visitors.toPath(Iterables.getOnlyElement(metadata.keys()));
