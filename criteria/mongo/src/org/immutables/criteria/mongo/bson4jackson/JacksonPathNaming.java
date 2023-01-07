@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import com.fasterxml.jackson.databind.util.Annotations;
+import com.google.common.annotations.Beta;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Path;
 
@@ -36,10 +37,13 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Leverages Jackson API (like {@link com.fasterxml.jackson.databind.SerializationConfig}) to construct
- * a proper path.
+ * Leverages Jackson Introspection API (like {@link com.fasterxml.jackson.databind.SerializationConfig}) to
+ * derive correct names for each path element be it field or method.
+ *
+ * <p>This feature is experimental. The location of this class might change in future.</p>
  */
-class JacksonPathNaming implements PathNaming {
+@Beta
+public class JacksonPathNaming implements PathNaming {
   private final ObjectMapper mapper;
 
   public JacksonPathNaming(ObjectMapper mapper) {
@@ -62,7 +66,7 @@ class JacksonPathNaming implements PathNaming {
         description = findImmutableClassDefinition(javaType);
       }
       Optional<BeanPropertyDefinition> def = Stream.of(description)
-              .flatMap(x-> x.findProperties().stream())
+              .flatMap(x -> x.findProperties().stream())
               .filter(x -> x.getPrimaryMember() != null && member.equals(x.getPrimaryMember().getMember()))
               .findAny();
 
