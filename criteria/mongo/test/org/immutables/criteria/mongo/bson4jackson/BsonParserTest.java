@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.mongo.bson4jackson;
 
+import com.fasterxml.jackson.core.io.ContentReference;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -179,7 +180,7 @@ public class BsonParserTest {
             .encode(writer, expected, EncoderContext.builder().build());
 
     BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
-    IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
+    IOContext ioContext = new IOContext(new BufferRecycler(), ContentReference.unknown(), false);
     BsonParser parser = new BsonParser(ioContext, 0, reader);
 
     // read with jackson
@@ -205,7 +206,7 @@ public class BsonParserTest {
     mapper.writeValue(generator, expected);
 
     BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
-    IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
+    IOContext ioContext = new IOContext(new BufferRecycler(), ContentReference.unknown(), false);
     BsonParser parser = new BsonParser(ioContext, 0, reader);
 
     // read with Jackson

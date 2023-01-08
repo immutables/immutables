@@ -19,6 +19,7 @@ package org.immutables.mongo.bson4jackson;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.core.io.ContentReference;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.databind.BeanDescription;
@@ -143,7 +144,7 @@ public final class JacksonCodecs {
 
     @Override
     public T decode(BsonReader reader, DecoderContext decoderContext) {
-      final IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
+      final IOContext ioContext = new IOContext(new BufferRecycler(), ContentReference.unknown(), false);
       final BsonParser parser = new BsonParser(ioContext, 0, (AbstractBsonReader) reader);
       try {
         return mapper.readValue(parser, getEncoderClass());

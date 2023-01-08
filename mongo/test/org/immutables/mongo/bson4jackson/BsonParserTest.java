@@ -16,6 +16,7 @@
 
 package org.immutables.mongo.bson4jackson;
 
+import com.fasterxml.jackson.core.io.ContentReference;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -140,7 +141,7 @@ public class BsonParserTest {
     mapper.writeValue(generator, expected);
 
     BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
-    IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
+    IOContext ioContext = new IOContext(new BufferRecycler(), ContentReference.unknown(), false);
     BsonParser parser = new BsonParser(ioContext, 0, reader);
 
     // read
