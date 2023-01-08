@@ -16,6 +16,7 @@
 package org.immutables.mongo.bson4gson;
 
 import com.google.gson.internal.LazilyParsedNumber;
+import com.google.gson.stream.JsonWriter;
 import org.bson.types.Decimal128;
 import org.immutables.mongo.Wrapper;
 
@@ -131,6 +132,12 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter implements Wra
       delegate.writeBoolean(value);
     }
 
+    return this;
+  }
+
+  @Override
+  public JsonWriter value(float value) throws IOException {
+    delegate.writeDouble(value);
     return this;
   }
 

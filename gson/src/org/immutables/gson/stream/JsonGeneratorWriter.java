@@ -123,6 +123,15 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
   }
 
   @Override
+  public JsonWriter value(float value) throws IOException {
+    if (!isLenient() && (Float.isNaN(value) || Float.isInfinite(value))) {
+      throw new IllegalArgumentException("Numeric values must be finite, but was " + value);
+    }
+    generator.writeNumber(value);
+    return this;
+  }
+
+  @Override
   public JsonWriter value(double value) throws IOException {
     if (!isLenient() && (Double.isNaN(value) || Double.isInfinite(value))) {
       throw new IllegalArgumentException("JSON forbids NaN and infinities: " + value);
