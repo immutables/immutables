@@ -23,6 +23,7 @@ import org.elasticsearch.action.admin.cluster.node.info.NodeInfo;
 import org.elasticsearch.action.admin.cluster.node.info.NodesInfoResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.http.HttpInfo;
 import org.elasticsearch.index.reindex.ReindexPlugin;
 import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.node.Node;
@@ -115,7 +116,7 @@ class EmbeddedElasticsearchNode implements Closeable {
               + response.getNodes().size());
     }
     NodeInfo node = response.getNodes().get(0);
-    return node.getHttp().address().boundAddresses()[0];
+    return node.getInfo(HttpInfo.class).address().boundAddresses()[0];
   }
 
   @Override public void close() throws IOException {

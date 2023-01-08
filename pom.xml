@@ -103,7 +103,7 @@
     <errorprone.version>2.10.0</errorprone.version>
     <javac.version>9+181-r4173-1</javac.version>
     <mongo-java-driver.version>4.8.0</mongo-java-driver.version>
-    <elasticsearch.version>7.1.0</elasticsearch.version>
+    <elasticsearch.version>7.10.2</elasticsearch.version>
     <reactive-streams.version>1.0.2</reactive-streams.version>
     <log4j2.version>2.19.0</log4j2.version>
     <mongo-java-server.version>1.43.0</mongo-java-server.version>
