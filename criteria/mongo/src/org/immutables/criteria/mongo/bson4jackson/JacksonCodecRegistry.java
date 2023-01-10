@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.mongo.bson4jackson;
 
+import com.fasterxml.jackson.core.io.ContentReference;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.databind.JavaType;
@@ -78,7 +79,7 @@ class JacksonCodecRegistry implements CodecRegistry {
       Objects.requireNonNull(mapper, "mapper");
       this.reader = mapper.readerFor(clazz);
       this.writer = mapper.writerFor(clazz);
-      this.ioContext =  new IOContext(new BufferRecycler(), null, false);
+      this.ioContext =  new IOContext(new BufferRecycler(), ContentReference.unknown(), false);
     }
 
     @Override

@@ -18,6 +18,8 @@ package org.immutables.criteria.mongo;
 
 import io.reactivex.Flowable;
 import io.reactivex.subscribers.TestSubscriber;
+import org.bson.BsonBoolean;
+import org.bson.BsonDocument;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.personmodel.Person;
@@ -34,19 +36,47 @@ import static org.immutables.check.Checkers.check;
 
 /**
  * Validate <a href="https://docs.mongodb.com/manual/changeStreams/">change streams</a> functionality.
- * Requires real mongo instance.
+ * Requires real mongo instance since out integration testing
+ * <a href="https://github.com/bwaldvogel/mongo-java-server">mongo-java-server</a> does not yet support
+ * change streams.
  *
  * <p>To connect to external mongo database use system property {@code mongo}.
  * </pre>
  *
- * <p>See <a href="https://gist.github.com/oleurud/d9629ef197d8dab682f9035f4bb29065">Local mongo replicaset with docker</a>
- * to start mongo with change stream support. Then run tests with maven or IDE.
- * <h4>Maven</h4>
+ * <h3>Docker Setup</h3>
+ * <pre>
+ * {@code
+ * # pull the official mongo docker container
+ * $ docker pull mongo
+ *
+ * # create network
+ * $ docker network create my-mongo-cluster
+ *
+ * # Remove previous instances (if they exists)
+ * $ docker rm -f mongo1 mongo2 mongo3
+ *
+ * # create mongos
+ * $ docker run -d --net my-mongo-cluster -p 27017:27017 --name mongo1 mongo mongod --replSet my-mongo-set --port 27017
+ * $ docker run -d --net my-mongo-cluster -p 27018:27018 --name mongo2 mongo mongod --replSet my-mongo-set --port 27018
+ * $ docker run -d --net my-mongo-cluster -p 27019:27019 --name mongo3 mongo mongod --replSet my-mongo-set --port 27019
+ *
+ * # Update /etc/hosts
+ * 127.0.0.1       mongo1 mongo2 mongo3
+ *
+ * # setup replica set
+ * $ docker exec -it mongo1 mongosh
+ * test> db = (new Mongo('localhost:27017')).getDB('test')
+ * test> config={"_id":"my-mongo-set","members":[{"_id":0,"host":"mongo1:27017"},{"_id":1,"host":"mongo2:27018"},{"_id":2,"host":"mongo3:27019"}]}
+ * test> rs.initiate(config)
+ * { ok: 1 }
+ * }
+ * </pre>
+ * <h3>Maven Test</h3>
+ * Manually run the following maven command:
+ *
  * <pre>
  * {@code $ mvn test -DargLine="-Dmongo=mongodb://localhost:27017,localhost:27018,localhost:27019/testDB?replicaSet=my-mongo-set"}
  * </pre>
- *
- *
  */
 @ExtendWith(MongoExtension.class)
 class ChangeStreamsTest {
@@ -57,10 +87,23 @@ class ChangeStreamsTest {
 
   ChangeStreamsTest(MongoInstance instance) {
     Assumptions.assumeTrue(instance.isRealMongo(), "This test requires real mongo instance");
+    Assumptions.assumeTrue(replicaSetEnabled(instance), "This test requires ReplicaSet enabled");
     Backend backend = new BackendResource(instance.database()).backend();
     this.repository = new PersonRepository(backend);
     this.person = PersonCriteria.person;
     this.generator = new PersonGenerator();
+  }
+
+  /**
+   * Checks if current mongo cluster has <a href="https://www.mongodb.com/docs/manual/replication/">replication</a> enabled.
+   * Change Streams only work with replication enabled.
+   */
+  private static boolean replicaSetEnabled(MongoInstance instance) {
+    BsonDocument command = new BsonDocument("replSetGetStatus", BsonBoolean.TRUE);
+    return Flowable.fromPublisher(instance.client().getDatabase("admin").runCommand(command))
+            .map(doc -> doc.getDouble("ok") == 1D)
+            .onErrorReturnItem(false)
+            .blockingSingle();
   }
 
   @Test

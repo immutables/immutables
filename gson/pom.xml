@@ -107,14 +107,14 @@
       <!-- Test only jersey dependency -->
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>2.11</version>
+      <version>${jersey.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <!-- Test only jersey dependency -->
       <groupId>org.glassfish.jersey.containers</groupId>
       <artifactId>jersey-container-grizzly2-http</artifactId>
-      <version>2.11</version>
+      <version>${jersey.version}</version>
       <scope>test</scope>
     </dependency>
     <!-- Test dependencies to test other jackson serialization formats -->
@@ -133,7 +133,7 @@
     <dependency>
       <groupId>com.fasterxml.woodstox</groupId>
       <artifactId>woodstox-core</artifactId>
-      <version>5.4.0</version>
+      <version>6.4.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>

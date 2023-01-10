@@ -18,6 +18,7 @@ package org.immutables.criteria.mongo;
 
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.immutables.criteria.backend.KeyExtractor;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.value.Value;
 
 /**
@@ -33,6 +34,14 @@ public interface MongoSetup {
   @Value.Default
   default KeyExtractor.Factory keyExtractorFactory() {
     return KeyExtractor.defaultFactory();
+  }
+
+  /**
+   * Used during query building to correctly name fields (eg. {@code a.b.c} or {@code _id}).
+   */
+  @Value.Default
+  default PathNaming pathNaming() {
+    return PathNaming.defaultNaming();
   }
 
   static MongoSetup of(CollectionResolver resolver) {

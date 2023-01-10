@@ -22,7 +22,7 @@ import org.apache.geode.cache.Region;
 import org.apache.geode.cache.Scope;
 import org.apache.geode.cache.client.ClientCache;
 import org.apache.geode.cache.query.QueryService;
-import org.apache.geode.internal.cache.LocalRegion;
+import org.apache.geode.internal.cache.InternalRegion;
 
 import java.util.Objects;
 
@@ -72,7 +72,7 @@ class DefaultQueryServiceResolver implements QueryServiceResolver {
   }
 
   private static boolean isLocalWithNoServerProxy(Region<?, ?> region) {
-    return region instanceof LocalRegion && !((LocalRegion) region).hasServerProxy();
+    return region instanceof InternalRegion && !((InternalRegion) region).hasServerProxy();
   }
 
   private static boolean requiresPooledQueryService(Region<?, ?> region) {
