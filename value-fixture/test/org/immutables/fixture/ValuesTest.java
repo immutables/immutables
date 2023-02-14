@@ -547,6 +547,16 @@ public class ValuesTest {
   }
 
   @Test
+  public void redactedCompletelyAgain() {
+    HasFirstRedactedCompletely b = ImmutableHasFirstRedactedCompletely.builder()
+        .a1(1)
+        .a2(2)
+        .build();
+
+    check(b).hasToString("HasFirstRedactedCompletely{a2=2}");
+  }
+
+  @Test
   public void redactedMask() {
     ImmutableRedactedMask m = ImmutableRedactedMask.builder()
         .code(1)
