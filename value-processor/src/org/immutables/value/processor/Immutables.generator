@@ -1368,7 +1368,7 @@ public interface [tb.nameBuildFinal][type.generics] {
   [atCanIgnoreReturnValue type]
   public final [builderReturnType type] [type.names.from]([type.typeImmutable.relative] instance) {
     [requireNonNull type](instance, "instance");
-    from((Object) instance);
+    from((short) 0, (Object) instance);
     return [builderReturnThis type];
   }
 
@@ -1380,7 +1380,7 @@ public interface [tb.nameBuildFinal][type.generics] {
   [atCanIgnoreReturnValue type]
   public final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
-    from((Object) instance);
+    from((short) 0, (Object) instance);
     return [builderReturnThis type];
   }
   [else]
@@ -1393,7 +1393,7 @@ public interface [tb.nameBuildFinal][type.generics] {
   [atCanIgnoreReturnValue type]
   public final [builderReturnType type] [type.names.from]([s.type] instance) {
     [requireNonNull type](instance, "instance");
-    from((Object) instance);
+    from((short) 0, (Object) instance);
     return [builderReturnThis type];
   }
   [/if]
@@ -1403,7 +1403,7 @@ public interface [tb.nameBuildFinal][type.generics] {
 [if bs.hasWildcards andnot type.suppressesUncheckedWarning]
   @SuppressWarnings("unchecked")
 [/if]
-  private void from(Object object) {
+  private void from(short _unused, Object object) {
     [dynamicFromModifiableCheck type 'object' 'return;']
     [for l in bs.positions.longs]
     [atVar type]long bits[emptyIfZero l.index] = 0;
