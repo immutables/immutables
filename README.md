@@ -1,4 +1,4 @@
-Read full documentation at http://immutables.org
+Read full documentation at https://immutables.org
 
 ![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg)
 
