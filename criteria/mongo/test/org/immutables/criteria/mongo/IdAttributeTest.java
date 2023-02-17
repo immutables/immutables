@@ -22,6 +22,7 @@ import io.reactivex.Flowable;
 import org.bson.BsonDocument;
 import org.immutables.check.Checkers;
 import org.immutables.criteria.typemodel.ImmutableStringHolder;
+import org.immutables.criteria.typemodel.StringHolderCriteria;
 import org.immutables.criteria.typemodel.StringHolderRepository;
 import org.immutables.criteria.typemodel.TypeHolder;
 import org.junit.jupiter.api.Test;
@@ -29,8 +30,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Check correct serialization of {@code _id} attribute
@@ -49,11 +52,11 @@ class IdAttributeTest {
    */
   @Test
   void idAttribute() {
-    StringHolderRepository repository = new StringHolderRepository(resource.backend());
+    StringHolderRepository repository = new StringHolderRepository(this.resource.backend());
     ImmutableStringHolder holder = TypeHolder.StringHolder.generator().get().withId("id1");
     repository.insertAll(Arrays.asList(holder, holder.withId("id2")));
 
-    MongoCollection<BsonDocument> collection = resource.collection(TypeHolder.StringHolder.class)
+    MongoCollection<BsonDocument> collection = this.resource.collection(TypeHolder.StringHolder.class)
             .withDocumentClass(BsonDocument.class);
 
 
@@ -71,5 +74,25 @@ class IdAttributeTest {
     Checkers.check(repository.findAll().fetch().stream().map(TypeHolder.StringHolder::id).collect(Collectors.toList())).hasContentInAnyOrder("id1", "id2");
   }
 
+  /**
+   * Tests the sorting by {@code _id}.
+   */
+  @Test
+  void sortById() {
+    final StringHolderRepository repository = new StringHolderRepository(this.resource.backend());
+
+    final List<TypeHolder.StringHolder> stringHolders =
+        Stream.generate(TypeHolder.StringHolder.generator()).limit(100).collect(Collectors.toList());
+    Collections.shuffle(stringHolders);
+    repository.insertAll(stringHolders);
+
+    final List<String> expectedIdsInOrder =
+        stringHolders.stream().map(TypeHolder.StringHolder::id).sorted().collect(Collectors.toList());
+
+    final List<String> actualIds = repository.findAll().orderBy(StringHolderCriteria.stringHolder.id.asc()).fetch()
+        .stream().map(TypeHolder.StringHolder::id).collect(Collectors.toList());
+
+    Checkers.check(actualIds).is(expectedIdsInOrder);
+  }
 
 }

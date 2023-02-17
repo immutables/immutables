@@ -175,7 +175,7 @@ class MongoSession implements Backend.Session {
     if (!query.collations().isEmpty()) {
       // add sorting
       final Function<Collation, Bson> toSortFn = col -> {
-        final String path = col.path().toStringPath();
+        final String path = this.pathNaming.name(col.path());
         return col.direction().isAscending() ? Sorts.ascending(path) : Sorts.descending(path);
 
       };
