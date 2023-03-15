@@ -1910,7 +1910,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [else]
     this.[v.name].put(
         [requireNonNull type](key, "[v.name] key"),
-        [if v.unwrappedSecondaryElementPrimitiveType]value[else]value == null ? [requireNonNull type](value, "[v.name] value for key: " + key) : value[/if]);
+        [if v.unwrappedSecondaryElementPrimitiveType]value[else][requireNonNull type](value, value == null ? "[v.name] value for key: " + key : null)[/if]);
       [/if]
     [else]
     this.[v.name].put(key, value);
@@ -1943,7 +1943,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [else]
     this.[v.name].put(
         [requireNonNull type](k, "[v.name] key"),
-        v == null ? [requireNonNull type](v, "[v.name] value for key: " + k) : v);
+        [requireNonNull type](v, v == null ? "[v.name] value for key: " + k : null));
       [/if]
     [else]
     this.[v.name].put(entry);
@@ -2002,7 +2002,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
         [else]
       this.[v.name].put(
           [requireNonNull type](k, "[v.name] key"),
-          v == null ? [requireNonNull type](v, "[v.name] value for key: " + k) : v);
+          [requireNonNull type](v, v == null ? "[v.name] value for key: " + k : null));
         [/if]
     }
     [else]
@@ -4333,7 +4333,7 @@ private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNul
     V v = e.getValue();
     if (checkNulls) {
       [requireNonNull type](k, "key");
-      if (v == null) [requireNonNull type](v, "value for key: " + k);
+      [requireNonNull type](v, v == null ? "value for key: " + k : null);
     }
     if (skipNulls && (k == null || v == null)) {
       return java.util.Collections.emptyMap();
@@ -4350,7 +4350,7 @@ private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNul
           if (k == null || v == null) continue;
         } else if (checkNulls) {
           [requireNonNull type](k, "key");
-          if (v == null) [requireNonNull type](v, "value for key: " + k);
+          [requireNonNull type](v, v == null ? "value for key: " + k : null);
         }
         linkedMap.put(k, v);
       }
@@ -4403,7 +4403,7 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
         if (k == null || v == null) continue;
       } else if (checkNulls) {
         [requireNonNull type](k, "key");
-        if (v == null) [requireNonNull type](v, "value for key: " + k);
+        [requireNonNull type](v, v == null ? "value for key: " + k : null);
       }
       sortedMap.put(k, v);
     }
