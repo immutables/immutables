@@ -78,7 +78,7 @@ public abstract class Round {
     // Collect remaining and attach if nested
     for (Protoclass protoclass : protoclasses) {
       @Nullable ValueType current = null;
-      if (protoclass.kind().isNested()) {
+      if (protoclass.kind().isNested() || protoclass.kind().isNestedFactoryOrConstructor()) {
         @Nullable ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
         if (enclosing != null) {
           current = composeValue(protoclass);
@@ -230,7 +230,9 @@ public abstract class Round {
             .packageOf(declaringType.packageOf())
             .sourceElement(wrapElement(element))
             .declaringType(declaringType)
-            .kind(Kind.DEFINED_FACTORY)
+            .kind(declaringType.isEnclosing()
+                ? Kind.DEFINED_NESTED_FACTORY
+                : Kind.DEFINED_FACTORY)
             .build()));
       }
 
@@ -241,7 +243,9 @@ public abstract class Round {
             .packageOf(declaringType.packageOf())
             .sourceElement(wrapElement(element))
             .declaringType(declaringType)
-            .kind(Kind.DEFINED_CONSTRUCTOR)
+            .kind(declaringType.isEnclosing()
+                ? Kind.DEFINED_NESTED_CONSTRUCTOR
+                : Kind.DEFINED_CONSTRUCTOR)
             .build()));
       }
     }
