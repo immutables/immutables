@@ -85,12 +85,28 @@ public final class ProxyProcessor implements Processor {
     return new org.immutables.value.processor.Processor();
   }
 
+  /**
+   * We find the delegating classloader by traversing the call stack and looking for the first
+   * class that has a classloader from the Eclipse namespace. This is bound to be the bundle classloader
+   * of a JDT bundle which can load the required Eclipse compiler types.
+   * 
+   * NOTE: We cannot simply use the thread context class loader. This works in the Eclipse IDE
+   * (where it is set to ContextFinder), but not in the JDT Language Server.
+   */
   private static Processor createClassLoaderDelegate() {
     try {
       if (cachedProxyClassLoader == null) {
+        CallStack callStack = new CallStack();
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        for (Class<?> klass : callStack.getCallingClasses()) {
+          if (klass.getClassLoader() != null && klass.getClassLoader().getClass().getName().startsWith(ECLIPSE_PACKAGE_PREFIX)) {
+            loader = klass.getClassLoader();
+            break;
+          }
+        }
         cachedProxyClassLoader = new ProxyClassLoader(
             ((URLClassLoader) ProxyProcessor.class.getClassLoader()).getURLs(),
-            Thread.currentThread().getContextClassLoader());
+            loader);
       }
       return (Processor) cachedProxyClassLoader.loadClass(DELEGATE_CLASS).newInstance();
     } catch (RuntimeException | Error ex) {
@@ -102,13 +118,11 @@ public final class ProxyProcessor implements Processor {
 
   private static boolean requiresClassLoaderDelegate() {
     if (System.getProperty(OSGI_SYSTEM_PROPERTY) != null) {
-      for (StackTraceElement e : new Exception().getStackTrace()) {
-        if (e.getClassName().startsWith(ECLIPSE_PACKAGE_PREFIX)) {
-          ClassLoader staticClassLoader = ProxyProcessor.class.getClassLoader();
-          ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-
-          return staticClassLoader instanceof URLClassLoader
-              && contextClassLoader != staticClassLoader;
+      CallStack callStack = new CallStack();
+      for (Class<?> klass : callStack.getCallingClasses()) {
+        ClassLoader classLoader = klass.getClassLoader();
+        if (classLoader != null && klass.getClassLoader().getClass().getName().startsWith(ECLIPSE_PACKAGE_PREFIX)) {
+          return true;
         }
       }
     }

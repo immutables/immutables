@@ -67,6 +67,9 @@ import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
  * </ul>
  * <p>
  * <em>Based on a workaround idea provided by Christian Humer</em>
+ * 
+ * NOTE: The Eclipse bug is fixed, and this workaround can be disabled by setting the system property
+ * {@code org.immutables.disableEclipseOrderingProvider=true}.
  */
 public final class SourceOrdering {
   private SourceOrdering() {}
@@ -97,7 +100,7 @@ public final class SourceOrdering {
   }
 
   private static OrderingProvider createProvider() {
-    if (Compiler.ECJ.isPresent()) {
+    if (Compiler.ECJ.isPresent() && !Boolean.getBoolean("org.immutables.disableEclipseOrderingProvider")) {
       return new EclipseCompilerOrderingProvider();
     }
     return DEFAULT_PROVIDER;
