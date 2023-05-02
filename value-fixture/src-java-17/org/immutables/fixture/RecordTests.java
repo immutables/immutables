@@ -14,7 +14,7 @@
    limitations under the License.
  */
 
-package org.immutables.tests;
+package org.immutables.fixture;
 
 public class RecordTests {
 
