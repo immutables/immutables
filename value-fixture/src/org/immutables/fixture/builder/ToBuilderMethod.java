@@ -11,6 +11,13 @@ public interface ToBuilderMethod {
   }
 
   @Value.Immutable
+  @Value.Style(toBuilder = "toBuilder")
+  interface ToBuilderClassicWithGenerics<T> {
+    int a();
+    T b();
+  }
+
+  @Value.Immutable
   @Value.Style(toBuilder = "toBuilder", overshadowImplementation = true)
   interface ToBuilderSandwich {
     int a();
