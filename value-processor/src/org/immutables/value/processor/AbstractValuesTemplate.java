@@ -7,6 +7,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import org.immutables.generator.AbstractTemplate;
+import org.immutables.generator.ClasspathAvailability;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
 import org.immutables.value.processor.meta.HasStyleInfo;
@@ -51,6 +52,23 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
     }
   };
 
+  private @Nullable String jaxartaPackage;
+
+  protected final void setJaxarta(String jaxartaPackage) {
+    this.jaxartaPackage = jaxartaPackage;
+  }
+
+  public final String jaxarta() {
+    return jaxartaPackage != null ? jaxartaPackage : inferJaxarta() ? "jakarta" : "javax";
+  }
+
+  protected boolean inferJaxarta() {
+    return classpath.available.apply(JAKARTA_NULLABLE);
+  }
+
+  // Same as in .meta.Annotations.JAKARTA_NULLABLE
+  private static final String JAKARTA_NULLABLE = "jakarta.annotation.Nullable";
+
   protected final Function<Object, String> docEscaped = new Function<Object, String>() {
     @Override
     public String apply(Object input) {
@@ -66,16 +84,29 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
   protected final Templates.Binary<HasStyleInfo, String, Boolean> allowsClasspathAnnotation =
       (hasStyle, annotationClass) -> {
         StyleInfo style = hasStyle.style();
+        setJaxartaFrom(style);
+
+        if (annotationClass.startsWith(CLASSNAME_TAG_JAXARTA)) {
+          annotationClass = annotationClass.replace(CLASSNAME_TAG_JAXARTA, jaxarta());
+        }
         return (style.allowedClasspathAnnotationsNames().isEmpty()
             || style.allowedClasspathAnnotationsNames().contains(annotationClass))
             && classpath.available.apply(annotationClass);
       };
 
+  private void setJaxartaFrom(StyleInfo style) {
+    // setup jakarta context for subsequent calls for jaxarta()
+    // regardless if it's relevant for this call
+    jaxartaPackage = style.jakarta() ? "jakarta" : "javax";
+  }
+
   protected final Function<HasStyleInfo, String> atFallbackNullable =
       input -> {
         String annotation = input.style().fallbackNullableAnnotationName();
         if (annotation.equals(Inherited.class.getCanonicalName())) {
-          String defaultNullable = "javax.annotation.Nullable";
+          setJaxartaFrom(input.style());
+
+          String defaultNullable = jaxarta() +".annotation.Nullable";
           annotation = allowsClasspathAnnotation.apply(input, defaultNullable) ? defaultNullable : "";
         }
         return !annotation.isEmpty() ? "@" + annotation + " " : "";
@@ -119,4 +150,6 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
       }
     };
   }
+  // this particular style mimics template syntax, but is handled separately
+  protected static final String CLASSNAME_TAG_JAXARTA = "[jaxarta]";
 }

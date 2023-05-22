@@ -1530,6 +1530,15 @@ public @interface Value {
     int limitStringLengthInToString() default 0;
 
     /**
+     * If enabled, {@code jakarta.*} packages will take over any relevant {@code javax.*}.
+     * This includes primarily {@code jakarta.annotation.*} and {@code jakarta.validation.*}.
+     * <p>Note that classpath inhibitor or {@link #allowedClasspathAnnotations()} will still
+     * take effect, it's just so that</p>
+     * @return {@code true} if enabled. The default is {@code false}.
+     */
+    boolean jakarta() default false;
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * construction methods. Builder visibility will follow.

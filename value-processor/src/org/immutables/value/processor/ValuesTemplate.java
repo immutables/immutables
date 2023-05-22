@@ -15,9 +15,11 @@
  */
 package org.immutables.value.processor;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Multimap;
 import org.immutables.generator.Templates;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
+import org.immutables.value.processor.meta.StyleInfo;
 import org.immutables.value.processor.meta.ValueType;
 
 abstract class ValuesTemplate extends AbstractValuesTemplate {
@@ -28,5 +30,17 @@ abstract class ValuesTemplate extends AbstractValuesTemplate {
   ValuesTemplate usingValues(Multimap<DeclaringPackage, ValueType> values) {
     this.values = values;
     return this;
+  }
+
+  // this is used when no immediate context style is available
+  // see super#allowsClasspathAnnotation
+  protected boolean inferJaxarta() {
+    for (DeclaringPackage p : values.keySet()) {
+      Optional<StyleInfo> s = p.style();
+      if (s.isPresent()) {
+        return s.get().jakarta();
+      }
+    }
+    return super.inferJaxarta();
   }
 }

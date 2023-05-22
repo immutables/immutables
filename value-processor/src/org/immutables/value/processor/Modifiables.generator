@@ -1293,17 +1293,17 @@ public String toString() {
 [if type allowsClasspathAnnotation 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings']
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 [/if]
-[if type allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
-@javax.annotation.ParametersAreNonnullByDefault
+[if type allowsClasspathAnnotation '[jaxarta].ParametersAreNonnullByDefault']
+@[jaxarta].ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
 @javax.annotation.processing.Generated({"Modifiables.generator", "[type.typeAbstract.relativeRaw]"})
-[else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Modifiables.generator", "[type.typeAbstract.relativeRaw]"})
+[else if type allowsClasspathAnnotation '[jaxarta].Generated']
+@[jaxarta].Generated({"Modifiables.generator", "[type.typeAbstract.relativeRaw]"})
 [/if]
 [/if]
-[if type allowsClasspathAnnotation 'javax.annotation.concurrent.NotThreadSafe']
-@javax.annotation.concurrent.NotThreadSafe
+[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.NotThreadSafe']
+@[jaxarta].annotation.concurrent.NotThreadSafe
 [/if]
 [/template]
 

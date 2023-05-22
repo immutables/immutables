@@ -57,13 +57,13 @@ import [starImport];
  */
  @SuppressWarnings("all")
 [for v in allValues][if for.first][-- this is only needed to get to first available value's style --]
-[if v allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
-@javax.annotation.ParametersAreNonnullByDefault
+[if v allowsClasspathAnnotation '[jaxarta].ParametersAreNonnullByDefault']
+@[jaxarta].ParametersAreNonnullByDefault
 [/if]
 [if v allowsClasspathAnnotation 'javax.annotation.processing.Generated']
 @javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
-[else if v allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[else if v allowsClasspathAnnotation '[jaxarta].Generated']
+@[jaxarta].Generated("org.immutables.processor.ProxyProcessor")
 [/if]
 [if v allowsClasspathAnnotation 'org.immutables.value.Generated']
 @org.immutables.value.Generated(from = "[packageName]", generator = "OkJsons")

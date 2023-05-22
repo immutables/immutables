@@ -1667,6 +1667,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   private boolean isNullableAnnotation(Name simpleName, Name qualifiedName) {
     return qualifiedName.contentEquals(Annotations.JAVAX_CHECK_FOR_NULL)
         || qualifiedName.contentEquals(Annotations.JAVAX_NULLABLE)
+        || qualifiedName.contentEquals(Annotations.JAKARTA_CHECK_FOR_NULL)
+        || qualifiedName.contentEquals(Annotations.JAKARTA_NULLABLE)
         || simpleName.contentEquals(containingType.names().nullableAnnotation);
   }
 

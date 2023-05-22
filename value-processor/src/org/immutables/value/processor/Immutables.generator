@@ -51,13 +51,13 @@
 [if type allowsClasspathAnnotation 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings']
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 [/if]
-[if type allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
-@javax.annotation.ParametersAreNonnullByDefault
+[if type allowsClasspathAnnotation '[jaxarta].ParametersAreNonnullByDefault']
+@[jaxarta].ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
 @javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
-[else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[else if type allowsClasspathAnnotation '[jaxarta].Generated']
+@[jaxarta].Generated("org.immutables.processor.ProxyProcessor")
 [/if]
 [/if]
 [/template]
@@ -173,13 +173,13 @@ public static[type.generics.def] [factoryBuildStageBuilderType type] [type.facto
  */
 [annotationsWhenTopLevel type topLevel]
 [typeDeprecation type]
-[if type allowsClasspathAnnotation 'javax.annotation.concurrent.Immutable']
-@javax.annotation.concurrent.Immutable
+[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.Immutable']
+@[jaxarta].annotation.concurrent.Immutable
 [/if]
-[if type allowsClasspathAnnotation 'javax.annotation.CheckReturnValue']
+[if type allowsClasspathAnnotation '[jaxarta].CheckReturnValue']
   [-- only enable if both on/off annotations are available --]
   [if type allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue']
-@javax.annotation.CheckReturnValue
+@[jaxarta].CheckReturnValue
   [/if]
 [/if]
 [eachLine type.passedAnnotations]
@@ -836,14 +836,14 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [if type.useValidation]
 [if type.useJavaValidationApi]
 
-  private static final javax.validation.Validator [disambiguateField type 'validator'] = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
+  private static final [jaxarta].validation.Validator [disambiguateField type 'validator'] = [jaxarta].validation.Validation.buildDefaultValidatorFactory().getValidator();
 [/if]
 
   private static [type.generics.spaceAfter][type.typeImmutable.relative] validate([type.typeImmutable.relative] instance) {
 [if type.useJavaValidationApi]
-    java.util.Set<javax.validation.ConstraintViolation<[type.typeImmutable.relative]>> constraintViolations = [disambiguateField type 'validator'].validate(instance);
+    java.util.Set<[jaxarta].validation.ConstraintViolation<[type.typeImmutable.relative]>> constraintViolations = [disambiguateField type 'validator'].validate(instance);
     if (!constraintViolations.isEmpty()) {
-      throw new javax.validation.ConstraintViolationException(constraintViolations);
+      throw new [jaxarta].validation.ConstraintViolationException(constraintViolations);
     }
 [/if]
 [for vm in type.validationMethods]
@@ -1202,8 +1202,8 @@ public interface [tb.nameBuildFinal][type.generics] {
  * but instead used immediately to create instances.</em>
  */
 [annotationsWhenTopLevel type topLevel]
-[if type allowsClasspathAnnotation 'javax.annotation.concurrent.NotThreadSafe']
-@javax.annotation.concurrent.NotThreadSafe
+[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.NotThreadSafe']
+@[jaxarta].annotation.concurrent.NotThreadSafe
 [/if]
 [eachLine type.builderAnnotations]
 [eachLine type.builderTypeInjectedAnnotations]

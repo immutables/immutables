@@ -36,13 +36,13 @@ package [transformerType.package];
 [/if]
 
 [if transformerType.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
-[if transformerType allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
-@javax.annotation.ParametersAreNonnullByDefault
+[if transformerType allowsClasspathAnnotation '[jaxarta].ParametersAreNonnullByDefault']
+@[jaxarta].ParametersAreNonnullByDefault
 [/if]
 [if transformerType allowsClasspathAnnotation 'javax.annotation.processing.Generated']
 @javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
-[else if transformerType allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[else if transformerType allowsClasspathAnnotation '[jaxarta].Generated']
+@[jaxarta].Generated("org.immutables.processor.ProxyProcessor")
 [/if]
 [if transformerType allowsClasspathAnnotation 'org.immutables.value.Generated']
 @org.immutables.value.Generated(from = "[transformerType.typeAbstract.relativeRaw]", generator = "Transformers")

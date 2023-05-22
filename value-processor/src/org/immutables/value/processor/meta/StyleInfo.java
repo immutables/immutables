@@ -441,7 +441,12 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   }
 
   @Value.Parameter
+  @Override
   public abstract int limitStringLengthInToString();
+
+  @Value.Parameter
+  @Override
+  public abstract boolean jakarta();
 
   static StyleInfo infoFrom(StyleMirror input) {
     return ImmutableStyleInfo.of(
@@ -535,6 +540,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.nullableAnnotation(),
         ImmutableSet.copyOf(input.allowedClasspathAnnotationsName()),
         input.fallbackNullableAnnotationName(),
-        input.limitStringLengthInToString());
+        input.limitStringLengthInToString(),
+        input.jakarta());
   }
 }

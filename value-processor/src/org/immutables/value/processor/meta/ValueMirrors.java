@@ -275,6 +275,8 @@ public final class ValueMirrors {
 
     Class<? extends Annotation> fallbackNullableAnnotation() default Inherited.class;
 
+    boolean jakarta() default false;
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

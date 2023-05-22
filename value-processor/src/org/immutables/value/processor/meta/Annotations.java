@@ -51,6 +51,8 @@ final class Annotations {
 
   static final String JAVAX_NULLABLE = "javax.annotation.Nullable";
   static final String JAVAX_CHECK_FOR_NULL = "javax.annotation.CheckForNull";
+  static final String JAKARTA_NULLABLE = "jakarta.annotation.Nullable";
+  static final String JAKARTA_CHECK_FOR_NULL = "jakarta.annotation.CheckForNull";
 
   static List<CharSequence> getAnnotationLines(
       Element element,

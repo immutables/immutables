@@ -47,8 +47,8 @@ import java.util.Objects;
  * A {@code [type.name]Repository} provides access for storing and retrieving objects
  * from a generic data-source based on {@link [type.name]Criteria}.
  */
-[if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
-@javax.annotation.concurrent.ThreadSafe
+[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.ThreadSafe']
+@[jaxarta].annotation.concurrent.ThreadSafe
 [/if]
 [type.typeDocument.access]class [type.name]Repository implements Repository<[type.typeDocument]>[output.trim]
 [for facet in type.criteriaRepository.facets], [facet.interfaceType][/for] {[/output.trim]
