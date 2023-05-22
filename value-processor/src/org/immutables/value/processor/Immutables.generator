@@ -207,7 +207,7 @@ public static[type.generics.def] [factoryBuildStageBuilderType type] [type.facto
    * with attibute values of {@code this} instance to easily create modified copies.
    * @return A new [type.typeValue.simple] builder with attributes of {@code this} instance
    */
-  public [type.typeBuilder.relative][type.generics.args] [type.names.toBuilder]() {
+  public [type.typeBuilder.relative] [type.names.toBuilder]() {
     return [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder].[type.names.from](this);
   }
 [/if]
