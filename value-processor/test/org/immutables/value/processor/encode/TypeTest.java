@@ -15,8 +15,11 @@
  */
 package org.immutables.value.processor.encode;
 
+import java.util.List;
+import java.util.Map;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import org.immutables.generator.SourceTypes;
 import org.immutables.value.processor.encode.Type.Defined;
 import org.immutables.value.processor.encode.Type.Primitive;
 import org.immutables.value.processor.encode.Type.Reference;
@@ -35,6 +38,30 @@ public class TypeTest {
       .introduce("D", NO_BOUNDS);
 
   Type.Parser parser = new Type.Parser(factory, parameters);
+
+  @Test
+  public void sourceTypeAdHocParsing() {
+    Map.Entry<String, List<String>> extract =
+        SourceTypes.extract("Map<java.lang.@org.it.Size(a=1, b=2) String, Integer>");
+    check(extract.getKey()).is("Map");
+    check(extract.getValue()).isOf("java.lang.@org.it.Size(a=1, b=2) String", "Integer");
+
+    Map.Entry<String, List<String>> extract2 =
+        SourceTypes.extract("List<@org.it.Size(a=1, b=2) java.lang.String>");
+
+    check(extract2.getKey()).is("List");
+    check(extract2.getValue()).isOf("@org.it.Size(a=1, b=2) java.lang.String");
+
+    Map.Entry<String, List<String>> extract3 =
+        SourceTypes.extract("Map<List<java.lang.@Max(a=1, b=2) Integer>, String>");
+
+    check(extract3.getValue()).isOf("List<java.lang.@Max(a=1, b=2) Integer>", "String");
+
+    Map.Entry<String, List<String>> extract4 =
+        SourceTypes.extract("List<@Size(a='\\'', c=\"abc, z='\") String>");
+    check(extract4.getKey()).is("List");
+    check(extract4.getValue()).isOf("@Size(a='\\'', c=\"abc, z='\") String");
+  }
 
   @Test
   public void templateMatch() {

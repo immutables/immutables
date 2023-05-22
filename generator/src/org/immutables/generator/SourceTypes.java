@@ -29,9 +29,30 @@ public class SourceTypes {
     StringBuilder typeArgument = new StringBuilder();
     List<String> typeArguments = Lists.newArrayList();
     int anglesOpened = 0;
+    int parensOpened = 0;
     chars: for (int i = 0; i < typeString.length(); i++) {
       char c = typeString.charAt(i);
       switch (c) {
+      case '"':
+      case '\'':
+        i = transferStringLiteral(anglesOpened == 0 ? typeName : typeArgument, typeString, c, i + 1) - 1;
+        break;
+      case '(':
+        parensOpened++;
+        if (anglesOpened == 0) {
+          typeName.append(c);
+        } else {
+          typeArgument.append(c);
+        }
+        break;
+      case ')':
+        parensOpened--;
+        if (anglesOpened == 0) {
+          typeName.append(c);
+        } else {
+          typeArgument.append(c);
+        }
+        break;
       case '<':
         if (++anglesOpened > 1) {
           typeArgument.append(c);
@@ -45,15 +66,31 @@ public class SourceTypes {
         }
         break;
       case ',':
-        if (anglesOpened == 1) {
+        if (parensOpened > 0) {
+          if (anglesOpened == 0) {
+            typeName.append(c);
+          } else {
+            typeArgument.append(c);
+          }
+        } else if (anglesOpened == 1) {
           typeArguments.add(typeArgument.toString());
           typeArgument = new StringBuilder();
         } else {
           typeArgument.append(c);
         }
         break;
-      case ' ':// not sure about this one
-        if (anglesOpened > 1) {
+      case ' ':
+        if (anglesOpened == 0) {
+          typeName.append(c);
+        } else if (anglesOpened == 1) {
+          if (parensOpened > 0) {
+            typeArgument.append(c);
+          } else {
+            if (typeArgument.length() > 0 && typeArgument.charAt(typeArgument.length() - 1) == ')') {
+              typeArgument.append(c);
+            }
+          }
+        } else {
           typeArgument.append(c);
         }
         break;
@@ -70,6 +107,25 @@ public class SourceTypes {
       typeArguments.add(lastArgument);
     }
     return Maps.immutableEntry(typeName.toString(), typeArguments);
+  }
+
+  private static int transferStringLiteral(StringBuilder target, CharSequence typeString, char end, int i) {
+    target.append(end);
+    for (; i < typeString.length(); i++) {
+      char c = typeString.charAt(i);
+      if (c == '\\') {  // for each escape, we expected that next symbol will always exist and
+        target.append(c);
+        c = typeString.charAt(++i);
+        target.append(c);
+      } else if (c == end) {
+        target.append(c);
+        i++;
+        break;
+      } else {
+        target.append(c);
+      }
+    }
+    return i;
   }
 
   public static String stringify(Entry<String, ? extends List<String>> types) {
