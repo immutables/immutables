@@ -51,13 +51,13 @@
 [if type allowsClasspathAnnotation 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings']
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 [/if]
-[if type allowsClasspathAnnotation '[jaxarta].ParametersAreNonnullByDefault']
-@[jaxarta].ParametersAreNonnullByDefault
+[if type allowsClasspathAnnotation '[jaxarta].annotation.ParametersAreNonnullByDefault']
+@[jaxarta].annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
 @javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
-[else if type allowsClasspathAnnotation '[jaxarta].Generated']
-@[jaxarta].Generated("org.immutables.processor.ProxyProcessor")
+[else if type allowsClasspathAnnotation '[jaxarta].annotation.Generated']
+@[jaxarta].annotation.Generated("org.immutables.processor.ProxyProcessor")
 [/if]
 [/if]
 [/template]
@@ -176,10 +176,10 @@ public static[type.generics.def] [factoryBuildStageBuilderType type] [type.facto
 [if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.Immutable']
 @[jaxarta].annotation.concurrent.Immutable
 [/if]
-[if type allowsClasspathAnnotation '[jaxarta].CheckReturnValue']
+[if type allowsClasspathAnnotation '[jaxarta].annotation.CheckReturnValue']
   [-- only enable if both on/off annotations are available --]
   [if type allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue']
-@[jaxarta].CheckReturnValue
+@[jaxarta].annotation.CheckReturnValue
   [/if]
 [/if]
 [eachLine type.passedAnnotations]

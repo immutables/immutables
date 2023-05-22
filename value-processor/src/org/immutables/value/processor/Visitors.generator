@@ -36,13 +36,13 @@ package [visitorType.package];
 [/if]
 
 [if visitorType.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
-[if visitorType allowsClasspathAnnotation '[jaxarta].ParametersAreNonnullByDefault']
-@[jaxarta].ParametersAreNonnullByDefault
+[if visitorType allowsClasspathAnnotation '[jaxarta].annotation.ParametersAreNonnullByDefault']
+@[jaxarta].annotation.ParametersAreNonnullByDefault
 [/if]
 [if visitorType allowsClasspathAnnotation 'javax.annotation.processing.Generated']
 @javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
-[else if visitorType allowsClasspathAnnotation '[jaxarta].Generated']
-@[jaxarta].Generated("org.immutables.processor.ProxyProcessor")
+[else if visitorType allowsClasspathAnnotation '[jaxarta].annotation.Generated']
+@[jaxarta].annotation.Generated("org.immutables.processor.ProxyProcessor")
 [/if]
 [if visitorType allowsClasspathAnnotation 'org.immutables.value.Generated']
 @org.immutables.value.Generated(from = "[visitorType.typeAbstract.relativeRaw]", generator = "Visitors")

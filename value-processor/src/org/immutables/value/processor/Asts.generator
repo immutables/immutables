@@ -41,13 +41,13 @@ import java.lang.String;
 [if type.generatedSuppressWarnings]
 @SuppressWarnings({[for k in type.generatedSuppressWarnings][if not for.first], [/if][literal k][/for]})
 [/if]
-[if type allowsClasspathAnnotation '[jaxarta].ParametersAreNonnullByDefault']
-@[jaxarta].ParametersAreNonnullByDefault
+[if type allowsClasspathAnnotation '[jaxarta].annotation.ParametersAreNonnullByDefault']
+@[jaxarta].annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
 @javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
-[else if type allowsClasspathAnnotation '[jaxarta].Generated']
-@[jaxarta].Generated("org.immutables.processor.ProxyProcessor")
+[else if type allowsClasspathAnnotation '[jaxarta].annotation.Generated']
+@[jaxarta].annotation.Generated("org.immutables.processor.ProxyProcessor")
 [/if]
 [if type allowsClasspathAnnotation 'org.immutables.value.Generated']
 @org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Asts")
@@ -64,8 +64,8 @@ import java.lang.String;
 
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
 @javax.annotation.processing.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
-[else if type allowsClasspathAnnotation '[jaxarta].Generated']
-@[jaxarta].Generated({"Asts.generator", "[type.typeAbstract.relative]"})
+[else if type allowsClasspathAnnotation '[jaxarta].annotation.Generated']
+@[jaxarta].annotation.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
 [/if]
 public static class [type.name] {
   private [type.name]() {}
