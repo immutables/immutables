@@ -19,7 +19,7 @@
   <parent>
     <artifactId>immutables</artifactId>
     <groupId>org.immutables</groupId>
-    <version>2.9.4-SNAPSHOT</version>
+    <version>2.10.0-SNAPSHOT</version>
   </parent>
   <artifactId>annotate</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
