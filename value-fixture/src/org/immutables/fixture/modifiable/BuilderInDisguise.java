@@ -11,9 +11,10 @@ import org.immutables.value.Value;
     typeModifiable = "*Builder", // modifiable will be generated as "FooBuilder"
     toImmutable = "build",  // rename "toImmutable" method to "build"
     set = "*", // adjust to your taste: setters with no prefixes like in default builders.
-    create = "new" // plain constructor to create builder, just as example
+    create = "new", // plain constructor to create builder, just as example
+    builder = "immutableBuilder" // rename the immutable builder to disguise it
 )  // style could also put on package or as meta annotation
-@Value.Immutable
+//@Value.Immutable(builder = false) - requires @Style.allParameters
 @Value.Modifiable
 public abstract class BuilderInDisguise {
   public abstract String getName();
