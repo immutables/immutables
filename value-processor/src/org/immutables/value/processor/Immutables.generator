@@ -4235,16 +4235,31 @@ private static java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuild
   java.util.ArrayList<[listType]> list;
     [if vargs]
   if ([listToTransform].length == 0) return java.util.Collections.emptyList();
+  list = new java.util.ArrayList[asDiamond listType]([listToTransform].length);
     [else]
   if ([listToTransform] instanceof java.util.Collection<?>) {
     int size = ((java.util.Collection<?>) [listToTransform]).size();
     if (size == 0) return java.util.Collections.emptyList();
+    list = new java.util.ArrayList[asDiamond listType](size);
+  } else {
+    list = new java.util.ArrayList[asDiamond listType]();
   }
     [/if]
-  list = new java.util.ArrayList[asDiamond listType]();
   [else]
+  [guava].collect.ImmutableList.Builder<[listType]> list;
   [-- This is a mess, we don't want to use listType because of reasons --]
-  [guava].collect.ImmutableList.Builder<[listType]> list = [guava].collect.ImmutableList.builder();
+    [if vargs]
+  if ([listToTransform].length == 0) return java.util.Collections.emptyList();
+  list = [guava].collect.ImmutableList.builderWithExpectedSize([listToTransform].length);
+    [else]
+  if ([listToTransform] instanceof java.util.Collection<?>) {
+    int size = ((java.util.Collection<?>) [listToTransform]).size();
+    if (size == 0) return java.util.Collections.emptyList();
+    list = [guava].collect.ImmutableList.builderWithExpectedSize(size);
+  } else {
+    list = [guava].collect.ImmutableList.builder();
+  }
+    [/if]
   [/if]
   [-- todo: skip nulls and such? --]
   for ([if toValueType][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] element : [listToTransform]) {
@@ -4269,7 +4284,7 @@ private static <T> java.util.List<T> createSafeList(Iterable<? extends T> iterab
   if (iterable instanceof java.util.Collection<?>) {
     int size = ((java.util.Collection<?>) iterable).size();
     if (size == 0) return java.util.Collections.emptyList();
-    list = new java.util.ArrayList[asDiamond 'T']();
+    list = new java.util.ArrayList[asDiamond 'T'](size);
   } else {
     list = new java.util.ArrayList[asDiamond 'T']();
   }
@@ -4307,7 +4322,7 @@ private static <T> java.util.Set<T> createUnmodifiableSet(java.util.List<T> list
   case 0: return java.util.Collections.emptySet();
   case 1: return java.util.Collections.singleton(list.get(0));
   default:
-    java.util.Set<T> set = new java.util.LinkedHashSet[asDiamond 'T'](list.size());
+    java.util.Set<T> set = new java.util.LinkedHashSet[asDiamond 'T'](list.size() * 4 / 3 + 1);
     set.addAll(list);
     return java.util.Collections.unmodifiableSet(set);
   }
@@ -4364,7 +4379,7 @@ private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNul
     return java.util.Collections.singletonMap(k, v);
   }
   default: {
-    java.util.Map<K, V> linkedMap = new java.util.LinkedHashMap[asDiamond 'K, V'](map.size());
+    java.util.Map<K, V> linkedMap = new java.util.LinkedHashMap[asDiamond 'K, V'](map.size() * 4 / 3 + 1);
     if (skipNulls || checkNulls) {
       for (java.util.Map.Entry<? extends K, ? extends V> e : map.entrySet()) {
         K k = e.getKey();
