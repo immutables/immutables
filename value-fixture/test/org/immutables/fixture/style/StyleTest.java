@@ -29,6 +29,13 @@ public class StyleTest {
   }
 
   @Test
+  public void publicVisibilityString() {
+    check(!Modifier.isPublic(MoreVisibleImplementationAsString.class.getModifiers()));
+    check(Modifier.isPublic(ImmutableMoreVisibleImplementationAsString.class.getModifiers()));
+    check(!Modifier.isPublic(ImmutableMoreVisibleImplementationAsString.Builder.class.getModifiers()));
+  }
+
+  @Test
   public void packageVisibility() {
     check(Modifier.isPublic(LoweredVisibility.class.getModifiers()));
     check(!Modifier.isPublic(ImmutableLoweredVisibility.class.getModifiers()));
