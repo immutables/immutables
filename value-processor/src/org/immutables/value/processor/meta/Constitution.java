@@ -39,6 +39,7 @@ import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.PackageNaming;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+import org.immutables.value.processor.meta.ValueMirrors.Style.BuilderVisibility;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
@@ -62,7 +63,14 @@ public abstract class Constitution {
 
 	@Value.Derived
 	public Visibility implementationVisibility() {
-		if (style().visibility() == ImplementationVisibility.PRIVATE
+    ImplementationVisibility visibility;
+    if (!style().visibilityString().isEmpty()) {
+      visibility = ImplementationVisibility.valueOf(style().visibilityString());
+    } else {
+      visibility = style().visibility();
+    }
+
+		if (visibility == ImplementationVisibility.PRIVATE
 				&& !protoclass().features().builder()
 				&& !protoclass().kind().isNested()) {
 			protoclass()
@@ -73,12 +81,17 @@ public abstract class Constitution {
 									"required");
 			return Visibility.PACKAGE;
 		}
-		return protoclass().visibility().forImplementation(style().visibility());
+		return protoclass().visibility().forImplementation(visibility);
 	}
 
 	@Value.Derived
 	public Visibility builderVisibility() {
-		Visibility visibility = protoclass().visibility().forBuilder(style().builderVisibility());
+    Visibility visibility;
+    if (!style().builderVisibilityString().isEmpty()) {
+      visibility = protoclass().visibility().forBuilder(BuilderVisibility.valueOf(style().builderVisibilityString()));
+    } else {
+      visibility = protoclass().visibility().forBuilder(style().builderVisibility());
+    }
 		if (visibility == Visibility.PUBLIC && protoclass().styles().style().stagedBuilder()
 				&& isNestedFactoryOrConstructor()) {
 			return Visibility.PRIVATE;

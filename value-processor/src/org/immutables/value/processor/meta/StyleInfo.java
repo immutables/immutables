@@ -233,6 +233,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract String visibilityString();
+
+  @Value.Parameter
+  @Override
   public abstract boolean optionalAcceptNullable();
 
   @Value.Parameter
@@ -302,6 +306,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   @Override
   public abstract BuilderVisibility builderVisibility();
+
+  @Value.Parameter
+  @Override
+  public abstract String builderVisibilityString();
 
   @Value.Parameter
   public abstract String throwForInvalidImmutableStateName();
@@ -500,6 +508,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         ImmutableSet.copyOf(input.passAnnotationsName()),
         ImmutableSet.copyOf(input.additionalJsonAnnotationsName()),
         input.visibility(),
+        input.visibilityString(),
         input.optionalAcceptNullable(),
         input.generateSuppressAllWarnings(),
         input.privateNoargConstructor(),
@@ -518,6 +527,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.weakInterning(),
         input.alwaysPublicInitializers(),
         input.builderVisibility(),
+        input.builderVisibilityString(),
         input.throwForInvalidImmutableStateName(),
         input.throwForNullPointerName(),
         input.depluralize(),

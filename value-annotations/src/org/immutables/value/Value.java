@@ -917,6 +917,14 @@ public @interface Value {
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     /**
+     * Specify the mode in which visibility of generated value type is derived from abstract value
+     * type. Specifying this will override {@link #visibility()} and the reason why this option as a string exists,
+     * is to avoid javac warnings mentioned in <a href="https://github.com/immutables/immutables/issues/291">#291</a>.
+     * @return implementation visibility as string
+     */
+    String visibilityString() default "";
+
+    /**
      * Specify whether init, copy and factory methods and constructors for an unwrapped {@code X} of
      * {@code Optional<X>}
      * should accept {@code null} values as empty value. By default nulls are rejected in favor of
@@ -1171,6 +1179,15 @@ public @interface Value {
      * @return implementation visibility
      */
     BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;
+
+    /**
+     * Specify the mode in which visibility of generated value type is derived from abstract value
+     * type. Specifying this will override {@link #builderVisibility()} and the reason why this option as
+     * a string exists, is to avoid javac warnings mentioned in
+     * <a href="https://github.com/immutables/immutables/issues/291">#291</a>.
+     * @return implementation visibility as string
+     */
+    String builderVisibilityString() default "";
 
     /**
      * Runtime exception to throw when an immutable object is in an invalid state. I.e. when some

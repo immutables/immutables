@@ -193,6 +193,8 @@ public final class ValueMirrors {
 
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
+    String visibilityString() default "";
+
     boolean optionalAcceptNullable() default false;
 
     boolean generateSuppressAllWarnings() default true;
@@ -228,6 +230,8 @@ public final class ValueMirrors {
     boolean alwaysPublicInitializers() default true;
 
     BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;
+
+    String builderVisibilityString() default "";
 
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
