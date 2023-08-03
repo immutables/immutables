@@ -174,6 +174,14 @@ class TypeStringProvider {
       }
 
       hasMaybeUnresolvedYetAfter |= importsResolver.unresolved;
+    } else if (typeName.equals("java.lang." + typeElement.getSimpleName())) {
+      // Because java.lang is automatically imported, you can have type names that are "resolved,"
+      // but aren't the names that are actually imported in the source file
+      String simpleName = type.asElement().getSimpleName().toString();
+      String guessedName = importsResolver.apply(simpleName);
+      if (!importsResolver.unresolved) {
+        typeName = guessedName;
+      }
     }
 
     buffer.append(typeName);
