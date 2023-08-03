@@ -18,6 +18,7 @@ package org.immutables.generator;
 import com.google.common.base.Verify;
 import com.google.common.collect.*;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
@@ -46,10 +47,13 @@ public class TypeHierarchyCollector {
     public final List<String> parameters;
     public final List<String> arguments;
 
-    TypevarContext(TypeElement element, String renderedTypeString) {
+    TypevarContext(TypeElement element, List<? extends TypeMirror> typeArguments) {
       List<? extends TypeParameterElement> typeParameters = element.getTypeParameters();
       if (!typeParameters.isEmpty()) {
-        this.arguments = SourceTypes.extract(renderedTypeString).getValue();
+
+        this.arguments = typeArguments.stream()
+            .map(TypeMirror::toString)
+            .collect(Collectors.toList());
 
         this.parameters = Lists.newArrayList();
         for (TypeParameterElement p : typeParameters) {
@@ -103,7 +107,7 @@ public class TypeHierarchyCollector {
 
     DeclaredType declaredType = toDeclaredType(typeMirror);
     TypeElement e = toTypeElement(declaredType);
-    TypevarContext context = new TypevarContext(e, stringRepresentation);
+    TypevarContext context = new TypevarContext(e, declaredType.getTypeArguments());
 
     collectInterfacesMirrors(declaredType, context);
 
@@ -143,7 +147,7 @@ public class TypeHierarchyCollector {
     if (e.getKind().isInterface()) {
       implementedInterfaces.add(e);
       String stringified = stringify(declaredType, context);
-      TypevarContext nestedContext = new TypevarContext(e, stringified);
+      TypevarContext nestedContext = new TypevarContext(e, declaredType.getTypeArguments());
       implementedInterfaceNames.add(stringified);
       for (TypeMirror m : e.getInterfaces()) {
         collectInterfacesMirrors(m, nestedContext);
