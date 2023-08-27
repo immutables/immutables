@@ -993,7 +993,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public boolean isNonRawElementType() {
-    return getElementType().indexOf('<') > 0;
+    List<String> args = typeParameters();
+    return !args.isEmpty() && args.get(args.size() - 1).indexOf('<') > 0;
   }
 
   public boolean isNonRawSecondaryElementType() {
