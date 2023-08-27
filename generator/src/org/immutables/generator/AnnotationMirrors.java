@@ -69,6 +69,12 @@ public final class AnnotationMirrors {
     }
   }
 
+  public static StringBuilder append(StringBuilder builder, AnnotationMirror value) {
+    PrintVisitor printer = new PrintVisitor(builder);
+    printer.visitAnnotation(value, null);
+    return builder;
+  }
+
   public static CharSequence toCharSequence(AnnotationMirror value) {
     PrintVisitor printer = new PrintVisitor();
     printer.visitAnnotation(value, null);
@@ -182,15 +188,24 @@ public final class AnnotationMirrors {
     private static final String CONSTANT_NEGATIVE_INFINITY = ".NEGATIVE_INFINITY";
     private static final String CONSTANT_POSITIVE_INFINITY = ".POSITIVE_INFINITY";
 
-    final StringBuilder builder = new StringBuilder();
+    final StringBuilder builder;
     final Function<String, String> unresovedImportsResolver;
 
     PrintVisitor() {
-      this(Functions.<String>identity());
+      this(new StringBuilder(), Functions.<String>identity());
     }
 
     PrintVisitor(Function<String, String> unresovedImportsResolver) {
+      this(new StringBuilder(), unresovedImportsResolver);
+    }
+
+    private PrintVisitor(StringBuilder builder) {
+      this(builder, Functions.<String>identity());
+    }
+
+    private PrintVisitor(StringBuilder builder, Function<String, String> unresovedImportsResolver) {
       this.unresovedImportsResolver = unresovedImportsResolver;
+      this.builder = builder;
     }
 
     void visitValue(AnnotationValue value) {

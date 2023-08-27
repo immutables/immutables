@@ -19,8 +19,7 @@ import com.google.common.base.Verify;
 import com.google.common.collect.*;
 import java.util.*;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import static com.google.common.base.Verify.verify;
 
@@ -56,7 +55,7 @@ public class TypeHierarchyCollector {
           parameters.add(p.getSimpleName().toString());
         }
         // we allow having no arguments in a string as raw type/unspecified argument scenario
-        Verify.verify(arguments.isEmpty() || (parameters.size() == arguments.size()), parameters + " =/> " + arguments);
+        Verify.verify(arguments.isEmpty() || (parameters.size() == arguments.size()), parameters + " =/> " + arguments + "\n[\n" + renderedTypeString + "\n]");
       } else {
         this.parameters = Collections.emptyList();
         this.arguments = Collections.emptyList();
@@ -66,8 +65,91 @@ public class TypeHierarchyCollector {
 
   public void collectFrom(TypeMirror typeMirror) {
     if (typeMirror.getKind() == TypeKind.DECLARED) {
-      collectHierarchyMirrors(typeMirror, typeMirror.toString());
+      collectHierarchyMirrors(typeMirror, stringify(typeMirror));
     }
+  }
+
+  static String stringify(TypeMirror mirror) {
+    String string = mirror.toString();
+    // -1 + -1 both not found, special symbols for type annotations
+    // where @ is normal annotation sign, but : is synthetic insert in some
+    // javac versions, accompanying weird Java type_use annotations
+    if (string.indexOf('@') + string.indexOf(':') == -2) {
+      return string;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    append(builder, mirror);
+    return builder.toString();
+  }
+
+  static StringBuilder append(StringBuilder builder, TypeMirror mirror) {
+    TypeKind kind = mirror.getKind();
+    if (kind.isPrimitive()) {
+      List<? extends AnnotationMirror> annotations = mirror.getAnnotationMirrors();
+      if (!annotations.isEmpty()) {
+        append(builder, annotations);
+        builder.append(' ');
+      }
+      builder.append(kind.name().toLowerCase());
+      return builder;
+    }
+
+    if (kind == TypeKind.DECLARED) {
+      DeclaredType declared = (DeclaredType) mirror;
+      TypeElement element = (TypeElement) declared.asElement();
+      List<? extends AnnotationMirror> annotations = declared.getAnnotationMirrors();
+      if (!annotations.isEmpty()) {
+        String qualifiedName = element.getQualifiedName().toString();
+        int qualifiedDotIndex = qualifiedName.lastIndexOf('.');
+
+        if (qualifiedDotIndex > 0) {
+          // special syntax for qualified name and type annotations:
+          // org.package.name.@Annotation @Another SimpleName
+          builder.append(qualifiedName, 0, qualifiedDotIndex + 1);
+        }
+        append(builder, annotations);
+        // finishing with the type name itself
+        builder.append(' ');
+        if (qualifiedDotIndex > 0) {
+          builder.append(qualifiedName, qualifiedDotIndex + 1, qualifiedName.length());
+        } else {
+          // this can be the case for unnamed package (right?)
+          builder.append(qualifiedName);
+        }
+      } else {
+        builder.append(element.getQualifiedName());
+      }
+
+      List<? extends TypeMirror> arguments = declared.getTypeArguments();
+      if (!arguments.isEmpty()) {
+        builder.append('<');
+        int i = 0;
+        for (TypeMirror a : arguments) {
+          if (i++ > 0) builder.append(", ");
+          // recursive call
+          append(builder, a);
+        }
+        builder.append('>');
+      }
+      return builder;
+    }
+
+    return builder.append(mirror);
+  }
+
+  private static StringBuilder append(
+      StringBuilder builder,
+      List<? extends AnnotationMirror> annotations) {
+    int i = 0;
+    for (AnnotationMirror annotation : annotations) {
+      if (i++ > 0) {
+        // not the first annotation, so inserting space to separate
+        builder.append(' ');
+      }
+      AnnotationMirrors.append(builder, annotation);
+    }
+    return builder;
   }
 
   private DeclaredType toDeclaredType(TypeMirror typeMirror) {
@@ -96,13 +178,13 @@ public class TypeHierarchyCollector {
   }
 
   private void collectHierarchyMirrors(TypeMirror typeMirror, String stringRepresentation) {
-    if (typeMirror.getKind() != TypeKind.DECLARED
-        || typeMirror.toString().equals(Object.class.getName())) {
-      return;
-    }
+    if (typeMirror.getKind() != TypeKind.DECLARED) return;
 
     DeclaredType declaredType = toDeclaredType(typeMirror);
     TypeElement e = toTypeElement(declaredType);
+
+    if (e.getQualifiedName().contentEquals(Object.class.getName())) return;
+
     TypevarContext context = new TypevarContext(e, stringRepresentation);
 
     collectInterfacesMirrors(declaredType, context);
