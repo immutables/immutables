@@ -174,13 +174,19 @@ class TypeStringProvider {
       }
 
       hasMaybeUnresolvedYetAfter |= importsResolver.unresolved;
-    } else if (typeName.equals("java.lang." + typeElement.getSimpleName())) {
-      // Because java.lang is automatically imported, you can have type names that are "resolved,"
+    } else if (typeName.startsWith("java.lang.")) {// saves on concat & other ops
+      // Because java.lang is automatically imported,
+      // you can have type names that are "resolved,"
       // but aren't the names that are actually imported in the source file
-      String simpleName = type.asElement().getSimpleName().toString();
-      String guessedName = importsResolver.apply(simpleName);
-      if (!importsResolver.unresolved) {
-        typeName = guessedName;
+      String simpleName = typeElement.getSimpleName().toString();
+      // The only problem I might worry about is
+      // if we have java.lang.Something.Inner.InThere, however unlikely,
+      // and my brain is unable to understand if that is relevant or not for this case
+      if (typeName.equals("java.lang." + simpleName)) {
+        String guessedName = importsResolver.apply(simpleName);
+        if (!importsResolver.unresolved) {
+          typeName = guessedName;
+        }
       }
     }
 
