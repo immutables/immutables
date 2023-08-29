@@ -1662,7 +1662,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [varargsSafety v]
   public final java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [v.names.getBuilders]() {
   [if v.generateJdkOnly]
-    return createUnmodifiableList(false, this.[v.name]);
+    return [if v.generateJdk9]java.util.List.copyOf(this.[v.name])[else]createUnmodifiableList(false, this.[v.name])[/if];
   [else]
     return this.[v.name].build();
   [/if]

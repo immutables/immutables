@@ -1160,6 +1160,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
       if (def) {
         switch (kind) {
           case MAP:
+          case LIST:
+          case SET:
             return !attribute.isGenerateJdk9();
           default:
             return true;
