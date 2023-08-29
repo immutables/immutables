@@ -275,11 +275,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return style().jdkOnly() || noGuavaInClasspath();
   }
 
-  // Until we can fix copy constructors generation for new Java9 collections
-  private static final boolean java9CollectionsEnabled = Boolean.getBoolean("immutables.java9-collections");
-
   public boolean isGenerateJdk9() {
-    return java9CollectionsEnabled && constitution.protoclass().environment().hasJava9Collections();
+    return constitution.protoclass().environment().hasJava9Collections();
   }
 
   public boolean isGenerateBuildOrThrow() {
@@ -1162,12 +1159,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
           && !attribute.isGuavaImmutableDeclared();
       if (def) {
         switch (kind) {
-        case MAP:
-        case LIST:
-        case SET:
-          return !attribute.isGenerateJdk9();
-        default:
-          return true;
+          case MAP:
+            return !attribute.isGenerateJdk9();
+          default:
+            return true;
         }
       }
       return false;
@@ -1867,7 +1862,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public List<String> getDebugLines() {
     return constitution.protoclass().getDebugLines();
   }
-  
+
   public boolean isDataInline() {
     return DataInlineMirror.isPresent(element);
   }
