@@ -20,12 +20,14 @@ import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 
-class RxJavaFetcherDelegate<T> implements RxJavaFetcher<T> {
+class RxJavaFetcherDelegate<T> implements RxJavaFetcher<T>, RxJavaFetcher.DistinctLimitOffset<T> {
 
   private final ReactiveFetcher<T> delegate;
 
@@ -64,5 +66,25 @@ class RxJavaFetcherDelegate<T> implements RxJavaFetcher<T> {
 
   static <T> RxJavaFetcherDelegate<T> of(Query query, Backend.Session session) {
     return fromReactive(ReactiveFetcher.of(query, session));
+  }
+
+  private RxJavaFetcherDelegate<T> changeQuery(UnaryOperator<Query> fn) {
+    return new RxJavaFetcherDelegate<>(delegate.changeQuery(fn));
+  }
+
+
+  @Override
+  public LimitOffset<T> distinct() {
+    return changeQuery(query -> ImmutableQuery.copyOf(query).withDistinct(true));
+  }
+
+  @Override
+  public Offset<T> limit(long limit) {
+    return changeQuery(query -> ImmutableQuery.copyOf(query).withLimit(limit));
+  }
+
+  @Override
+  public RxJavaFetcher<T> offset(long offset) {
+    return changeQuery(query -> ImmutableQuery.copyOf(query).withOffset(offset));
   }
 }

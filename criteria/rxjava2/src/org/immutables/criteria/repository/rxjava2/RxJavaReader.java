@@ -55,7 +55,7 @@ public class RxJavaReader<T> extends AbstractReader<RxJavaReader<T>> implements 
     return new RxJavaReader<>(query, session);
   }
 
-  public <T1> RxJavaMapper1<T1> select(Projection<T1> proj1) {
+  public <T1> RxJavaMapper1.DistinctLimitOffset<T1> select(Projection<T1> proj1) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
     return new RxJavaMappers.Mapper1<T1>(newQuery, session);
   }

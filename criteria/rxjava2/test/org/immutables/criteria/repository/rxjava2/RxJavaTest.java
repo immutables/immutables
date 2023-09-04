@@ -34,8 +34,25 @@ class RxJavaTest {
 
   @Test
   void single() {
-    RxJavaModelRepository repo = new RxJavaModelRepository(new FakeBackend(Flowable.just(ImmutableRxJavaModel.builder().build())));
+    RxJavaModelRepository repo = new RxJavaModelRepository(new FakeBackend(Flowable.just(ImmutableRxJavaModel.builder().id("id1").build())));
     repo.findAll().fetch().test().awaitDone(1, TimeUnit.SECONDS).assertValueCount(1);
+  }
+
+  /**
+   * Validate the projections work with different types of facets (see {@link org.immutables.criteria.repository.Facet}).
+   */
+  @Test
+  void projection() {
+    // TODO: can't use InMemoryBackend because of circular dependency.
+    RxJavaModelRepository repo = new RxJavaModelRepository(new FakeBackend(Flowable.just(ImmutableRxJavaModel.builder().id("id1").build())));
+    repo.findAll()
+            //.select(RxJavaModelCriteria.rxJavaModel.id)  TODO: FakeBackend does not support projections
+            .limit(1)
+            .offset(0)
+            .fetch()
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertValueCount(1);
   }
 
   @Test
@@ -47,5 +64,8 @@ class RxJavaTest {
   @Value.Immutable
   @Criteria
   @Criteria.Repository(facets = {RxJavaReadable.class, RxJavaWritable.class, RxJavaWatchable.class})
-  interface RxJavaModel {}
+  interface RxJavaModel {
+    @Criteria.Id
+    String id();
+  }
 }

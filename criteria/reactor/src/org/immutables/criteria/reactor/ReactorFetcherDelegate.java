@@ -17,19 +17,41 @@
 package org.immutables.criteria.reactor;
 
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.expression.ImmutableQuery;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 
-class ReactorFetcherDelegate<T> implements ReactorFetcher<T> {
+class ReactorFetcherDelegate<T> implements ReactorFetcher<T>, ReactorFetcher.DistinctLimitOffset<T> {
 
   private final ReactiveFetcher<T> delegate;
 
   private ReactorFetcherDelegate(ReactiveFetcher<T> delegate) {
     this.delegate = Objects.requireNonNull(delegate, "delegate");
+  }
+
+  private ReactorFetcherDelegate<T> changeQuery(UnaryOperator<Query> fn) {
+    return new ReactorFetcherDelegate<>(delegate.changeQuery(fn));
+  }
+
+
+  @Override
+  public LimitOffset<T> distinct() {
+    return changeQuery(query -> ImmutableQuery.copyOf(query).withDistinct(true));
+  }
+
+  @Override
+  public Offset<T> limit(long limit) {
+    return changeQuery(query -> ImmutableQuery.copyOf(query).withLimit(limit));
+  }
+
+  @Override
+  public ReactorFetcherDelegate<T> offset(long offset) {
+    return changeQuery(query -> ImmutableQuery.copyOf(query).withOffset(offset));
   }
 
   @Override
