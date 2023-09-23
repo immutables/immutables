@@ -17,6 +17,7 @@ package org.immutables.fixture.jackson;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import java.io.IOException;
@@ -27,7 +28,8 @@ import static org.immutables.check.Checkers.check;
 public class ObjectMappedTest {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   {
-    OBJECT_MAPPER.registerModule(new GuavaModule());
+    OBJECT_MAPPER.registerModule(new GuavaModule())
+        .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
   }
 
   public static class Wrapper {

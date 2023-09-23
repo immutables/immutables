@@ -48,10 +48,10 @@ public class JdkOnlyTest {
         .addPols(RetentionPolicy.RUNTIME, RetentionPolicy.RUNTIME)
         .build();
 
-    check(coll.ints()).isOf(1, 2, 3, 4, 5, 6);
-    check(coll.navs()).isOf(3, 2, 1);
-    check(coll.ords()).isOf(4, 5, 6, 7, 8, 9);
-    check(coll.pols()).isOf(RetentionPolicy.RUNTIME);
+    check(coll.ints()).hasContentInAnyOrder(1, 2, 3, 4, 5, 6);
+    check(coll.navs()).hasContentInAnyOrder(3, 2, 1);
+    check(coll.ords()).hasContentInAnyOrder(4, 5, 6, 7, 8, 9);
+    check(coll.pols()).hasContentInAnyOrder(RetentionPolicy.RUNTIME);
   }
 
   @Test
@@ -111,9 +111,9 @@ public class JdkOnlyTest {
         .putAllOrds(ImmutableMap.of(2, "2", 1, "1"))
         .build();
 
-    check(maps.navs().keySet()).isOf("33", "22");
-    check(maps.just().keySet()).isOf(1L, 2L);
-    check(maps.ords().keySet()).isOf(1, 2);
+    check(maps.navs().keySet()).hasContentInAnyOrder("33", "22");
+    check(maps.just().keySet()).hasContentInAnyOrder(1L, 2L);
+    check(maps.ords().keySet()).hasContentInAnyOrder(1, 2);
   }
 
   @Test

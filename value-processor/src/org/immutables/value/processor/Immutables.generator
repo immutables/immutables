@@ -1662,7 +1662,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [varargsSafety v]
   public final java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [v.names.getBuilders]() {
   [if v.generateJdkOnly]
-    return createUnmodifiableList(false, this.[v.name]);
+    return [if v.generateJdk9]java.util.List.copyOf(this.[v.name])[else]createUnmodifiableList(false, this.[v.name])[/if];
   [else]
     return this.[v.name].build();
   [/if]
@@ -2442,8 +2442,13 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [if v.nullable][expression][else][expression].clone()[/if]
 [else if v.attributeValueKindCopy]
   [if v.nullable][expression] == null ? null : [/if][deepCopyOf v][expression][/deepCopyOf]
-[else if v.collectionType or v.mapType]
+[else if v.mapType]
   [if v.nullable][expression] == null ? null : [/if][immutableCollectionCopyOf v expression]
+[else if v.collectionType]
+  [if v.nullable][expression] == null ? null : [/if][if v.isGenerateJdk9][expression] instanceof java.util.Collection<?>
+       ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[v.consumedElementType]>) [expression])
+       : java.util.stream.StreamSupport.stream([expression].spliterator(), false)
+             .collect(java.util.stream.Collectors.toUnmodifiable[v.rawCollectionType]())[else][immutableCollectionCopyOf v expression][/if]
 [else]
   [maybeCopyOf v][maybeNonNullValue v][expression][/maybeNonNullValue][/maybeCopyOf]
 [/if]

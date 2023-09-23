@@ -349,7 +349,13 @@ public class NullableAttributesTest {
     try {
       ImmutableEntityWithMap.builder().properties(new HashMap<>()).build().withProperties(properties);
     } catch (NullPointerException e) {
-      check(e.getMessage()).is("value for key: b");
+      boolean isJava8 = System.getProperty("java.version").startsWith("1.8");
+      if (isJava8) {
+        check(e.getMessage()).is("properties value for key: b");
+      } else {
+        // Java 9+ copy methods NPE has no message
+        check(e.getMessage()).isNull();
+      }
     }
     try {
       ImmutableEntityWithMap.builder().putAllProperties(properties).build();
