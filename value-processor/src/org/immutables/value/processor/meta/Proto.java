@@ -432,16 +432,19 @@ public class Proto {
 
     @Value.Lazy
     public boolean hasJava9Collections() {
-      for (SourceVersion v9 : SourceVersion.values()) {
-        if (v9.name().equals("RELEASE_9")
-            && processing().getSourceVersion().compareTo(v9) >= 0) {
-          TypeElement element = findElement(List.class.getCanonicalName());
-          assert element != null : "always present in modern JREs";
-          for (ExecutableElement e : ElementFilter.methodsIn(element.getEnclosedElements())) {
-            if (e.getModifiers().contains(Modifier.STATIC) && e.getSimpleName().contentEquals("of")) {
-              return true;
+      for (SourceVersion version : SourceVersion.values()) {
+        if (version.name().equals("RELEASE_9")) {
+          if (processing().getSourceVersion().compareTo(version) >= 0) {
+            TypeElement element = findElement(List.class.getCanonicalName());
+            assert element != null : "always present in modern JREs";
+            for (ExecutableElement e : ElementFilter.methodsIn(element.getEnclosedElements())) {
+              if (e.getModifiers().contains(Modifier.STATIC)
+                  && e.getSimpleName().contentEquals("of")) {
+                return true;
+              }
             }
           }
+          break;
         }
       }
       return false;

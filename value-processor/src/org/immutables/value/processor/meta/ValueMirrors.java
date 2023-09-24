@@ -187,6 +187,8 @@ public final class ValueMirrors {
 
     boolean jdkOnly() default false;
 
+    boolean jdk9Collections() default false;
+
     Class<? extends Annotation>[] passAnnotations() default {};
 
     Class<? extends Annotation>[] additionalJsonAnnotations() default {};

@@ -25,4 +25,11 @@ public interface FromTypesModifiables {
     public abstract int b();
   }
 
+  @Value.Immutable
+  @Value.Style(from = "")
+  @Value.Modifiable
+  interface NoFrom {
+    int a();
+    class Builder extends ImmutableNoFrom.Builder {}
+  }
 }

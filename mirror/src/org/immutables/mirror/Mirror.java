@@ -25,13 +25,11 @@ import java.lang.annotation.Target;
 /**
  * @see Annotation
  */
-@Beta
 @Target({})
 public @interface Mirror {
   /**
    * Generate annotation mirror handler, by annotation special structurally matching annotation.
    */
-  @Beta
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.ANNOTATION_TYPE)

@@ -552,7 +552,8 @@ public @interface Value {
     String newBuilder() default "new";
 
     /**
-     * Method to initialize builder with values from instance.
+     * Method to initialize builder with values from instance. Can be set to empty
+     * string to disable "from" method generation.
      * @return naming template
      */
     String from() default "from";
@@ -810,6 +811,19 @@ public @interface Value {
      * @return if forced JDK-only class usage
      */
     boolean jdkOnly() default false;
+
+    /**
+     * When {@code true} &mdash; will use JDK 9+ immutable collections to implement
+     * {@link List}/{@link Set}/{@link Map} attributes.
+     * In JDK 9+, immutable collections are instantiated via {@code of}/{@code copyOf}
+     * static methods on {@code List}, {@code Set}, {@code Map} interfaces:
+     * {@link List#of()}, {@link Set#copyOf(Collection)}, etc.
+     * Please note that these collections do not support {@code null} elements,
+     * also Sets and Maps do not maintain insertion order, so the order is arbitrary
+     * and cannot be relied upon.
+     * @return if {@code true} use JDK 9+ immutable {@code List}, {@code Set}, or {@code Map}
+     */
+    boolean jdk9Collections() default false;
 
     /**
      * When {@code true} &mdash; forces to generate strict builder code. Strict builders are forward

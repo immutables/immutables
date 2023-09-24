@@ -71,11 +71,6 @@ import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import org.immutables.value.processor.meta.TypeStringProvider.SourceExtractionCache;
 
-/**
- * It's pointless to refactor this mess until
- * 1) Some sort of type calculus toolkit used/created
- * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
- */
 public final class ValueType extends TypeIntrospectionBase implements HasStyleInfo, SourceExtractionCache {
   private static final String SERIAL_VERSION_FIELD_NAME = "serialVersionUID";
   public Element element;
@@ -272,11 +267,12 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isGenerateJdkOnly() {
-    return style().jdkOnly() || noGuavaInClasspath();
+    return style().jdkOnly() || noGuavaInClasspath() || isGenerateJdk9();
   }
 
   public boolean isGenerateJdk9() {
-    return constitution.protoclass().environment().hasJava9Collections();
+    return style().jdk9Collections()
+        && constitution.protoclass().environment().hasJava9Collections();
   }
 
   public boolean isGenerateBuildOrThrow() {
@@ -617,8 +613,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public boolean isUseCopyMethods() {
     return !getSettableAttributes().isEmpty()
         && (isGenerateWithInterface()
-            || (immutableFeatures.copy()
-                && !constitution.isImplementationHidden()));
+        || (immutableFeatures.copy()
+        && !constitution.isImplementationHidden()));
   }
 
   public boolean isUseCopyConstructor() {
@@ -753,9 +749,9 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public boolean isUseConstructor() {
     return !getConstructorArguments().isEmpty()
         || (getSettableAttributes().isEmpty()
-            && !isUseBuilder()
-            && !immutableFeatures.singleton()
-            && !style().attributelessSingleton());  // don't use !isUseSingleton() to avoid unresolvable recursion
+        && !isUseBuilder()
+        && !immutableFeatures.singleton()
+        && !style().attributelessSingleton());  // don't use !isUseSingleton() to avoid unresolvable recursion
   }
 
   public boolean requiresAlternativeStrictConstructor() {
@@ -1107,7 +1103,6 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
       }
     }
     return throwForNullPointer;
-
   }
 
   public List<ValueAttribute> getImplementedAttributes() {
@@ -1159,12 +1154,12 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
           && !attribute.isGuavaImmutableDeclared();
       if (def) {
         switch (kind) {
-          case MAP:
-          case LIST:
-          case SET:
-            return !attribute.isGenerateJdk9();
-          default:
-            return true;
+        case MAP:
+        case LIST:
+        case SET:
+          return !attribute.isGenerateJdk9();
+        default:
+          return true;
         }
       }
       return false;
@@ -1398,7 +1393,9 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isGenerateBuilderFrom() {
     if (generateBuilderFrom == null) {
-      generateBuilderFrom = !isUseStrictBuilder() && noAttributeInitializerIsNamedAsFrom();
+      generateBuilderFrom = !style().from().isEmpty()
+          && !isUseStrictBuilder()
+          && noAttributeInitializerIsNamedAsFrom();
     }
     return generateBuilderFrom;
   }

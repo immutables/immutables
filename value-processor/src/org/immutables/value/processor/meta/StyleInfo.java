@@ -222,6 +222,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   public abstract boolean jdkOnly();
 
   @Value.Parameter
+  @Override
+  public abstract boolean jdk9Collections();
+
+  @Value.Parameter
   public abstract ImmutableSet<String> passAnnotationsNames();
 
   @Value.Parameter
@@ -505,6 +509,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.defaultAsDefault(),
         input.headerComments(),
         input.jdkOnly(),
+        input.jdk9Collections(),
         ImmutableSet.copyOf(input.passAnnotationsName()),
         ImmutableSet.copyOf(input.additionalJsonAnnotationsName()),
         input.visibility(),

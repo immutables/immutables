@@ -788,9 +788,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public boolean isGenerateJdk9() {
     return containingType.isGenerateJdk9()
-      // FIXME  && !isNullable()
-        && isGenerateJdkOnly()
         && (typeKind.isList() || typeKind.isMap() || typeKind.isSet())
+        && !isGuavaImmutableDeclared()
         && nullElements.ban();
   }
 
