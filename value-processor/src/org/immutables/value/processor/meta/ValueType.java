@@ -1055,6 +1055,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
         || style().stagedBuilder();
   }
 
+  public boolean isUseStrictModifiable() {
+    return style().strictModifiable();
+  }
+
   public boolean isUseJavaValidationApi() {
     return style().validationMethod() == ValueMirrors.Style.ValidationMethod.VALIDATION_API;
   }

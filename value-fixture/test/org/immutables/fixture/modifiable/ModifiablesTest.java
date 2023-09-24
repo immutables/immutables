@@ -355,4 +355,19 @@ public class ModifiablesTest {
     check(nlm).is(nlm2);
     nlm2.clear(); // no NPE
   }
+
+  @Test void nonStrict() {
+    ModifiableNoFrom m = ModifiableNoFrom.create();
+    check(!m.isInitialized());
+    check(!m.aIsSet());
+    check(!m.bIsSet());
+    check(m.a()).is(0);
+    check(m.b()).isNull();
+    try {
+      m.toImmutable();
+      check(false);
+    } catch (IllegalStateException e) {
+      check(true);
+    }
+  }
 }

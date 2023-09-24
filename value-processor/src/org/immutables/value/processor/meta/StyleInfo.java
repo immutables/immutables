@@ -203,6 +203,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean strictModifiable();
+
+  @Value.Parameter
+  @Override
   public abstract ValidationMethod validationMethod();
 
   @Value.Parameter
@@ -504,6 +508,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.packageGenerated(),
         ToImmutableInfo.FUNCTION.apply(input.defaults()),
         input.strictBuilder(),
+        input.strictModifiable(),
         input.validationMethod(),
         input.allParameters(),
         input.defaultAsDefault(),

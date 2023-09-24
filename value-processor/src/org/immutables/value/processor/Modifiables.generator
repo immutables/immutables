@@ -500,9 +500,9 @@ public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
 @Override
 [v.access][if not v.beanFriendlyModifiable]final [/if][v.atNullability][v.implementationModifiableType] [v.names.get]() {
 [if v.mandatory]
-  if (![isSet v]()) {[-- opportunistically reuse attributes check --]
-    [disambiguateAccessor type 'checkRequiredAttributes']();
-  }
+  [if type.useStrictModifiable][-- opportunistically reuse attributes check --]
+  if (![isSet v]()) [disambiguateAccessor type 'checkRequiredAttributes']();
+  [/if]
 [/if]
 [if v.generateLazy]
   [if v.attributeValueKindModifyFrom]

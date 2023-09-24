@@ -177,6 +177,8 @@ public final class ValueMirrors {
 
     boolean strictBuilder() default false;
 
+    boolean strictModifiable() default true;
+
     ValidationMethod validationMethod() default ValidationMethod.SIMPLE;
 
     boolean allParameters() default false;

@@ -635,7 +635,7 @@ public @interface Value {
     String underrideToString() default "";
 
     /**
-     * Delegates {@code toString} implementation completely to a fully qualified path to a method name, example {@code delegateToString="com.whatever.packg.ToStringer.strigify"}. The path will be used literally in generated code, and a single parameter will be passed to it, {@code this} immutable object instance.
+     * Delegates {@code toString} implementation completely to a fully qualified path to a method name, example {@code delegateToString="com.whatever.packg.ToStringer.stringify"}. The path will be used literally in generated code, and a single parameter will be passed to it, {@code this} immutable object instance.
      * <p><em>Note: If specified, it will take precedence over any other {@code toString} customization mechanism</em>
      * @return fully qualified static method name, if empty (by default) will not be used
      */
@@ -838,6 +838,14 @@ public @interface Value {
      * @return if strict builder enabled
      */
     boolean strictBuilder() default false;
+
+    /**
+     * Strict modifiable will refuse any accessor value (by throwing {@link IllegalStateException})
+     * which is mandatory. Enabled by default. Set it to {@code false} and it will allow to get
+     * current field value even if not initialized ({@code null} for references, {@code 0}, {@code false} &mdash; for primitives).
+     * @return default is {@code true}, enabling strict modifiable
+     */
+    boolean strictModifiable() default true;
 
     /**
      * When {@code true} &mdash; disables check that all required attributes have been provided to a
