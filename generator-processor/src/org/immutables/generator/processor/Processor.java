@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Immutables Authors and Contributors
+   Copyright 2023 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;
 import org.parboiled.support.ParsingResult;
 
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 @Metainf.Service(javax.annotation.processing.Processor.class)
 public final class Processor extends AbstractProcessor {
 

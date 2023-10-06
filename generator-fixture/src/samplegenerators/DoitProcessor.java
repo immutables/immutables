@@ -24,7 +24,7 @@ import org.immutables.metainf.Metainf;
 
 @Metainf.Service
 @Generator.SupportedAnnotations(Doit.class)
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class DoitProcessor extends AbstractGenerator {
   @Override
   protected void process() {

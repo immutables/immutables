@@ -27,6 +27,8 @@ public final class ClasspathAvailability {
   private static final Map<String, Boolean> availableClasses =
       Collections.synchronizedMap(new HashMap<String, Boolean>());
 
+  /** Java 8 is minimum requirement now */
+  @Deprecated
   public boolean isJava8() {
     SourceVersion sourceVersion = EnvironmentState.processing().getSourceVersion();
     return sourceVersion.compareTo(SourceVersion.RELEASE_7) > 0;
