@@ -79,7 +79,9 @@ public final class PersonGenerator implements Iterable<ImmutablePerson> {
             "expected index %s < %s", index, size);
 
     // add variation to ages so it doesn't look too consecutive 20, 21, 22 etc.
-    final int age = 20 + (index * 37 >> 4) % 30;
+    final int ageVariation = 37;
+    final int baseAge = 20;
+    final int age = baseAge + (index * ageVariation >> 4) % 30;
 
     final ImmutableAddress address = ImmutableAddress.builder()
             .street(STREETS.get(index % STREETS.size()))
@@ -89,13 +91,13 @@ public final class PersonGenerator implements Iterable<ImmutablePerson> {
             .build();
 
     final ImmutablePerson.Builder builder = ImmutablePerson.builder()
-                .fullName(FIRST_NAMES.get(index) + " " + LAST_NAMES.get(index))
-                .id("id" + index)
-                .dateOfBirth(LocalDate.now(clock).minusYears(age))
-                .isActive(index % 2 == 0)
-                .age(age)
-                .address(address)
-                .nickName(NICKNAMES.get(index % NICKNAMES.size()));
+            .fullName(FIRST_NAMES.get(index) + " " + LAST_NAMES.get(index))
+            .id("id" + index)
+            .dateOfBirth(LocalDate.now(clock).minusYears(age))
+            .isActive(index % 2 == 0)
+            .age(age)
+            .address(address)
+            .nickName(NICKNAMES.get(index % NICKNAMES.size()));
 
     return builder.build();
   }
