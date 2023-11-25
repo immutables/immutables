@@ -46,8 +46,8 @@ final class Inliner {
   }
 
   private Unit inline(Unit unit) {
-    new Finder().toUnit(unit);
-    return new Weaver().toUnit(unit);
+    new Finder(inlinables).toUnit(unit);
+    return new Weaver(inlinables).toUnit(unit);
   }
 
   private static class InlinedStatementCreator extends TreesTransformer {
@@ -145,6 +145,11 @@ final class Inliner {
 
   final class Finder extends TreesTransformer {
     private boolean inlinable;
+    private final Map<Trees.Identifier, InlinedStatementCreator> inlinables;
+
+    Finder(Map<Trees.Identifier, InlinedStatementCreator> inlinables) {
+      this.inlinables = inlinables;
+    }
 
     @Override
     public Template toTemplate(Template value) {
@@ -184,6 +189,11 @@ final class Inliner {
   }
 
   final class Weaver extends TreesTransformer {
+    private final Map<Trees.Identifier, InlinedStatementCreator> inlinables;
+
+    Weaver(Map<Trees.Identifier, InlinedStatementCreator> inlinables) {
+      this.inlinables = inlinables;
+    }
 
     @Override
     protected Trees.TemplatePart asTemplatePart(InvokeStatement value) {
