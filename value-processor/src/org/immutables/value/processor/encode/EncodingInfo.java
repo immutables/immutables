@@ -43,6 +43,18 @@ public abstract class EncodingInfo {
 
   static class Builder extends ImmutableEncodingInfo.Builder {}
 
+  public boolean hasValueOrVirtualFields() {
+    if (impl().isVirtual()) {
+      return true;
+    }
+    for (EncodedElement e : element()) {
+      if (e.isValueField()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Derived
   @Auxiliary
   public @Nullable EncodedElement builderCopy() {

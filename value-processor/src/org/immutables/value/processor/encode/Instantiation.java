@@ -177,15 +177,7 @@ public final class Instantiation {
   }
 
   public boolean hasValueOrVirtualFields() {
-    if (encoding.impl().isVirtual()) {
-      return true;
-    }
-    for (EncodedElement e : encoding.element()) {
-      if (e.isValueField()) {
-        return true;
-      }
-    }
-    return false;
+    return encoding.hasValueOrVirtualFields();
   }
 
   public List<String> exposeDoc() {
