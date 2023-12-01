@@ -4357,7 +4357,7 @@ private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(It
 [/if]
 [/output.trim][/let]
 
-private static <T extends Comparable<T>> java.util.[unmodifiableSortedSetInterface]<T> createUnmodifiableSortedSet(boolean reverse, java.util.List<T> list) {
+private static <T extends Comparable<? super T>> java.util.[unmodifiableSortedSetInterface]<T> createUnmodifiableSortedSet(boolean reverse, java.util.List<T> list) {
   java.util.TreeSet<T> set = reverse
       ? new java.util.TreeSet<T>(java.util.Collections.<T>reverseOrder())
       : new java.util.TreeSet<T>();
