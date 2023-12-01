@@ -4433,7 +4433,7 @@ private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnum
 [/if]
 [/output.trim][/let]
 
-private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInterface]<K, V> createUnmodifiableSortedMap(boolean reverse, boolean checkNulls, boolean skipNulls, java.util.Map<? extends K, ? extends V> map) {
+private static <K extends Comparable<? super K>, V> java.util.[unmodifiableSortedMapInterface]<K, V> createUnmodifiableSortedMap(boolean reverse, boolean checkNulls, boolean skipNulls, java.util.Map<? extends K, ? extends V> map) {
   java.util.TreeMap<K, V> sortedMap = reverse
       ? new java.util.TreeMap<K, V>(java.util.Collections.<K>reverseOrder())
       : new java.util.TreeMap<K, V>();
