@@ -2408,7 +2408,7 @@ if ([v.name]Value != null) {
   [v.names.init]([v.name]Value);
 }
   [else]
-[v.names.init](instance.[v.names.get]());
+this.[v.names.init](instance.[v.names.get]());
   [/if]
 [/template]
 
