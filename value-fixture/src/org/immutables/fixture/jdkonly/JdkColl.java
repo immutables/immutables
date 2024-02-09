@@ -36,4 +36,21 @@ public interface JdkColl {
 
   @Value.ReverseOrder
   NavigableSet<Integer> navs();
+
+  @Value.NaturalOrder
+  SortedSet<Elem> elems();
+
+  @Value.Immutable
+  interface Elem extends ComparableElem<Integer> {
+  }
+
+  interface ComparableElem<T extends Comparable<T>> extends Comparable<ComparableElem<T>> {
+
+    T getValue();
+
+    @Override
+    default int compareTo(ComparableElem<T> other) {
+      return getValue().compareTo(other.getValue());
+    }
+  }
 }

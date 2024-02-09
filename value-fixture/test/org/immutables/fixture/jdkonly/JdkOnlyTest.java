@@ -46,12 +46,14 @@ public class JdkOnlyTest {
         .addOrds(4, 6, 5)
         .addAllOrds(Arrays.asList(8, 7, 9))
         .addPols(RetentionPolicy.RUNTIME, RetentionPolicy.RUNTIME)
+        .addElems(ImmutableElem.builder().value(1).build(), ImmutableElem.builder().value(2).build())
         .build();
 
     check(coll.ints()).hasContentInAnyOrder(1, 2, 3, 4, 5, 6);
     check(coll.navs()).hasContentInAnyOrder(3, 2, 1);
     check(coll.ords()).hasContentInAnyOrder(4, 5, 6, 7, 8, 9);
     check(coll.pols()).hasContentInAnyOrder(RetentionPolicy.RUNTIME);
+    check(coll.elems()).hasContentInAnyOrder(ImmutableElem.builder().value(1).build(), ImmutableElem.builder().value(2).build());
   }
 
   @Test
