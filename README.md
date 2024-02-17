@@ -8,13 +8,13 @@ Read full documentation at http://immutables.org
 @Value.Immutable
 public interface ValueObject extends WithValueObject {
   // WithValueObject is not yet generated, We extend With* to inherit `with*` method signatures
-  String getName();
-  List<Integer> getCounts();
-  Optional<String> getDescription();
+  String name();
+  List<Integer> counts();
+  Optional<String> description();
 
   class Builder extends ImmutableValueObject.Builder {}
   // ImmutableValueObject.Builder will be generated and
-  // our builder will inherit and reexport methods as it's own.
+  // our builder will inherit and reexport methods as its own.
   // Static nested Builder will inherit all the public method
   // signatures of ImmutableValueObject.Builder
 } 
@@ -30,17 +30,17 @@ ValueObject v =
 
 v = v.withName("Doe");
 
-//fetch values via standard getters
-List<Integer> counts = v.getCounts();
-Optional<String> description = v.getDescription();
+//fetch values via accessors
+List<Integer> counts = v.counts();
+Optional<String> description = v.description();
 ```
 
-ImmutableValueObject then would not be used outside of generated type. See about this and other generation [styles here](https://immutables.github.io/style.html) 
+ImmutableValueObject then would not be used outside generated type. See about this and other generation [styles here](https://immutables.github.io/style.html) 
 
 ## License
 
 ```
-   Copyright 2013-2023 Immutables Authors and Contributors
+   Copyright 2013-2024 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
