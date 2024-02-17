@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>immutables</artifactId>
-    <version>2.10.1</version><!--release-->
+    <version>2.10.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>value-processor</artifactId>
