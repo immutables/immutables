@@ -1,4 +1,4 @@
-package org.immutables.fixture;
+package org.immutables.fixture.j17;
 
 import java.util.Map;
 import javax.validation.constraints.Size;

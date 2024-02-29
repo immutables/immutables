@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Maps;
@@ -210,7 +211,7 @@ public abstract class Round {
         break;
       default:
         // Outside the switch, since ElementKind.RECORD is only available in JDK >= 14, and we support 8 and 11
-        if(kind.name().equals("RECORD")) {
+        if(kind.ordinal() == RECORD_ORDINAL) {
           collectIncludedAndDefinedBy((TypeElement) element);
         } else {
           Reporter.from(processing())
@@ -322,6 +323,29 @@ public abstract class Round {
         }
       }
 
+      Optional<FBuilderMirror> recordBuilderMirror = FBuilderMirror.find(declaringType.element());
+      if (recordBuilderMirror.isPresent()) {
+        if (element.getKind().ordinal() == RECORD_ORDINAL) {
+          builder.add(interners.forProto(
+              ImmutableProto.Protoclass.builder()
+                  .environment(environment())
+                  .packageOf(declaringType.packageOf())
+                  .declaringType(declaringType)
+                  .sourceElement(wrapElement(element))
+                  .kind(declaringType.isEnclosing()
+                      ? Kind.DEFINED_NESTED_RECORD
+                      : Kind.DEFINED_RECORD)
+                  .build()));
+        } else {
+          Reporter.from(processing())
+              .withElement(element)
+              .withAnnotation(recordBuilderMirror.get().getAnnotationMirror())
+              .warning(About.INCOMPAT, "@Builder annotation is applicable only on records."
+                  + " Use @Value.Immutable or @Builder.Constructor for abstract value types"
+                  + " and POJO constructors respectively, to generate builder");
+        }
+      }
+
       if (declaringType.builderInclude().isPresent()) {
         for (TypeElement includedType : declaringType.builderIncludedTypes()) {
           for (ExecutableElement m : ElementFilter.methodsIn(includedType.getEnclosedElements())) {
@@ -400,4 +424,6 @@ public abstract class Round {
       return Kind.DEFINED_ENCLOSING_TYPE;
     }
   }
+
+  private static final int RECORD_ORDINAL = 18;
 }

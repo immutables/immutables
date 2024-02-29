@@ -23,22 +23,8 @@ import org.immutables.generator.ForwardingFiler;
 import org.immutables.generator.ForwardingProcessingEnvironment;
 import org.immutables.value.processor.encode.EncodingMirror;
 import org.immutables.value.processor.encode.Generator_Encodings;
-import org.immutables.value.processor.meta.CriteriaMirror;
-import org.immutables.value.processor.meta.CriteriaRepositoryMirror;
-import org.immutables.value.processor.meta.CustomImmutableAnnotations;
-import org.immutables.value.processor.meta.EnclosingMirror;
-import org.immutables.value.processor.meta.FConstructorMirror;
-import org.immutables.value.processor.meta.FIncludeMirror;
-import org.immutables.value.processor.meta.FactoryMirror;
-import org.immutables.value.processor.meta.ImmutableMirror;
-import org.immutables.value.processor.meta.ImmutableRound;
-import org.immutables.value.processor.meta.IncludeMirror;
-import org.immutables.value.processor.meta.ModifiableMirror;
+import org.immutables.value.processor.meta.*;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
-import org.immutables.value.processor.meta.Round;
-import org.immutables.value.processor.meta.UnshadeGuava;
-import org.immutables.value.processor.meta.ValueType;
-import org.immutables.value.processor.meta.ValueUmbrellaMirror;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -59,6 +45,7 @@ import java.util.Set;
     ValueUmbrellaMirror.QUALIFIED_NAME,
     FactoryMirror.QUALIFIED_NAME,
     FConstructorMirror.QUALIFIED_NAME,
+    FBuilderMirror.QUALIFIED_NAME,
     FIncludeMirror.QUALIFIED_NAME,
     EncodingMirror.QUALIFIED_NAME,
     CriteriaMirror.QUALIFIED_NAME,

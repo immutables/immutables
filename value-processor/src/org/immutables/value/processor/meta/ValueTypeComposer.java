@@ -49,7 +49,9 @@ public final class ValueTypeComposer {
     type.immutableFeatures = protoclass.features();
     type.constitution = protoclass.constitution();
 
-    if (protoclass.kind().isFactory()) {
+    if (protoclass.kind().isRecord()) {
+      new RecordComponentCollector(protoclass, type).collect();
+    } else if (protoclass.kind().isFactory()) {
       new FactoryMethodAttributesCollector(protoclass, type).collect();
     } else if (protoclass.kind().isJavaBean()) {
       new JavaBeanAttributesCollector(protoclass, type).collect();

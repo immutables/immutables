@@ -26,6 +26,9 @@ public final class BuilderMirrors {
   @Mirror.Annotation("org.immutables.builder.Builder.Factory")
   public @interface Factory {}
 
+  @Mirror.Annotation("org.immutables.builder.Builder")
+  public @interface FBuilder {}
+
   @Mirror.Annotation("org.immutables.builder.Builder.Constructor")
   public @interface FConstructor {}
 

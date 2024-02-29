@@ -63,6 +63,7 @@ import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.meta.AnnotationInjections.AnnotationInjection;
 import org.immutables.value.processor.meta.AnnotationInjections.InjectionInfo;
+import org.immutables.value.processor.meta.BuilderMirrors.FBuilder;
 import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.verify;
@@ -1732,7 +1733,9 @@ public class Proto {
       DEFINED_COMPANION,
       DEFINED_AND_ENCLOSING_TYPE,
       DEFINED_ENCLOSING_TYPE,
-      DEFINED_NESTED_TYPE;
+      DEFINED_NESTED_TYPE,
+      DEFINED_RECORD,
+      DEFINED_NESTED_RECORD;
 
       public boolean isNested() {
         switch (this) {
@@ -1748,6 +1751,7 @@ public class Proto {
         switch (this) {
         case DEFINED_NESTED_FACTORY:
         case DEFINED_NESTED_CONSTRUCTOR:
+        case DEFINED_NESTED_RECORD:
           return true;
         default:
           return false;
@@ -1843,6 +1847,8 @@ public class Proto {
         case INCLUDED_FACTORY_IN_PACKAGE:
         case INCLUDED_FACTORY_ON_TYPE:
         case DEFINED_CONSTRUCTOR:
+        case DEFINED_RECORD:
+        case DEFINED_NESTED_RECORD:
         case DEFINED_NESTED_CONSTRUCTOR:
         case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
         case INCLUDED_CONSTRUCTOR_ON_TYPE:
@@ -1854,6 +1860,10 @@ public class Proto {
 
       public boolean isEnclosingOnly() {
         return this == DEFINED_ENCLOSING_TYPE;
+      }
+
+      public boolean isRecord() {
+        return this == DEFINED_RECORD || this == DEFINED_NESTED_RECORD;
       }
     }
 

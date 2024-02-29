@@ -183,7 +183,7 @@ public abstract class Constitution {
 	/**
 	 * Value is the canonical outside look of the value type. It should be either
 	 * {@link #typeAbstract()} or {@link #typeImmutable()}.
-	 * For factory it is a special surrogate.
+	 * For a factory, it is a special surrogate.
 	 * @return canonical value type name forms
 	 */
 	@Value.Lazy
@@ -199,6 +199,19 @@ public abstract class Constitution {
 		}
 
 		if (isFactory()) {
+
+			if (protoclass().kind().isRecord()) {
+				TypeElement enclosingType = (TypeElement) protoclass().sourceElement();
+
+				return ImmutableConstitution.NameForms.builder()
+						.simple(enclosingType.getSimpleName().toString())
+						.relativeRaw(enclosingType.getQualifiedName().toString())
+						.genericArgs(generics().args())
+						.relativeAlreadyQualified(true)
+						.packageOf(NA_ERROR)
+						.visibility(protoclass().visibility())
+						.build();
+			}
 
 			if (protoclass().kind().isConstructor()) {
 				TypeElement enclosingType = (TypeElement) protoclass().sourceElement().getEnclosingElement();
@@ -277,7 +290,7 @@ public abstract class Constitution {
 	 */
 	@Value.Lazy
 	public NameForms typeAbstract() {
-		if (protoclass().kind().isConstructor()) {
+		if (protoclass().kind().isConstructor() || protoclass().kind().isRecord()) {
 			return typeValue();
 		}
 
@@ -420,6 +433,20 @@ public abstract class Constitution {
 	@Value.Lazy
 	public AppliedNameForms factoryOf() {
 		if (isFactory()) {
+			if (protoclass().kind().isRecord()) {
+				TypeElement recordType = (TypeElement) protoclass().sourceElement();
+
+				return ImmutableConstitution.NameForms.builder()
+						.simple(recordType.getSimpleName().toString())
+						.relativeRaw(recordType.getQualifiedName().toString())
+						.genericArgs(generics().args())
+						.relativeAlreadyQualified(true)
+						.packageOf(NA_ERROR)
+						.visibility(protoclass().visibility())
+						.build()
+						.applied("new");
+			}
+
 			TypeElement enclosingType = (TypeElement) protoclass().sourceElement().getEnclosingElement();
 
 			String invoke = protoclass().kind().isConstructor()

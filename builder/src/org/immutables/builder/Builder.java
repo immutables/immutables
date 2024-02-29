@@ -22,20 +22,34 @@ import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Style;
 
 /**
- * This umbrella annotation does nothing. Use nested annotations, such as {@literal @}
+ * This annotation works on records to create builders and to create builders
+ * for POJO constructors or factory methods, use nested annotations, such as {@literal @}
  * {@code Builder.Factory} to generate builders for arbitrary static factory methods.
- * and is used for static factory methods to generate arbitrary builders.
+ * Place this {@code Builder} annotation on record to generate builder from its
+ * canonical constructor parameters (record components).
+ * <pre>
+ * // since, immutables 2.11.0
+ * &#064;Builder
+ * record A(int b, String c) {}
+ *
+ * // or older syntax, before &#064;Builder annotation became functional
+ * // for records in 2.11.0, we would use &#064;Constructor placed on compact constructor
+ * record A(int b, String c) {
+ *    &#064;Builder.Constructor A {}
+ * }
+ * </pre>
  * Immutable values as {@link Immutable Value.Immutable} generate builder by default, unless
- * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)}
+ * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)},
+ * so this annotation does nothing for {@code Value.Immutable} types.
  * @see Factory
  */
-@Target({})
+@Target(ElementType.TYPE)
 public @interface Builder {
 
   /**
    * Annotate nested static builder to get access to the builder's fields to avoid building the
    * entire
-   * object. The fields will be protected rather then private as they are by default.
+   * object. The fields will be protected rather than private as they are by default.
    * 
    * <pre>
    * &#064;Immutable
