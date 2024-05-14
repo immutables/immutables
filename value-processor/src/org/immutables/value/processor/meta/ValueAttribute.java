@@ -58,9 +58,12 @@ import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.ElementType;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * It's pointless to refactor this mess until
@@ -433,11 +436,30 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   private CharSequence jacksonPropertyAnnotation() {
     StringBuilder propertyAnnotation = new StringBuilder("@").append(Annotations.JACKSON_PROPERTY);
+
+    Map<String, String> propertyAnnotationFields = new HashMap<>();
     if (protoclass().styles().style().forceJacksonPropertyNames()) {
-      propertyAnnotation.append('(').append(StringLiterals.toLiteral(names.raw)).append(')');
+      propertyAnnotationFields.put(VALUE_ATTRIBUTE_NAME, StringLiterals.toLiteral(names.raw));
     }
+
+    if (protoclass().styles().style().setJacksonPropertyRequired() && !isNullable()) {
+      propertyAnnotationFields.put("required", "true");
+    }
+
+    if (!propertyAnnotationFields.isEmpty()) {
+      String propertyAnnotationFieldString = propertyAnnotationFields
+        .entrySet().stream()
+        .map((propertyAnnotationField) -> propertyAnnotationField.getKey() + " = " + propertyAnnotationField.getValue())
+        .collect(Collectors.joining(", "));
+
+      propertyAnnotation.append("(")
+        .append(propertyAnnotationFieldString)
+        .append(")");
+    }
+
     return propertyAnnotation;
   }
+
 
   public List<CharSequence> getBuilderAttributeAnnotation() {
     if (containingType.isGenerateJacksonProperties()
