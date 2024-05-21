@@ -223,6 +223,8 @@ public final class ValueMirrors {
 
     boolean forceJacksonPropertyNames() default true;
 
+    boolean setJacksonPropertyRequired() default true;
+
     boolean forceJacksonIgnoreFields() default false;
 
     boolean forceEqualsInWithers() default false;

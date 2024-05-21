@@ -293,6 +293,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean setJacksonPropertyRequired();
+
+  @Value.Parameter
+  @Override
   public abstract boolean forceJacksonIgnoreFields();
 
   @Value.Parameter
@@ -531,6 +535,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.overshadowImplementation(),
         input.implementationNestedInBuilder(),
         input.forceJacksonPropertyNames(),
+        input.setJacksonPropertyRequired(),
         input.forceJacksonIgnoreFields(),
         input.forceEqualsInWithers(),
         input.jacksonIntegration(),

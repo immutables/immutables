@@ -1143,6 +1143,8 @@ public @interface Value {
      */
     boolean forceJacksonPropertyNames() default true;
 
+    boolean setJacksonPropertyRequired() default true;
+
     /**
      * @return if put {@code JsonIgnore} on fields, defaults to {@code false}
      */
