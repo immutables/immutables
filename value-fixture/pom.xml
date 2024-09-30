@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<!--
    Copyright 2014-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -318,7 +318,7 @@
     <profile>
       <id>jdk16-errorprone</id>
       <activation>
-        <jdk>[16,)</jdk>
+        <jdk>[16,23)</jdk>
         <property>
           <name>extra</name>
           <value>errorprone</value>

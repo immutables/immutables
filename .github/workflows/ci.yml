@@ -14,9 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ '8', '11', '17', '21'  ]
+        java: [ '8', '11', '17', '21', '25'  ]
         compiler: [ 'javac', 'ecj' ]
         extra: [ 'none', 'errorprone' ]
+        exclude:
+          - java: 25
+            compiler: ecj
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK
