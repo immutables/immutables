@@ -42,6 +42,7 @@ import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -100,6 +101,49 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       final String field = naming.name(Visitors.toPath(args.get(0)));
       return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
               : Filters.and(Filters.exists(field), Filters.ne(field, null), Filters.ne(field, Collections.emptyList()));
+    }
+    
+    if (op == IterableOperators.ANY) {
+      Call rightCall = call;
+      Path path = null;
+
+      while (rightCall.operator() == IterableOperators.ANY) {
+        Preconditions.checkArgument(rightCall.arguments().size() == 2, "Expected two arguments for %s got %s", rightCall, rightCall.arguments().size());
+        Preconditions.checkArgument(rightCall.arguments().get(0) instanceof Path, "%s is not a path", rightCall.arguments().get(0));
+        Preconditions.checkArgument(rightCall.arguments().get(1) instanceof Call, "%s is not a call", rightCall.arguments().get(1));
+
+        path = Path.combine(path, (Path) rightCall.arguments().get(0));
+        rightCall = (Call) rightCall.arguments().get(1);
+      }
+
+      Operator operator;
+      if (rightCall.operator() == Operators.NOT) {
+        Preconditions.checkArgument(rightCall.arguments().get(0) instanceof Call, "%s is not a call", rightCall.arguments().get(0));
+
+        rightCall = (Call) rightCall.arguments().get(0);
+        operator = negateOperator(rightCall.operator());
+      } else {
+        operator = rightCall.operator();
+      }
+
+      Preconditions.checkArgument(rightCall.arguments().get(0) instanceof Path,"%s is not a path", rightCall.arguments().get(0));
+
+      Path currentPath = Visitors.toPath(rightCall.arguments().get(0));
+      List<Path> paths = new ArrayList<>();
+      while (currentPath.parent().isPresent()) {
+        paths.add(currentPath);
+        currentPath = currentPath.parent().orElseThrow();
+      }
+      Collections.reverse(paths);
+      for (Path tmpPath : paths) {
+        path = Path.combine(path, tmpPath);
+      }
+
+      if (rightCall.operator().arity() == Operator.Arity.UNARY) {
+        return visit(Expressions.unaryCall(rightCall.operator(), path));
+      } else {
+        return binaryCall(Expressions.binaryCall(operator, path, rightCall.arguments().get(1)));
+      }
     }
 
     if (op.arity() == Operator.Arity.BINARY) {
@@ -245,6 +289,28 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     return visit(Expressions.call(newOperator, existing.arguments()));
   }
 
+  private static Operator negateOperator(Operator operator) {
+    if (operator == Operators.EQUAL) {
+      return Operators.NOT_EQUAL;
+    } else if (operator == Operators.NOT_EQUAL) {
+      return Operators.EQUAL;
+    } else if (operator == Operators.IN) {
+      return Operators.NOT_IN;
+    } else if (operator == Operators.NOT_IN) {
+      return Operators.IN;
+    } else if (operator == OptionalOperators.IS_ABSENT) {
+      return OptionalOperators.IS_PRESENT;
+    } else if (operator == OptionalOperators.IS_PRESENT) {
+      return OptionalOperators.IS_ABSENT;
+    } else if (operator == IterableOperators.IS_EMPTY) {
+      return IterableOperators.NOT_EMPTY;
+    } else if (operator == IterableOperators.NOT_EMPTY) {
+      return IterableOperators.IS_EMPTY;
+    } else {
+      throw new UnsupportedOperationException("No negation for " + operator + " defined");
+    }
+  }
+  
   /**
    * Visitor used when special {@code $expr} needs to be generated like {@code field1 == field2}
    * in mongo it would look like:
