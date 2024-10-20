@@ -59,6 +59,17 @@ public class AttributeBuilderTest {
   }
 
   @Test
+  public void lambdaBuilder() {
+    ForLambdaBuilder l = ImmutableForLambdaBuilder.builder()
+        .firstPartyImmutable(b -> b.value("X"))
+        .thirdPartyImmutable(b -> b.setValue("Y"))
+        .build();
+
+    check(l.firstPartyImmutable().value()).is("X");
+    check(l.thirdPartyImmutable().getValue()).is("Y");
+  }
+
+  @Test
   public void basicApiForVanillaParent() {
     assertBasicApi(ImmutableVanillaAttributeBuilderParent.class,
         VanillaAttributeBuilderParent.class,
