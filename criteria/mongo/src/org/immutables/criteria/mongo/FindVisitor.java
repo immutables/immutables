@@ -132,7 +132,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       List<Path> paths = new ArrayList<>();
       while (currentPath.parent().isPresent()) {
         paths.add(currentPath);
-        currentPath = currentPath.parent().orElseThrow();
+        currentPath = currentPath.parent().get();
       }
       Collections.reverse(paths);
       for (Path tmpPath : paths) {
