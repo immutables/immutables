@@ -20,6 +20,9 @@ import java.lang.reflect.Method;
 import org.immutable.fixture.annotate.InjAnn.OnTypeAndAccessorCascadeToInitializerInterpolate;
 import org.immutable.fixture.annotate.InjAnn.ToInj;
 import org.junit.Test;
+
+import javax.annotation.CheckReturnValue;
+
 import static org.immutables.check.Checkers.check;
 
 // Validates presence of injected annotations
@@ -145,5 +148,12 @@ public class AnnotateTest {
   public void constructorInjection() throws Exception {
     check(ImmutableTooGoal.class.getConstructor(int.class, int.class)
         .getAnnotation(TooThese.class)).notNull();
+  }
+
+  @Test
+  public void withTypeInjection() throws Exception {
+    check(InjAnn.InjectWithType.class.getInterfaces()[0]
+            .getAnnotation(CheckReturnValue.class))
+            .notNull();
   }
 }
