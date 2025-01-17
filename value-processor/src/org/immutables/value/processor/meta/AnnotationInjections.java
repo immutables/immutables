@@ -57,6 +57,7 @@ public final class AnnotationInjections {
       BUILDER_TYPE,
       IMMUTABLE_TYPE,
       MODIFIABLE_TYPE,
+      WITH_TYPE,
       CONSTRUCTOR
     }
   }

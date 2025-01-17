@@ -21,6 +21,8 @@ import org.immutables.annotate.InjectAnnotation;
 import org.immutables.annotate.InjectAnnotation.Where;
 import org.immutables.value.Value;
 
+import javax.annotation.CheckReturnValue;
+
 public interface InjAnn {
   @Retention(RetentionPolicy.RUNTIME)
   @interface ToInj {
@@ -80,6 +82,10 @@ public interface InjAnn {
   @InjectAnnotation(type = ToInj.class, ifPresent = true, target = Where.CONSTRUCTOR_PARAMETER)
   @interface Ifp {}
 
+  @Retention(RetentionPolicy.RUNTIME)
+  @InjectAnnotation(type = CheckReturnValue.class, target = Where.WITH_TYPE)
+  @interface WT {}
+
   @Value.Immutable
   interface CtopParamFromPackageIfPresent {
     @Value.Parameter
@@ -124,4 +130,8 @@ public interface InjAnn {
   @Value.Modifiable
   @Rr8
   interface OnTypeAndBuilderMany {}
+
+  @Value.Immutable
+  @WT
+  interface InjectWithType extends WithInjectWithType {}
 }

@@ -173,5 +173,6 @@ public @interface InjectAnnotation {
     MODIFIABLE_TYPE,
     /** Constructor if public or a factory method constructor otherwise.  */
     CONSTRUCTOR,
+    WITH_TYPE
   }
 }

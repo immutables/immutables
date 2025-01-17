@@ -1891,6 +1891,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return collectInjections(Where.CONSTRUCTOR);
   }
 
+  public Collection<String> withTypeInjectedAnnotations() {
+    return collectInjections(Where.WITH_TYPE);
+  }
+
   public Collection<String> immutableTypeInjectedAnnotations() {
     return collectInjections(Where.IMMUTABLE_TYPE);
   }
