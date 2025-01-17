@@ -41,7 +41,11 @@ public class BsonModule extends Module {
   private final CodecRegistry registry;
 
   public BsonModule() {
-    this(defaultRegistry());
+    this(defaultRegistry(UuidRepresentation.STANDARD));
+  }
+
+  public BsonModule(UuidRepresentation uuidRepresentation) {
+    this(defaultRegistry(uuidRepresentation));
   }
 
   private BsonModule(CodecRegistry registry) {
@@ -58,7 +62,7 @@ public class BsonModule extends Module {
     return Version.unknownVersion();
   }
 
-  private static CodecRegistry defaultRegistry() {
+  private static CodecRegistry defaultRegistry(UuidRepresentation uuidRepresentation) {
     CodecRegistry standard = CodecRegistries.fromProviders(
             new BsonValueCodecProvider(),
             new Jsr310CodecProvider());
@@ -66,7 +70,7 @@ public class BsonModule extends Module {
     // avoid codecs for String / Long / Boolean etc. They're already handled by jackson
     // choose the ones which need to be natively serialized in non-JSON format (BSON)
     CodecRegistry others = CodecRegistries.fromCodecs(new ObjectIdCodec(),
-            new DateCodec(), new UuidCodec(UuidRepresentation.JAVA_LEGACY),
+            new DateCodec(), new UuidCodec(uuidRepresentation),
             new Decimal128Codec(),
             new PatternCodec(),
             new BigDecimalCodec(), new ByteArrayCodec());
