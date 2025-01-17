@@ -329,7 +329,7 @@ class TypeStringProvider {
     case TYPEVAR:
       if (allowedTypevars.length != 0) {
         TypeVariable typeVariable = (TypeVariable) type;
-        String var = typeVariable.toString();
+        String var = typeVariable.asElement().getSimpleName().toString();
         int indexOfVar = Arrays.asList(allowedTypevars).indexOf(var);
         if (indexOfVar >= 0) {
           if (typevarArguments != null) {
