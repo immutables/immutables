@@ -1788,6 +1788,24 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [if v.isAttributeBuilder]
 
     /**
+     * Initialized [sourceDocRef v] using lambda (consumer) which receives builder instance for the attribute value.
+     *
+     * Once called, the attribute builder field is set to a new instance of the builder.
+     * If called more than once, returns the same builder instance.
+     */
+    [eachLine v.builderAttributeAnnotation]
+    [deprecation v]
+    [builderInitAccess v]final [builderReturnType type] [v.names.init](java.util.function.Consumer<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> consumer) {
+      if (this.[v.name] == null) {
+        this.[v.name] = [createAttributeBuilder v.getAttributeBuilderDescriptor];
+      }
+      [nondefaultSetInBuilder v]
+      [mandatorySetInBuilder v]
+      consumer.accept(this.[v.name]);
+      return [builderReturnThis type];
+    }
+
+    /**
      * Returns a builder for [sourceDocRef v].
      *
      * Once called, the attribute builder field is set to a new instance of the builder.
@@ -2100,6 +2118,24 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     return [builderReturnThis type];
   }
   [if v.isAttributeBuilder]
+
+  /**
+   * Initialized [sourceDocRef v] using lambda (consumer) which receives builder instance for the attribute value.
+   *
+   * Once called, the attribute builder field is set to a new instance of the builder.
+   * If called more than once, returns the same builder instance.
+   */
+  [eachLine v.builderAttributeAnnotation]
+  [deprecation v]
+  [builderInitAccess v]final [builderReturnType type] [v.names.init](java.util.function.Consumer<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> consumer) {
+    if (this.[v.name] == null) {
+      this.[v.name] = [createAttributeBuilder v.getAttributeBuilderDescriptor];
+    }
+    [nondefaultSetInBuilder v]
+    [mandatorySetInBuilder v]
+    consumer.accept(this.[v.name]);
+    return [builderReturnThis type];
+  }
 
   /**
    * Returns a builder for [sourceDocRef v].
