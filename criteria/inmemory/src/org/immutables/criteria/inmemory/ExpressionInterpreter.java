@@ -158,6 +158,20 @@ class ExpressionInterpreter implements Function<Object, Object> {
 
         return prev;
       }
+      
+      if (op == IterableOperators.ANY) {
+        Preconditions.checkArgument(call.arguments().size() == 2, "Expected two arguments for %s got %s", call, call.arguments().size());
+        
+        final Object left = call.arguments().get(0).accept(this);
+        Preconditions.checkArgument(left instanceof Iterable, "%s is not iterable", left);
+        @SuppressWarnings("unchecked")
+        final Iterable<Object> leftIterable = (Iterable<Object>) left;
+        Preconditions.checkArgument(call.arguments().get(1) instanceof Call, "%s is not a call", call.arguments().get(1));
+        final Call rightCall = (Call) call.arguments().get(1);
+
+        final Stream<Object> stream = StreamSupport.stream(leftIterable.spliterator(), false);
+        return stream.anyMatch(r -> ExpressionInterpreter.of(rightCall).asPredicate().test(r));
+      }
 
       if (op.arity() == Operator.Arity.BINARY) {
         Preconditions.checkArgument(call.arguments().size() == 2, "Expected two arguments for %s got %s", call, call.arguments().size());

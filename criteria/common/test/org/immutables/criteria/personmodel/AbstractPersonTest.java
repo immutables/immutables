@@ -20,6 +20,7 @@ import com.google.common.collect.Ordering;
 import org.immutables.check.Checkers;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.personmodel.Toy.ToyType;
 import org.immutables.criteria.repository.Fetcher;
 import org.immutables.criteria.repository.Reader;
 import org.immutables.criteria.repository.sync.SyncFetcher;
@@ -62,6 +63,7 @@ public abstract class AbstractPersonTest {
     STRING_PREFIX_SUFFIX, // startsWith / endsWith operators are supported
     ITERABLE_SIZE, // supports filtering on iterables sizes
     ITERABLE_CONTAINS, // can search inside inner collections
+    ITERABLE_ANY, // can search inside a nested inner collections
     STRING_LENGTH
   }
 
@@ -530,6 +532,112 @@ public abstract class AbstractPersonTest {
     check(repository().find(person.interests.contains("cooking"))).toList(Person::fullName).isOf("Emma");
     check(repository().find(person.interests.contains("swimming"))).toList(Person::fullName).isOf("Adam");
     check(repository().find(person.interests.contains("dancing"))).empty();
+  }
+  
+  @Test
+  public void iterableAny() {
+    this.assumeFeature(Feature.ITERABLE_ANY);
+    final PersonGenerator generator = new PersonGenerator();
+    // no pets
+    this.insert(generator.next().withFullName("John"));
+    // empty pets
+    this.insert(generator.next().withFullName("Mary").withPets(Collections.emptyList()));
+    // single pet without toys
+    this.insert(
+        generator.next().withFullName("Paul")
+            .withPets(
+                ImmutablePet.builder()
+                    .name("nummy")
+                    .type(Pet.PetType.cat)
+                    .build()));
+    // single pet with address and one toy
+    this.insert(
+        generator.next().withFullName("Christine")
+            .withPets(
+                ImmutablePet.builder()
+                    .name("gecko")
+                    .type(Pet.PetType.gecko)
+                    .address(
+                        ImmutableAddress.builder()
+                            .street("209 M St NE")
+                            .city("Washington, D.C.")
+                            .state(Address.State.DC)
+                            .zip("20002")
+                            .build())
+                    .toys(
+                        Arrays.asList(
+                            ImmutableToy.builder()
+                                .name("circle")
+                                .type(ToyType.ring)
+                                .build()))
+                    .build()));
+    // single pet with address and two toy
+    this.insert(
+        generator.next().withFullName("Adam")
+            .withPets(
+                ImmutablePet.builder()
+                    .name("fluffy")
+                    .type(Pet.PetType.gecko)
+                    .address(
+                        ImmutableAddress.builder()
+                            .street("Park Avenue 345")
+                            .city("New York")
+                            .state(Address.State.NY)
+                            .zip("10154")
+                            .build())
+                    .toys(
+                        Arrays.asList(
+                            ImmutableToy.builder()
+                                .name("ringy")
+                                .type(ToyType.ring)
+                                .build(),
+                            ImmutableToy.builder()
+                                .name("roby")
+                                .type(ToyType.robot)
+                                .build()))
+                    .build()));
+    // two pets one with a toy
+    this.insert(
+        generator.next().withFullName("Emma").withPets(
+            ImmutablePet.builder().name("fluffy").type(Pet.PetType.gecko).build(),
+            ImmutablePet.builder().name("oopsy").type(Pet.PetType.panda)
+                .address(
+                    ImmutableAddress.builder()
+                        .street("Park Avenue 277")
+                        .city("New York")
+                        .state(Address.State.NY)
+                        .zip("10172")
+                        .build())
+                .toys(
+                    Arrays.asList(
+                        ImmutableToy.builder()
+                            .name("roby")
+                            .type(ToyType.robot)
+                            .build()))
+                .build()));
+    
+    // find element in inner-collections
+    this.check(this.repository().find(this.person.pets.isEmpty())).toList(Person::fullName).hasContentInAnyOrder("John", "Mary");
+    // string handling
+    this.check(this.repository().find(this.person.pets.any().name.is("daisy"))).empty();
+    this.check(this.repository().find(this.person.pets.any().name.startsWith("oo"))).toList(Person::fullName).isOf("Emma");
+    this.check(this.repository().find(this.person.pets.any().name.contains("fluffy"))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma");
+    this.check(this.repository().find(this.person.pets.any().name.endsWith("y"))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Paul", "Emma");
+    this.check(this.repository().find(this.person.pets.any().name.in("gecko", "oopsy"))).toList(Person::fullName).hasContentInAnyOrder("Christine", "Emma");
+    this.check(this.repository().find(this.person.pets.any().name.notIn("gecko", "oopsy"))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Paul", "Emma");
+    // Optional handling
+    this.check(this.repository().find(this.person.pets.any().address.value().city.startsWith("New"))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma");
+    this.check(this.repository().find(this.person.pets.any().address.value().city.startsWith("New").and(this.person.pets.any().toys.any().type.is(ToyType.ring)))).toList(Person::fullName).isOf("Adam");
+    this.check(this.repository().find(this.person.pets.any().address.value().zip.endsWith("72").or(this.person.pets.any().toys.any().type.is(ToyType.ring)))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma", "Christine");
+    // nested collection handling
+    this.check(this.repository().find(this.person.pets.any().toys.isEmpty())).toList(Person::fullName).hasContentInAnyOrder("Paul", "Emma");
+    this.check(this.repository().find(this.person.pets.any().toys.any().name.endsWith("y"))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma");
+    this.check(this.repository().find(this.person.pets.any().toys.any().name.in("ringy", "roby"))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma");
+    this.check(this.repository().find(this.person.pets.any().toys.any().name.notIn("ringy", "roby"))).toList(Person::fullName).hasContentInAnyOrder("Christine");
+    this.check(this.repository().find(this.person.pets.any().toys.any().type.is(ToyType.ring))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Christine");
+    this.check(this.repository().find(this.person.pets.any().toys.any().type.is(ToyType.robot).and(this.person.pets.any().address.value().zip.is("10154")))).toList(Person::fullName).isOf("Adam");
+    this.check(this.repository().find(this.person.pets.any().toys.any().type.is(ToyType.ring).or(this.person.pets.any().address.value().zip.endsWith("72")))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma", "Christine");
+    this.check(this.repository().find(this.person.pets.any().toys.any().not(p -> p.type.is(ToyType.ring)))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma");
   }
 
   @Test

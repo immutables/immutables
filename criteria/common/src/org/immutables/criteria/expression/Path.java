@@ -117,6 +117,14 @@ public class Path implements Expression {
   public static Path ofClass(Class<?> type) {
     return new Path(null, type);
   }
+  
+  public static Path combine(Path parent, Path sub) {
+    if (parent != null) {
+      return new Path(parent, sub.element());
+    } else {
+      return sub;
+    }
+  }
 
   /**
    * Returns current path in java bean format: {@code foo.bar.qux}. For root path returns

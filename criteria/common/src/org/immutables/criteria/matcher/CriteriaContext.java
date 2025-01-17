@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.matcher;
 
+import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.ImmutableQuery;
@@ -184,7 +185,19 @@ public final class CriteriaContext implements Queryable {
   <R> R applyAndCreateRoot(UnaryOperator<Expression> fn, Combiner nextCombiner) {
     Expression newPartial = fn.apply(state.partial());
     Expression newExpression = state.combiner().combine(state.current(), newPartial);
+    newPartial = newExpression;
+    CriteriaContext context = this.previous;
 
+    while (context != null) {
+      Expression tmpExpression = context.state.combiner().combine(context.state.current(), newPartial);
+      if (isPathExtention(tmpExpression, newExpression)) {
+        newExpression = tmpExpression;
+        newPartial = tmpExpression;
+      }
+
+      context = context.previous;
+    }
+    
     // use initial creator
     CriteriaCreator<?> creator = first().state.creator();
 
@@ -200,4 +213,11 @@ public final class CriteriaContext implements Queryable {
     return applyAndCreateRoot(fn, Combiner.dnfAnd());
   }
 
+  private static boolean isPathExtention(Expression newExpression, Expression expression) {
+    if (newExpression instanceof Call && expression instanceof Call) {
+      return !((Call) newExpression).arguments().get(0).equals(((Call) expression).arguments().get(0));
+    } else {
+      return true;
+    }
+  }
 }
