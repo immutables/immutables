@@ -41,7 +41,7 @@ public class BsonModule extends Module {
   private final CodecRegistry registry;
 
   public BsonModule() {
-    this(defaultRegistry(UuidRepresentation.STANDARD));
+    this(defaultRegistry(UuidRepresentation.JAVA_LEGACY));
   }
 
   public BsonModule(UuidRepresentation uuidRepresentation) {
