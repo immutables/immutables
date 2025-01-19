@@ -1,0 +1,80 @@
+[--
+   Copyright 2022 Immutables Authors and Contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+--]
+[template public generate]
+[for _mapping_ in mappings, PackageElement _package_ = _mapping_.element.enclosingElement]
+[let _setup_class_name_]Sql[_mapping_.mappingClassName]Setup[/let]
+[let _row_mapper_class_name_]Sql[_mapping_.mappingClassName]RowMapper[/let]
+[let _immutable_]Immutable[_mapping_.mappingClassName][/let]
+[let _builder_][_immutable_].Builder[/let]
+
+[output.java _package_.qualifiedName _setup_class_name_ _mapping_.element]
+package [_package_.qualifiedName];
+
+import org.immutables.criteria.sql.SqlBackend;
+import org.immutables.criteria.sql.SqlSetup;
+import org.immutables.criteria.sql.reflection.SqlTypeMetadata;
+
+import javax.sql.DataSource;
+
+import org.immutables.criteria.sql.conversion.RowMappers;
+
+public class [_setup_class_name_] {
+  public static SqlBackend backend(final DataSource datasource) {
+    return SqlBackend.of(setup(datasource));
+  }
+  public static SqlSetup setup(final DataSource datasource) {
+    final SqlTypeMetadata metadata = SqlTypeMetadata.of([_mapping_.mappingClassName].class);
+    final SqlSetup setup = SqlSetup.of(datasource, metadata);
+    RowMappers.register([_mapping_.mappingClassName].class, new [_row_mapper_class_name_](metadata));
+    return setup;
+  }
+}
+[/output.java]
+
+[output.java _package_.qualifiedName _row_mapper_class_name_ _mapping_.element]
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.immutables.criteria.sql.conversion.RowMapper;
+import org.immutables.criteria.sql.reflection.SqlTypeMetadata;
+import org.immutables.criteria.sql.reflection.SqlPropertyMetadata;
+import org.immutables.criteria.sql.conversion.TypeConverters;
+
+package [_package_.qualifiedName];
+public class [_row_mapper_class_name_] implements RowMapper<[_mapping_.mappingClassName]> {
+  private final SqlTypeMetadata metadata;
+
+  public [_row_mapper_class_name_](SqlTypeMetadata metadata) {
+     this.metadata = metadata;
+  }
+  @Override
+  public [_mapping_.mappingClassName] map(ResultSet row) throws SQLException
+  {
+     [_builder_] builder = [_immutable_].builder();
+     SqlPropertyMetadata property = null;;
+     [for _column_ in _mapping_.columns]
+     // [_column_]
+     property = metadata.columns().get("[_column_.column]");
+     builder.[_column_.method](TypeConverters.convert(property.mapping().type(),property.type(),property.mapping().fetcher().apply(row, "[_column_.column]")));
+     [/for]
+     return builder.build();
+  }
+}
+[/output.java]
+[/for]
+[/template]
+
+
