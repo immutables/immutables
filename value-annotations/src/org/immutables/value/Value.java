@@ -1,5 +1,5 @@
 /*
-   Copyright 2014-2018 Immutables Authors and Contributors
+   Copyright 2014-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public @interface Value {
      * If {@code copy=false} then generation of copying methods will be disabled.
      * This applies to static "copyOf" methods as well as modify-by-copy "withAttributeName" methods
      * which return modified copy using structural sharing where possible.
-     * Default value is {@literal true}, i.e generate copy methods.
+     * Default value is {@literal true}, i.e. generate copy methods.
      * @return if generate copy methods
      */
     boolean copy() default true;
@@ -108,12 +108,27 @@ public @interface Value {
     boolean lazyhash() default false;
 
     /**
-     * If {@code builder=false}, disables generation of {@code builder()}. Default is
-     * {@literal true}.
+     * If {@code builder=false}, disables generation of {@code builder()}. The default is
+     * {@literal true} and builder is generated unless turned off.
      * @return if generate builder
      */
     boolean builder() default true;
   }
+
+  /**
+   * This annotation works on records to create builders for records.
+   * Place this {@code Builder} annotation on record to generate builder from its
+   * canonical constructor parameters (record components).
+   * <pre>
+   * &#064;Builder
+   * record A(int b, String c) {}
+   * </pre>
+   * Immutable values as {@link Immutable Value.Immutable} generate builder by default, unless
+   * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)},
+   * so this annotation does nothing for {@code Value.Immutable} types.
+   */
+  @Target(ElementType.TYPE)
+  @interface Builder {}
 
   /**
    * Includes specified abstract value types into generation of processing.
@@ -133,7 +148,7 @@ public @interface Value {
    * Immutable implementation classes will be generated as classes enclosed into special "umbrella"
    * top level class, essentialy named after annotated class with "Immutable" prefix (prefix could
    * be customized using {@link Style#typeImmutableEnclosing()}). This could mix
-   * with {@link Value.Immutable} annotation, so immutable implementation class will contains
+   * with {@link Value.Immutable} annotation, so immutable implementation class will contain
    * nested immutable implementation classes.
    * <p>
    * Implementation classes nested under top level class with "Immutable" prefix
@@ -178,7 +193,84 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  @interface Default {}
+  @interface Default {
+    /**
+     * Annotate abstract accessor, record parameter or factory method parameter,
+     * providing compile-time constant {@link java.lang.String} default value.
+     * Must match parameter type / accessor method return type.
+     */
+    @Documented
+    @Target({ElementType.PARAMETER, ElementType.METHOD})
+    @interface String {
+      java.lang.String value();
+    }
+
+    /**
+     * Annotate abstract accessor, record parameter or factory method parameter,
+     * providing compile-time constant {@code int} default value.
+     * Must match parameter type / accessor method return type.
+     */
+    @Documented
+    @Target({ElementType.PARAMETER, ElementType.METHOD})
+    @interface Int {
+      int value();
+    }
+
+    /**
+     * Annotate abstract accessor, record parameter or factory method parameter,
+     * providing compile-time constant {@code long} default value.
+     * Must match parameter type / accessor method return type.
+     */
+    @Documented
+    @Target({ElementType.PARAMETER, ElementType.METHOD})
+    @interface Long {
+      long value();
+    }
+
+    /**
+     * Annotate abstract accessor, record parameter or factory method parameter,
+     * providing compile-time constant {@code char} default value.
+     * Must match parameter type / accessor method return type.
+     */
+    @Documented
+    @Target({ElementType.PARAMETER, ElementType.METHOD})
+    @interface Char {
+      char value();
+    }
+
+    /**
+     * Annotate abstract accessor, record parameter or factory method parameter,
+     * providing compile-time constant {@code double} default value.
+     * Must match parameter type / accessor method return type.
+     */
+    @Documented
+    @Target({ElementType.PARAMETER, ElementType.METHOD})
+    @interface Double {
+      double value();
+    }
+
+    /**
+     * Annotate abstract accessor, record parameter or factory method parameter,
+     * providing compile-time constant {@code float} default value.
+     * Must match parameter type / accessor method return type.
+     */
+    @Documented
+    @Target({ElementType.PARAMETER, ElementType.METHOD})
+    @interface Float {
+      float value();
+    }
+
+    /**
+     * Annotate abstract accessor, record parameter or factory method parameter,
+     * providing compile-time constant {@code boolean} default value.
+     * Must match parameter type / accessor method return type.
+     */
+    @Documented
+    @Target({ElementType.PARAMETER, ElementType.METHOD})
+    @interface Boolean {
+      boolean value();
+    }
+  }
 
   /**
    * Annotate attribute as <em>auxiliary</em> and it will be stored and will be accessible, but will
@@ -193,7 +285,7 @@ public @interface Value {
   @interface Auxiliary {}
 
   /**
-   * Lazy attributes cannot be set, defined as method that computes value, which is invoke lazily
+   * Lazy attributes cannot be set, defined as method that computes value, which is invoked lazily
    * once and only once in a thread safe manner.
    *
    * <pre>
@@ -262,7 +354,7 @@ public @interface Value {
     /**
      * Specify as {@code false} to cancel out parameter: an attribute would not be considered as a
      * parameter. This is useful to override the effect of {@link Style#allParameters()} flag.
-     * By default it is {@code true} and should be omitted.
+     * By default, it is {@code true} and should be omitted.
      * @return {@code false} if not a parameter
      */
     boolean value() default true;
@@ -396,7 +488,7 @@ public @interface Value {
 
   /**
    * Marks attribute for exclusion from auto-generated {@code toString} method. It will
-   * be just excluded by default. However you can choose to put special masking characters next to
+   * be just excluded by default. However, you can choose to put special masking characters next to
    * the attribute instead of value, like 3 stars or 4 pound signs, this replacement string
    * can be set using {@link Style#redactedMask()} style attribute.
    */
@@ -439,7 +531,7 @@ public @interface Value {
   @interface Style {
     /**
      * Patterns to recognize accessors. For example <code>get = {"is*", "get*"}</code> will
-     * mimick style of bean getters. If none specified or if none matches, then raw accessor name
+     * mimic style of bean getters. If none specified or if none matches, then raw accessor name
      * will be taken literally.
      * <p>
      * By default, only {@code get*} prefix is recognized, along with falling back to use accessor
@@ -898,7 +990,7 @@ public @interface Value {
 
     /**
      * Enable if you needed to copy header comments from an originating source file with abstract
-     * types to generated (derived) implementation classes. Header comments are comments preceeding
+     * types to generated (derived) implementation classes. Header comments are comments preceding
      * package declaration statement. It could be used to copy license headers or even special
      * pragma comments (such as {@code //-no-import-rewrite}).
      * It is off by default because not often needed (as generated files are transient and not
@@ -914,10 +1006,10 @@ public @interface Value {
      * annotations to the implementation class. In general, copying all type-level annotations is
      * not very safe for annotation processing and some other annotation consumers. By default, no
      * annotations are copied unless you specify non-empty annotation type list as value
-     * for {@code passAnnotations} attribute. However there are some special annotations which are
+     * for {@code passAnnotations} attribute. However, there are some special annotations which are
      * copied using special logic, such as {@code Nullable} annotations (and Jackson annotations)
      * <p>
-     * This style parameter is experimental and may change in future.
+     * This style parameter is experimental and may change in the future.
      * @return types of annotations to pass to an immutable implementation class and its
      *         attributes.
      */
@@ -949,7 +1041,7 @@ public @interface Value {
     /**
      * Specify whether init, copy and factory methods and constructors for an unwrapped {@code X} of
      * {@code Optional<X>}
-     * should accept {@code null} values as empty value. By default nulls are rejected in favor of
+     * should accept {@code null} values as empty value. By default, nulls are rejected in favor of
      * explicit conversion using {@code Optional.ofNullable}. Please note that initializers that
      * take explicit {@code Optional} value always reject nulls regardless of this setting.
      * @return optional elements accept nullables
@@ -1124,12 +1216,12 @@ public @interface Value {
     boolean overshadowImplementation() default false;
 
     /**
-     * By default builder is generated as inner builder class nested in immutable value class.
+     * By default, builder is generated as inner builder class nested in immutable value class.
      * Setting this to {@code true} will flip the picture — immutable implementation class will be
      * nested inside builder, which will be top level class. In case if {@link #visibility()} is set
      * to {@link ImplementationVisibility#PRIVATE} this feature is turned on automatically.
      * @return {@code true} if builder should be generated as top level class and implementation
-     *         will became static inner class inside builder.
+     *         will become static inner class inside builder.
      */
     boolean implementationNestedInBuilder() default false;
 
@@ -1216,7 +1308,7 @@ public @interface Value {
     /**
      * Runtime exception to throw when an immutable object is in an invalid state. I.e. when some
      * mandatory attributes are missing and immutable object cannot be built. The runtime exception
-     * class must have a constructor that takes a single string, otherwise there will be compile
+     * class must have a constructor that takes a single string, otherwise there will be compile-time
      * error in the generated code.
      * <p>
      * The default exception type is {@link IllegalStateException}. In case if
@@ -1236,7 +1328,7 @@ public @interface Value {
     Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;
 
     /**
-     * Runtime exception to throw when null reference is passed to non-nullable parameter or occured
+     * Runtime exception to throw when null reference is passed to non-nullable parameter or occurred
      * in array/container that must not contain nulls. It is expected that the exception will have
      * public constructor receiving string as message/parameter name. The
      * default is {@link NullPointerException} and the calls are usually delegated to
@@ -1272,7 +1364,6 @@ public @interface Value {
      * The default value is a {@code false}: feature is disabled, compatible with previous
      * versions.
      * <p>
-     * Instead
      * @see Depluralize
      * @return {@code true} if depluralization enabled.
      */
@@ -1280,15 +1371,15 @@ public @interface Value {
 
     /**
      * Dictionary of exceptions — array of "singular:plural" pairs as alternative to mechanical "*s"
-     * depluralization. Suppress trimming of trailing "s" for certain words by using exceptions of
+     * depluralization. Suppress trimming of trailing "s" for certain words by using exceptions in
      * form {@code "words:words"} or simply {@code "words"}. Important to note is that words will be
-     * converted to lowercase and identifier in question consists of couple of words joined using
-     * camel case — only a last segment will be considered for depluralization when matching
-     * dictionary. Uninterpretable pairs will be ignored. By default no dictionary is supplied and
+     * converted to lowercase and identifier in question consisting of one or more words joined using
+     * camel case —  only a last segment will be considered for depluralization when matching
+     * dictionary. Uninterpretable pairs will be ignored. By default, no dictionary is supplied and
      * depluralization performed only by mechanical "*s" trimming.
      * <p>
      * This attribute is semi-deprecated in favor of using {@link Depluralize#dictionary()}
-     * annotation which may be placed on a package, type or as meta-annotation. And dictionary will
+     * annotation which may be placed on a package, type or as meta-annotation. Full dictionary will
      * be merged across all applicable definitions.
      * @see #depluralize()
      * @see Depluralize#dictionary()
@@ -1331,7 +1422,7 @@ public @interface Value {
      * Setting {@code builtinContainerAttributes} to {@code false} would disable generation of
      * built-in convenience features of automatically recognized container types such as
      * {@code Optional}, {@link List}, {@link Map}. This will turn all attribute types into nothing
-     * special setters(initializers) and getters. However any registered encodings (type
+     * special setters(initializers) and getters. However, any registered encodings (type
      * customizers) will be still processed. One of the purposes of this style control is to provide
      * clean-slate when only registered encodings will impact type generation, but none of the
      * built-in types would be applied. Note: that this style controls recognition of the
@@ -1389,7 +1480,7 @@ public @interface Value {
      * String to substitute value of the attribute in a generated {@code toString} implementation
      * when {@link Redacted} annotation is applied to the attribute.
      * <p>
-     * By default it is an empty string, which also mean that the attribute will not appear in the
+     * By default, it is an empty string, which also mean that the attribute will not appear in the
      * {@code toString} output. If you set it to some value, then it will be printed.
      * @return redacted value substitution string
      */
@@ -1431,7 +1522,7 @@ public @interface Value {
      * <p>
      * To discover builders on value attributes the value methods are scanned for method names
      * matching a patterns specified in {@link #attributeBuilder()}.
-     * This style parameter is experimental and may change in future.
+     * This style parameter is experimental and may change in the future.
      * @return true to enable the feature.
      */
     boolean attributeBuilderDetection() default false;
@@ -1550,15 +1641,15 @@ public @interface Value {
     /**
      * For many cases of nullable annotation is just copied to generated code when recognized (by simple name, see
      * {@link #nullableAnnotation()}). But for some cases we need to internally insert some nullable annotation when we
-     * don't know any "original" annotation. By default, we assume that would be {@code javax.annotation.Nullable} (if
-     * it present on the classpath during compilation). When you set {@link #fallbackNullableAnnotation()}
+     * don't know any "original" annotation. By default, we assume that would be {@code javax.annotation.Nullable}
+     * (if it is present on the classpath during compilation). When you set {@link #fallbackNullableAnnotation()}
      * to non-default value (default value is {@code java.lang.annotation.Inherited} which serves as a placeholder
      * for an unspecified value)
      * value, we would use that annotation in such cases.
      * <p><em>Note</em> that this annotation would always be on the compilation classpath (as it is specified as
      * class literal in a style annotation, but will not be otherwise validated as applicable and will be used verbatim
      * in all places where we ought to insert nullable annotation without the link to any "original" nullable
-     * annotation in the hand-written code.
+     * annotation in the handwritten code.
      * @return fallback nullable annotation to use. Default values is unspecified encoded as {@code Inherited.class}
      * so that {@code javax.annotation.Nullable} annotation will be used if found on classpath.
      */
@@ -1639,7 +1730,7 @@ public @interface Value {
        */
       NONE,
       /**
-       * This validation method is similar to {@link #NONE} in that that there are no null checks.
+       * This validation method is similar to {@link #NONE} in that there are no null checks.
        * But all attributes which are not `@Default` or marked with `@Nullable` are still checked
        * to be provided (even with {@code null} values in case of object references.
        */
@@ -1656,15 +1747,15 @@ public @interface Value {
        * checks, please use custom validation mixin approach, where you create base abstract class
        * or interface with default methods to provide `@Value.Check` which would explicitly call
        * validation of your choice. Please see discussion and examples provided in the following
-       * github issue:
+       * Github issue:
        * <a href="https://github.com/immutables/immutables/issues/26">immutables/immutables#26</a>
        */
       VALIDATION_API
     }
 
     /**
-     * Enables depluralization and may provide depluralization dictionary.
-     * The annotation which may be placed on a package, type or as meta-annotation. And dictionary
+     * Enables depluralization and may provide depluralization dictionary via {@link #dictionary()} attribute.
+     * The annotation which may be placed on a package, type or as meta-annotation. Full dictionary
      * will be merged across all applicable definitions.
      * @see Style#depluralize()
      */

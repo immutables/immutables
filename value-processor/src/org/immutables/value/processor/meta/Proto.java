@@ -1694,6 +1694,14 @@ public class Proto {
     @Value.Auxiliary
     public Optional<DeclaringType> enclosingOf() {
       if (declaringType().isPresent()) {
+        // this should come before isFactory check, bogus, I know
+        if (kind().isNestedFactoryOrConstructor()) {
+          Optional<DeclaringType> enclosingOf = declaringType().get().enclosingOf();
+          if (!enclosingOf.isPresent() && kind().isFactory()) {
+            return declaringType();
+          }
+          return enclosingOf;
+        }
         if (kind().isFactory()) {
           return declaringType();
         }
@@ -1943,22 +1951,13 @@ public class Proto {
       return isJacksonSerialized();
     }
 
-    private List<String> debugLines = ImmutableList.of();
-
-    // This is not part of the logical structure of the protoclass
-    // but it seems that this is the best place to have this info
     Protoclass debug(String line) {
-      if (!DEBUG_ON)
-        return this;
-      if (debugLines.isEmpty()) {
-        debugLines = Lists.newArrayList();
-      }
-      debugLines.add(line);
+      environment().round().debug(line);
       return this;
     }
 
     List<String> getDebugLines() {
-      return debugLines;
+      return environment().round().getDebugLines();
     }
   }
 
@@ -2052,8 +2051,6 @@ public class Proto {
       return first;
     return ObjectArrays.concat(first, second, String.class);
   }
-
-  private static final boolean DEBUG_ON = false;
 
   static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.ordinal.OrdinalValue";
   static final String JACKSON_TYPE_INFO = "com.fasterxml.jackson.annotation.JsonTypeInfo";

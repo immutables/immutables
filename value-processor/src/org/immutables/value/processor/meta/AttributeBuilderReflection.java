@@ -151,7 +151,7 @@ public abstract class AttributeBuilderReflection {
           .valueToBuilderTarget(ValueToBuilderTarget.BUILDER_INSTANCE)
           .valueToBuilderMethod(attributeValueType().names().from)
           .buildMethod(attributeValueType().names().build)
-          .qualifiedValueTypeName(attributeValueType().typeImmutable().toString())
+          .qualifiedValueTypeName(attributeValueType().typeValue().toString())
           .qualifiedBuilderTypeName(attributeValueType().typeBuilderImpl().toString())
           .qualifiedBuilderConstructorMethod(attributeValueType().factoryBuilder().toString())
           .build();

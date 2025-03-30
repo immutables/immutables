@@ -19,10 +19,12 @@
 [-- Top level immutable type --]
 [output.java type.package type.typeImmutable.simple type.element]
 [generateImmutable type true]
+[debugLines type]
 [/output.java]
       [if type.generateWithInterface]
 [output.java type.package type.typeWith.simple type.element]
 [generateWithInterface type true]
+[debugLines type]
 [/output.java]
       [/if]
     [/if]
@@ -30,16 +32,32 @@
 [-- Top level builder --]
 [output.java type.package type.typeBuilderImpl.simple type.element]
 [generateBuilder type true]
+[debugLines type]
 [/output.java]
     [/if]
     [if type.constitution.hasEnclosingNonvalue]
 [-- Enclosing non-value type --]
 [output.java type.package type.typeEnclosing.simple type.element]
 [generateEnclosing type]
+[debugLines type]
 [/output.java]
+    [/if]
+    [if type.constitution.isTopLevelRecord]
+      [if type.generateWithInterface]
+[output.java type.package type.typeWith.simple type.element]
+[generateWithInterface type true]
+[debugLines type]
+[/output.java]
+      [/if]
     [/if]
   [/for]
 [/template]
+
+[template debugLines Type type][if type.debugLines]
+/*--DEBUG---------------------------------------------------
+[eachLine type.debugLines]
+----------------------------------------------------------*/
+[/if][/template]
 
 [template annotationsWhenTopLevel Type type Boolean is]
 [-- adding generated annotation even if not top level --]
@@ -80,11 +98,6 @@ import [starImport];
   [for routine in type.immutableCopyOfRoutines]
 import static [routine].immutableCopyOf;
   [/for]
-[/if]
-[if type.debugLines]
-/*--DEBUG---------------------------------------------------
-[eachLine type.debugLines]
-----------------------------------------------------------*/
 [/if]
 [/template]
 
@@ -131,7 +144,11 @@ import static [routine].immutableCopyOf;
   [for parameters = type.builderParameters]
 
 /**
+[if type.kind.isRecord]
+ * Creates a builder for {@link [type.typeValue.relativeRaw] [type.typeValue.simple]} instances.
+[else]
  * Creates a {@code [type.typeBuilderImpl.simple]} factory builder.
+[/if]
 [javadocGenerics type]
 [for p in parameters]
  * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
@@ -189,7 +206,7 @@ public static[type.generics.def] [factoryBuildStageBuilderType type] [type.facto
 [if type.annotationType]
   [defaultAnnotationValues type]
 [/if]
-[if not type.constitution.outsideBuilder]
+[if not type.constitution.isOutsideBuilder]
   [rr.staticFields type.implementedAttributes]
 [/if]
 [generateImmutableMembers type]
@@ -237,7 +254,7 @@ public static[type.generics.def] [factoryBuildStageBuilderType type] [type.facto
   [/if]
   [generateBuilder type false]
 [/if]
-[if not type.constitution.outsideBuilder]
+[if not type.constitution.isOutsideBuilder]
   [rr.staticMethods type.implementedAttributes]
 [/if]
 [for v in type.nested]
@@ -532,11 +549,363 @@ private Object writeReplace() {
 [/if]
 [/template]
 
+[template generateReturnRecordCopy Type type Attribute modified String expression]
+return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShortable]
+    [for a in type.implementedAttributes][if not for.first],
+    [/if]
+    [if a.name eq modified.name][expression][else]self.[a.name]()[/if][/for][/output.linesShortable]);
+[/template]
+
+[template recordSelf Type type][type.typeValue.relative] self = ([type.typeValue.relative]) this;[/template]
+
 [template generateWithInterface Type type Boolean topLevel]
 [packageWhenTopLevel type topLevel]
 
 [annotationsWhenTopLevel type topLevel]
 [eachLine type.withTypeInjectedAnnotations]
+[if type.kind.isRecord]
+[type.typeWith.access]interface [type.typeWith.simple][type.generics] {
+    [for v in type.settableAttributes]
+      [if v.arrayType]
+
+  /**
+   * Copy the record with elements that replace the content of [sourceDocRef v].
+   * The array is cloned before being saved as attribute values.
+   * @param elements The elements for [v.name]
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  default [type.typeValue.relative] [v.names.with]([v.atNullability][v.elementType]... elements) {
+    [recordSelf type]
+    [if type.forceEqualsInWithers]
+    if (java.util.Arrays.equals(self.[v.name](), elements)) return self;
+    [/if]
+    [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if]elements.clone();
+    [generateReturnRecordCopy type v 'newValue']
+  }
+      [else if v.collectionType]
+
+  /**
+   * Copy the record with elements that replace the content of [sourceDocRef v].
+   * @param elements The elements to replace
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  [varargsSafetyAbstract v]
+  default [type.typeValue.relative] [v.names.with]([v.atNullability][v.unwrappedElementType]... elements) {
+    [recordSelf type]
+    [if v.nullable]
+    if (elements == null) {
+      if (self.[v.name]() == null) return self;
+      [generateReturnRecordCopy type v 'null']
+    }
+    [/if]
+    [if v.isGenerateJdk9 andnot v.primitiveElement]
+    [immutableImplementationType v] newValue = java.util.[v.rawCollectionType].of(elements);
+    [else if v.generateJdkOnly and v.primitiveElement]
+    java.util.ArrayList<[v.wrappedElementType]> wrappedList = new java.util.ArrayList[asDiamond v.wrappedElementType](elements.length);
+    for ([v.unwrappedElementType] element : elements) {
+      wrappedList.add(element);
+    }
+    [immutableImplementationType v] newValue = [if v.isGenerateJdk9]java.util.[v.rawCollectionType].copyOf(wrappedList)[else][immutableCollectionCopyOfSafe v false]wrappedList[/immutableCollectionCopyOfSafe][/if];
+    [else]
+    [immutableImplementationType v] newValue = [valueFromValueNully v false][if v.wrapArrayToIterable][arrayAsList v 'elements'][else]elements[/if][/valueFromValueNully];
+    [/if]
+    [generateReturnRecordCopy type v 'newValue']
+  }
+
+  /**
+   * Copy the record with elements that replace the content of [sourceDocRef v].
+   * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+   * @param elements An iterable of [v.name] elements to replace
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  default [type.typeValue.relative] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+    [recordSelf type]
+    [if type.forceEqualsInWithers]
+    if ([objectsEqual type](self.[v.name](), elements)) return self;
+    [else]
+    if (self.[v.name]() == elements) return self;
+    [/if]
+    [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if][if v.isGenerateJdk9]elements instanceof java.util.Collection<?>
+        ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[v.consumedElementType]>) elements)
+        : java.util.[v.rawCollectionType].copyOf(java.util.stream.StreamSupport.stream(elements.spliterator(), false)
+            .collect(java.util.stream.Collectors.to[v.rawCollectionType]()))[else][immutableCollectionCopyOf v 'elements'][/if];
+    [generateReturnRecordCopy type v 'newValue']
+  }
+[if type.generateWithUnaryOperator]
+
+  /**
+   * Copy the record with elements that replace the content of [sourceDocRef v],
+   * transformed by passing each element to the provided {@code UnaryOperator}.
+   * It returns a new record copy unless collection {@code null}, is empty, or has not changed.
+   * @param operator Unary operator to transform each element of [v.name]
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  default [type.typeValue.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+    [recordSelf type]
+    if ([if v.nullable]self.[v.name]() == null || [/if]self.[v.name]().isEmpty()) return self;
+    java.util.List<[v.wrappedElementType]> elements = self.[v.name]().stream()
+        .map(operator)
+        .collect(java.util.stream.Collectors.toList());
+    [if type.forceEqualsInWithers]
+    if (self.[v.name]().equals(elements)) return self;
+    [/if]
+    [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'elements'];
+    [generateReturnRecordCopy type v 'newValue']
+  }
+  [/if]
+      [else if v.optionalType]
+
+  /**
+   * Copy the record by setting a <em>present</em> value for the optional [sourceDocRef v] attribute.
+   * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  default [type.typeValue.relative] [v.names.with]([unwrappedOptionalType v] value) {
+    [recordSelf type]
+  [if v.jdkOptional]
+    [if v.primitiveElement or v.jdkSpecializedOptional]
+    [v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] newValue = [optionalOf v](value);
+    if (self.[v.name]().equals(newValue)) return self;
+    [else if v.optionalAcceptNullable]
+      [if type.forceEqualsInWithers or (v.hasSimpleScalarElementType andnot v.enumType)][-- empty then ]
+      [else]
+    if (self.[v.name]().orElse(null) == value) return self;
+      [/if]
+    [v.rawType]<[v.wrappedElementType]> newValue = [v.rawType].ofNullable(value);
+      [if type.forceEqualsInWithers]
+    if (self.[v.name]().equals(newValue)) return self;
+      [else if v.hasSimpleScalarElementType andnot v.enumType]
+    if (self.[v.name]().equals(newValue)) return self;
+      [/if]
+    [else]
+      [if type.forceEqualsInWithers or (v.hasSimpleScalarElementType andnot v.enumType)][-- empty then ]
+      [else]
+    if (self.[v.name]().orElse(null) == value) return self;
+      [/if]
+    [v.rawType]<[v.wrappedElementType]> newValue = [optionalOf v]([maybeCopyOf v][requireNonNull type](value, "[v.name]")[/maybeCopyOf]);
+      [if type.forceEqualsInWithers]
+    if (self.[v.name]().equals(newValue)) return self;
+      [else if v.hasSimpleScalarElementType andnot v.enumType]
+    if (self.[v.name]().equals(newValue)) return self;
+      [/if]
+    [/if]
+  [else]
+    [immutableImplementationType v] newValue = [optionalOf v]([maybeCopyOf v]value[/maybeCopyOf]);
+    [if type.forceEqualsInWithers]
+    if (self.[v.name]().equals(newValue)) return self;
+    [else if v.hasSimpleScalarElementType andnot v.enumType]
+    if (self.[v.name]().equals(newValue)) return self;
+    [else]
+    if (self.[v.name]().[optionalPresent v] && self.[v.name]().[optionalGet v] == value) return self;
+    [/if]
+  [/if]
+    [generateReturnRecordCopy type v 'newValue']
+  }
+
+  /**
+   * Copy the record by setting an optional value for the [sourceDocRef v] attribute.
+  [if v.jdkOptional and v.hasSimpleScalarElementType]
+   * An equality check is used on inner value to prevent copying of the same value by returning {@code this}.
+  [else if v.jdkOptional andnot type.forceEqualsInWithers]
+   * A shallow reference equality check is used on unboxed optional value to prevent copying of the same value by returning {@code this}.
+  [else if v.hasSimpleScalarElementType]
+   * An equality check is used to prevent copying of the same value by returning {@code this}.
+  [else]
+   * A shallow reference equality check on the inner value is used to prevent copying of the same value by returning {@code this}.
+  [/if]
+   * @param optional An optional value for [v.name]
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  default [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] [v.name]) {
+    [let optType][v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if][/let]
+    [suppressCovariantCastForOptional v]
+    [optType] newValue = [requireNonNull type](([optType]) [v.name], "[v.name]");
+    [recordSelf type]
+    [if type.forceEqualsInWithers]
+    if (self.[v.name]().equals(newValue)) return self;
+    [else if v.hasSimpleScalarElementType andnot v.enumType]
+    if (self.[v.name]().equals(newValue)) return self;
+    [else if v.jdkOptional]
+    if (self.[v.name]().orElse(null) == newValue.orElse(null)) return self;
+    [else]
+    if ((!self.[v.name]().[optionalPresent v] && !newValue.[optionalPresent v])
+       || (self.[v.name]().[optionalPresent v] && newValue.[optionalPresent v]
+          && self.[v.name]().[optionalGet v] == newValue.[optionalGet v])) return self;
+    [/if]
+    [generateReturnRecordCopy type v 'newValue']
+  }
+[if type.generateWithUnaryOperator]
+
+  /**
+   * Copy the record by transforming optional value of [sourceDocRef v]
+   * using the provided {@code UnaryOperator}.
+   * @param operator Unary operator to transform optional value of [v.name]
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  default [type.typeValue.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+    [recordSelf type]
+  [if v.jdkSpecializedOptional]
+    [v.wrappedElementType] oldValue = self.[v.name]().[optionalGet v];
+    [atNullable type][v.wrappedElementType] value = operator.apply(oldValue);
+    if ([objectsEqual type](oldValue, value)) return self;
+    [v.type] newValue = value == null ? [v.type].empty() : [v.type].of(value);
+    [generateReturnRecordCopy type v 'newValue']
+  [else if v.jdkOptional]
+    [v.type] newValue = self.[v.name]().map(operator);
+    [if type.forceEqualsInWithers]
+    if (self.[v.name]().equals(newValue)) return self;
+    [else if v.hasSimpleScalarElementType andnot v.enumType]
+    if (self.[v.name]().equals(newValue)) return self;
+    [else]
+    if (self.[v.name]().orElse(null) == newValue.orElse(null)) return self;
+    [/if]
+    [generateReturnRecordCopy type v 'newValue']
+  [else]
+    if (!self.[v.name]().[optionalPresent v]) return self;
+    [v.unwrappedElementType] oldValue = self.[v.name]().[optionalGet v];
+    [v.unwrappedElementType] newValue = operator.apply(oldValue);
+      [if type.forceEqualsInWithers]
+    if ([objectsEqual type](oldValue, newValue)) return self;
+      [else if v.hasSimpleScalarElementType andnot v.enumType]
+    if ([objectsEqual type](oldValue, newValue)) return self;
+      [else]
+    if (oldValue == newValue) return self;
+      [/if]
+    [immutableImplementationType v] value = [optionalOf v](newValue);
+    [generateReturnRecordCopy type v 'value']
+  [/if]
+  }
+[/if]
+      [else if v.mapType]
+      [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+
+  /**
+   * Copy the record by replacing the [sourceDocRef v] map with the specified map.
+   * Nulls are not permitted as keys or values.
+  [if type.forceEqualsInWithers]
+   * Equality check is performed to prevent copying of the same value by returning {@code this}
+  [else]
+   * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+  [/if]
+   * @param entries The entries to replace the [v.name] map
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  default [type.typeAbstract.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+    [recordSelf type]
+    [if type.forceEqualsInWithers]
+    if ([objectsEqual type](self.[v.name](), entries)) return self;
+    [else]
+    if (self.[v.name]() == entries) return self;
+    [/if]
+    [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'entries'];
+    [generateReturnRecordCopy type v 'newValue']
+  }
+      [/for]
+      [else]
+
+  /**
+   * Copy the record by setting a value for the [sourceDocRef v] attribute.
+   [if v.primitive and v.floatType]
+   * A value strict bits equality used to prevent copying of the same value by returning {@code this}.
+   [else if v.primitive or v.enumType]
+   * A value equality check is used to prevent copying of the same value by returning {@code this}.
+   [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
+   * An equals check used to prevent copying of the same value by returning {@code this}.
+   [else]
+   * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+   [/if]
+   * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  default [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] value) {
+    [recordSelf type]
+      [if v.float]
+    if (Float.floatToIntBits(self.[v.name]()) == Float.floatToIntBits(value)) return self;
+      [else if v.double]
+    if (Double.doubleToLongBits(self.[v.name]()) == Double.doubleToLongBits(value)) return self;
+      [else if v.primitive]
+    if (self.[v.name]() == value) return self;
+      [else if type.forceEqualsInWithers]
+    if ([objectsEqual type](self.[v.name](), value)) return self;
+      [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
+      [-- moved to after value assignment --]
+      [else]
+    if (self.[v.name]() == value) return self;
+      [/if]
+      [if v.attributeValueType and v.typeKind.isRegular]
+        [if v.isAttributeBuilder]
+    [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder].[v.getAttributeBuilderDescriptor.getBuildMethod]();
+        [else]
+    [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
+        [/if]
+    [generateReturnRecordCopy type v 'newValue']
+      [else if v.primitive]
+    [generateReturnRecordCopy type v 'value']
+      [else if v.nullable]
+      [if type.forceEqualsInWithers][-- do nothing, in the beginning --]
+      [else if v.hasSimpleScalarElementType or v.isSuppressedOptional][-- moved from conditions in the beginning of the method --]
+        [if v.enumType]
+    if (self.[v.name]() == value) return self;
+        [else if v.nullable]
+    if ([objectsEqual type](self.[v.name](), value)) return self;
+        [else]
+    if (self.[v.name]().equals(value)) return self;
+        [/if]
+      [/if]
+    [generateReturnRecordCopy type v 'value']
+      [else]
+    [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
+      [if type.forceEqualsInWithers][-- do nothing, handled in the beginning --]
+      [else if v.hasSimpleScalarElementType or v.isSuppressedOptional][-- moved from conditions in the beginning of the method --]
+        [if v.enumType]
+    if (self.[v.name]() == newValue) return self;
+        [else if v.nullable or type.generateNoargConstructor]
+    if ([objectsEqual type](self.[v.name](), newValue)) return self;
+        [else]
+    if (self.[v.name]().equals(newValue)) return self;
+        [/if]
+      [/if]
+    [generateReturnRecordCopy type v 'newValue']
+      [/if]
+  }
+[if type.generateWithUnaryOperator]
+
+  /**
+   * Copy the record by transforming value of [sourceDocRef v]
+   * using the provided {@code UnaryOperator}.
+   * @param operator Unary operator to transform value of [v.name]
+   * @return A modified copy of the record or {@code this} if not changed
+   */
+  [deprecation v]
+  default [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+    [recordSelf type]
+    [v.atNullabilityLocal][immutableImplementationType v] value = operator.apply(self.[v.name]());
+    [if type.forceEqualsInWithers]
+    if ([objectsEqual type](self.[v.name](), value)) return self;
+    [else if v.hasSimpleScalarElementType andnot v.enumType]
+    if ([objectsEqual type](self.[v.name](), value)) return self;
+    [else]
+    if (self.[v.name]() == value) return self;
+    [/if]
+    [generateReturnRecordCopy type v 'value']
+  }
+[/if]
+      [/if]
+    [/for]
+[if topLevel][if type.generateJdkOnly and type.useCollectionUtility][-- private methods in interfaces now --]
+  [collectionUtility type]
+[/if][/if]
+}
+[else]
 [type.typeWith.access]interface [type.typeWith.simple][type.generics] {
     [for v in type.settableAttributes]
       [if v.arrayType]
@@ -651,6 +1020,7 @@ private Object writeReplace() {
       [/if]
     [/for]
 }
+[/if]
 [/template]
 
 [template generateJsonWithUnsupported Type type]
@@ -1220,7 +1590,7 @@ public interface [tb.nameBuildFinal][type.generics] {
     implements [telescopicBuilderImplementInterfaces type] {
   [else] {
   [/if][/output.linesShortable]
-[if type.constitution.outsideBuilder]
+[if type.constitution.isOutsideBuilder]
   [rr.staticFields setters]
   [rr.staticMethods setters]
 [/if]
@@ -1255,7 +1625,7 @@ public interface [tb.nameBuildFinal][type.generics] {
 
   [if not useFactoryMethod]
   /**
-[if type.kind.isFactory]
+[if type.kind.isFactory andnot type.kind.isRecord]
    * Creates a {@code [type.typeBuilderImpl.simple]} factory builder.
 [else]
    * Creates a builder for {@link [type.typeValue.relativeRaw] [type.typeValue.simple]} instances.
@@ -1303,7 +1673,7 @@ public interface [tb.nameBuildFinal][type.generics] {
 [if type.kind.isFactoryNotNested or type.constitution.isOutsideBuilderNotNested]
 
   /**
-[if type.kind.isFactory]
+[if type.kind.isFactory andnot type.kind.isRecord]
    * Creates a {@code [type.typeBuilderImpl.simple]} factory builder.
 [else]
    * Creates a builder for {@link [type.typeValue.relativeRaw] [type.typeValue.simple]} instances.
@@ -2451,7 +2821,7 @@ this.[v.names.init](instance.[v.names.get]());
 
 [template returnFactoryBuild Type type]
 return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes][if not for.first],
-    [/if][valueFromBuilder v ''][/for][/output.linesShortable]);
+    [/if][if v.hasConstantDefault][if v.canUseNullAsUndefined][valueFromBuilder v ''] == null[else]![v.names.isSet]()[/if] ? [literal v.constantDefault] : [/if][valueFromBuilder v ''][/for][/output.linesShortable]);
 [/template]
 
 [template valueFromSuper Attribute v String expression][if v.guavaImmutableDeclared][if not v.nullable][requireNonNull v.containingType]([expression], "[v.name]")[else][expression][/if][else][valueFromValue v expression][/if][/template]
@@ -2468,7 +2838,9 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [/if]
 [/output.trim][/template]
 
-[template valueFromValue Attribute v String expression][output.trim]
+[template valueFromValue Attribute v String expression][valueFromValueNully v true expression][/template]
+
+[template valueFromValueNully Attribute v Boolean mayBeNullable String expression][output.trim]
 [if v.encoding]
   [rr.from v expression]
 [else if v.jdkOptional]
@@ -2478,14 +2850,14 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [else if v.arrayType][-- we don't make a safe copy for nullable array --]
   [if v.nullable][expression][else][expression].clone()[/if]
 [else if v.attributeValueKindCopy]
-  [if v.nullable][expression] == null ? null : [/if][deepCopyOf v][expression][/deepCopyOf]
+  [if mayBeNullable and v.nullable][expression] == null ? null : [/if][deepCopyOf v][expression][/deepCopyOf]
 [else if v.mapType]
-  [if v.nullable][expression] == null ? null : [/if][immutableCollectionCopyOf v expression]
+  [if mayBeNullable and v.nullable][expression] == null ? null : [/if][immutableCollectionCopyOf v expression]
 [else if v.collectionType]
-  [if v.nullable][expression] == null ? null : [/if][if v.isGenerateJdk9][expression] instanceof java.util.Collection<?>
+  [if mayBeNullable and v.nullable][expression] == null ? null : [/if][if v.isGenerateJdk9][expression] instanceof java.util.Collection<?>
        ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[v.consumedElementType]>) [expression])
-       : java.util.stream.StreamSupport.stream([expression].spliterator(), false)
-             .collect(java.util.stream.Collectors.toUnmodifiable[v.rawCollectionType]())[else][immutableCollectionCopyOf v expression][/if]
+       : java.util.[v.rawCollectionType].copyOf(java.util.stream.StreamSupport.stream([expression].spliterator(), false)
+             .collect(java.util.stream.Collectors.to[v.rawCollectionType]()))[else][immutableCollectionCopyOf v expression][/if]
 [else]
   [maybeCopyOf v][maybeNonNullValue v][expression][/maybeNonNullValue][/maybeCopyOf]
 [/if]
@@ -2593,7 +2965,9 @@ this.[n] = null;
 [if v.hasVirtualImpl][rr.virtualImpl v][else]this.[n][/if] = [emptyImmutableInstance v ''];
 [/for]
 [for v in attributes if v.generateDefault, n = v.name]
-[if type.annotationType]
+[if v.hasConstantDefault]
+this.[n] = [literal v.constantDefault];
+[else if type.annotationType]
 this.[n] = DEFAULT_VALUE_[toConstant n];
 [else if not type.generateSafeDerived]
 this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
@@ -2672,7 +3046,11 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [if type.annotationType ornot type.generateSafeDerived]
     this.[n] = [if v.requiresTrackIsSet]builder.[v.names.isSet]()[else]builder.[n] != null[/if]
         ? [valueFromBuilderAlt v v.requiresTrackIsSet]builder.[/valueFromBuilderAlt]
+    [if v.hasConstantDefault]
+        : [literal v.constantDefault];
+    [else]
         : [if type.annotationType]DEFAULT_VALUE_[toConstant v.name][else][valueFromSuper v][invokeSuper v].[v.names.get]()[/valueFromSuper][/if];
+    [/if]
   [/if]
 [/for]
     [generateDerivedConstruction type noAttributes]
@@ -2822,6 +3200,12 @@ private final class InitShim {
   [if v.encoding][rr.shimFields v][/if]
 
   [immutableImplementationType v] [v.names.get]() {
+    [if v.hasConstantDefault]
+    if ([stage] == STAGE_UNINITIALIZED) {
+      this.[v.name] = [literal v.constantDefault];
+      [stage] = STAGE_INITIALIZED;
+    }
+    [else]
     if ([stage] == STAGE_INITIALIZING) throw new [type.throwForInvalidImmutableState](formatInitCycleMessage());
     if ([stage] == STAGE_UNINITIALIZED) {
       [stage] = STAGE_INITIALIZING;
@@ -2829,6 +3213,7 @@ private final class InitShim {
       [if v.encoding][rr.shimAssign v][/if]
       [stage] = STAGE_INITIALIZED;
     }
+    [/if]
     return this.[v.name];
   }
   [if v.encoding][rr.shimAccessor v][/if]
@@ -3457,7 +3842,11 @@ public String toString() {
 [for a in type.implementedAttributes]
   [if a.generateDefault or a.generateDerived]
     [if a.generateDerived andnot type.generateSafeDerived]
+      [if a.hasConstantDefault]
+this.[a.name] = [literal a.constantDefault];
+      [else]
 this.[a.name] = [valueFromValue a][invokeSuper a].[a.names.get]()[/valueFromValue];
+      [/if]
     [/if]
   [else if a.encoding][-- non derived encodings]
 [rr.derivedAssign a]
@@ -3470,7 +3859,7 @@ this.[a.name] = [valueFromValue a][invokeSuper a].[a.names.get]()[/valueFromValu
   [if a.encoding]
 [rr.shimAssignExtract a shim]
   [else if a notin constructorArgs]
-this.[a.name] = [shim].[a.names.get]();
+this.[a.name] = [if a.hasConstantDefault][literal a.constantDefault][else][shim].[a.names.get]()[/if];
   [/if]
 [/for]
 [/if]
@@ -3538,7 +3927,7 @@ return [validated type true]new [type.typeImmutable.relativeRaw][type.generics.d
 /**
  * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
  * The array is cloned before being saved as attribute values.
- * @param elements The non-null elements for [v.name]
+ * @param elements The elements for [v.name]
  * @return A modified copy of {@code this} object
  */
 [varargsSafety v]
@@ -3562,6 +3951,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.el
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.unwrappedElementType]... elements) {
   [if v.nullable]
   if (elements == null) {
+    if (this.[v.name] == null) return this;
     [generateReturnCopy type v 'null']
   }
   [/if]
@@ -3574,16 +3964,20 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.un
   }
   [immutableImplementationType v] newValue = [if v.isGenerateJdk9]java.util.[v.rawCollectionType].copyOf(wrappedList)[else][immutableCollectionCopyOfSafe v false]wrappedList[/immutableCollectionCopyOfSafe][/if];
   [else]
-  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v][if v.wrapArrayToIterable][arrayAsList v 'elements'][else]elements[/if][/valueFromValue];
+  [immutableImplementationType v] newValue = [valueFromValueNully v false][if v.wrapArrayToIterable][arrayAsList v 'elements'][else]elements[/if][/valueFromValueNully];
   [/if]
   [generateReturnCopyContextual type v]
 }
 
 /**
  * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
+[if type.forceEqualsInWithers]
+ * Equality check is performed to prevent copying of the same value by returning {@code this}
+[else]
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+[/if]
  * @param elements An iterable of [v.name] elements to set
- * @return A modified copy of {@code this} object
+ * @return A modified copy or {@code this} if not changed
  */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
@@ -3594,8 +3988,8 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Itera
   [/if]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if][if v.isGenerateJdk9]elements instanceof java.util.Collection<?>
       ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[v.consumedElementType]>) elements)
-      : java.util.stream.StreamSupport.stream(elements.spliterator(), false)
-          .collect(java.util.stream.Collectors.toUnmodifiable[v.rawCollectionType]())[else][immutableCollectionCopyOf v 'elements'][/if];
+      : java.util.[v.rawCollectionType].copyOf(java.util.stream.StreamSupport.stream(elements.spliterator(), false)
+          .collect(java.util.stream.Collectors.to[v.rawCollectionType]()))[else][immutableCollectionCopyOf v 'elements'][/if];
   [generateReturnCopyContextual type v]
 }
 [if type.generateWithUnaryOperator]
@@ -3603,15 +3997,18 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Itera
 /**
  * Copy the current immutable object with elements that replace the content of [sourceDocRef v],
  * transformed by passing each element to the provided {@code UnaryOperator}.
- * It always returns a new copy unless collection is empty.
+ * It returns a new copy unless collection {@code null}, is empty, or has not changed.
  * @param operator Unary operator to transform each element of [v.name]
- * @return A modified copy of {@code this} object
- */[-- TODO support type.forceEqualsInWithers and change javadoc --]
+ * @return A modified copy or {@code this} if not changed
+ */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
   if ([if v.nullable]this.[v.name] == null || [/if]this.[v.name].isEmpty()) return this;
   java.util.List<[v.wrappedElementType]> elements = this.[v.name].stream().map(operator)
       .collect(java.util.stream.Collectors.toList());
+  [if type.forceEqualsInWithers]
+  if (this.[v.name].equals(elements)) return this;
+  [/if]
   [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'elements'];
   [generateReturnCopyContextual type v]
 }
@@ -3619,9 +4016,9 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
     [else if v.optionalType]
 
 /**
- * Copy the current immutable object by setting a <i>present</i> value for the optional [sourceDocRef v] attribute.
+ * Copy the current immutable object by setting a <em>present</em> value for the optional [sourceDocRef v] attribute.
  * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
- * @return A modified copy of {@code this} object
+ * @return A modified copy or {@code this} if not changed
  */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType v] value) {
@@ -3657,16 +4054,16 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
 /**
  * Copy the current immutable object by setting an optional value for the [sourceDocRef v] attribute.
 [if v.jdkOptional and v.hasSimpleScalarElementType]
- * An equality check is used on inner nullable value to prevent copying of the same value by returning {@code this}.
-[else if v.jdkOptional]
+ * An equality check is used on inner value to prevent copying of the same value by returning {@code this}.
+[else if v.jdkOptional andnot type.forceEqualsInWithers]
  * A shallow reference equality check is used on unboxed optional value to prevent copying of the same value by returning {@code this}.
 [else if v.hasSimpleScalarElementType]
  * An equality check is used to prevent copying of the same value by returning {@code this}.
 [else]
- * A shallow reference equality check on the optional value is used to prevent copying of the same value by returning {@code this}.
+ * A shallow reference equality check on the inner value is used to prevent copying of the same value by returning {@code this}.
 [/if]
- * @param optional A value for [v.name]
- * @return A modified copy of {@code this} object
+ * @param optional An optional value for [v.name]
+ * @return A modified copy or {@code this} if not changed
  */
 [suppressCovariantCastForOptional v]
 [deprecation v]
@@ -3701,21 +4098,35 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
 /**
  * Copy the current immutable object by transforming optional value of [sourceDocRef v]
  * using the provided {@code UnaryOperator}.
- * It always returns a new copy if optional is present, otherwise {@code this} is returned.
  * @param operator Unary operator to transform optional value of [v.name]
- * @return A modified copy of {@code this} object
- */[-- TODO maybe support type.forceEqualsInWithers and change javadoc --]
+ * @return A modified copy or {@code this} if not changed
+ */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
 [if v.jdkOptional]
   if (this.[v.name] == null) return this;
   [immutableImplementationType v] value = operator.apply(this.[v.name]);
-  [generateReturnCopy type v 'value']
+  [if type.forceEqualsInWithers]
+  if ([objectsEqual type](this.[v.name], value)) return this;
+  [else if v.hasSimpleScalarElementType andnot v.enumType]
+  if ([objectsEqual type](this.[v.name], value)) return this;
+  [else]
+  if (this.[v.name] == value) return this;
+  [/if]
 [else]
   if (!this.[v.name].[optionalPresent v]) return this;
-  [immutableImplementationType v] value = [optionalOf v](operator.apply(this.[v.name].[optionalGet v]));
-  [generateReturnCopy type v 'value']
+  [v.unwrappedElementType] oldValue = this.[v.name].[optionalGet v];
+  [v.unwrappedElementType] newValue = operator.apply(oldValue);
+    [if type.forceEqualsInWithers]
+  if ([objectsEqual type](oldValue, newValue)) return this;
+    [else if v.hasSimpleScalarElementType andnot v.enumType]
+  if ([objectsEqual type](oldValue, newValue)) return this;
+    [else]
+  if (oldValue == newValue) return this;
+    [/if]
+  [immutableImplementationType v] value = [optionalOf v](newValue);
 [/if]
+  [generateReturnCopy type v 'value']
 }
 [/if]
     [else if v.mapType]
@@ -3724,9 +4135,13 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
 /**
  * Copy the current immutable object by replacing the [sourceDocRef v] map with the specified map.
  * Nulls are not permitted as keys or values.
+[if type.forceEqualsInWithers]
+ * Equality check is performed to prevent copying of the same value by returning {@code this}
+[else]
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
- * @param entries The entries to be added to the [v.name] map
- * @return A modified copy of {@code this} object
+[/if]
+ * @param entries The entries to replace the [v.name] map
+ * @return A modified copy or {@code this} if not changed
  */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
@@ -3753,7 +4168,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  [/if]
  * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
- * @return A modified copy of the {@code this} object
+ * @return A modified copy or the {@code this} object
  */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.type] value) {
@@ -3812,13 +4227,20 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
 
 /**
  * Copy the current immutable object by transforming value of [sourceDocRef v]
- * using the provided {@code UnaryOperator}. It always returns a new copy.
+ * using the provided {@code UnaryOperator}.
  * @param operator Unary operator to transform value of [v.name]
- * @return A modified copy of {@code this} object
- */[-- TODO maybe support type.forceEqualsInWithers and change javadoc --]
+ * @return A modified copy or {@code this} if not changed
+ */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
   [v.atNullabilityLocal][immutableImplementationType v] value = operator.apply(this.[v.name]);
+  [if type.forceEqualsInWithers]
+  if ([objectsEqual type](this.[v.name], value)) return this;
+  [else if v.hasSimpleScalarElementType andnot v.enumType]
+  if ([objectsEqual type](this.[v.name], value)) return this;
+  [else]
+  if (this.[v.name] == value) return this;
+  [/if]
   [generateReturnCopy type v 'value']
 }
 [/if]
@@ -4221,20 +4643,16 @@ private static boolean equals(Object left, Object right) {
 [/template]
 
 [template public attributeBuilderTransformUtilities Type type]
-
 [if type.detectAttributeBuilders]
-
 [for v in type.uniqueAttributeBuilderAttributes]
 
-[atNullable v]
-[-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
+[atNullable v][-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
 private static [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable v] [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] builder) {
   if (builder == null) return null;
   return builder.[v.getAttributeBuilderDescriptor.getBuildMethod]();
 }
 
-[atNullable v]
-[-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
+[atNullable v][-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
 private static [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable v] [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
   if (value == null) return null;
   return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder].[v.getAttributeBuilderDescriptor.getBuildMethod]();
@@ -4246,8 +4664,8 @@ private static [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [co
   return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder];
 }
 [/for]
-
 [for v in type.uniqueAttributeBuilderListAttributes]
+
 [let listType][if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][/let]
 private static java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> builderList) {
 [copyBuilderListBody v true false]builderList[/copyBuilderListBody]

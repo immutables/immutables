@@ -18,16 +18,19 @@ package org.immutables.value.processor.meta;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -80,14 +83,16 @@ public abstract class Round {
     for (Protoclass protoclass : protoclasses) {
       @Nullable ValueType current = null;
       if (protoclass.kind().isNested() || protoclass.kind().isNestedFactoryOrConstructor()) {
-        @Nullable ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
+        @Nullable ValueType enclosing = protoclass.enclosingOf().isPresent()
+            ? enclosingTypes.get(protoclass.enclosingOf().get())
+            : null;
         if (enclosing != null) {
           current = composeValue(protoclass);
           // Attach nested to enclosing
           enclosing.addNested(current);
         }
       }
-      // getting the ValueType if it was alredy created and put into enclosingTypes
+      // getting the ValueType if it was already created and put into enclosingTypes
       if (current == null && protoclass.kind().isEnclosing()) {
         current = enclosingTypes.get(protoclass.declaringType().get());
       }
@@ -324,25 +329,37 @@ public abstract class Round {
       }
 
       Optional<FBuilderMirror> recordBuilderMirror = FBuilderMirror.find(declaringType.element());
-      if (recordBuilderMirror.isPresent()) {
+      Optional<VBuilderMirror> recordVBuilderMirror = VBuilderMirror.find(declaringType.element());
+      if (recordBuilderMirror.isPresent() || recordVBuilderMirror.isPresent()) {
         if (element.getKind().ordinal() == RECORD_ORDINAL) {
+          Optional<DeclaringType> enclosingOf = declaringType.enclosingOf();
+          boolean hasEnclosing = enclosingOf.isPresent()
+              && enclosingOf.get().isEnclosing();
+
           builder.add(interners.forProto(
               ImmutableProto.Protoclass.builder()
                   .environment(environment())
                   .packageOf(declaringType.packageOf())
                   .declaringType(declaringType)
                   .sourceElement(wrapElement(element))
-                  .kind(declaringType.isEnclosing()
+                  .kind(hasEnclosing
                       ? Kind.DEFINED_NESTED_RECORD
                       : Kind.DEFINED_RECORD)
                   .build()));
         } else {
+          AnnotationMirror annotation;
+          if (recordVBuilderMirror.isPresent()) {
+            annotation = recordVBuilderMirror.get().getAnnotationMirror();
+          } else {
+            assert recordBuilderMirror.isPresent();
+            annotation = recordBuilderMirror.get().getAnnotationMirror();
+          }
           Reporter.from(processing())
               .withElement(element)
-              .withAnnotation(recordBuilderMirror.get().getAnnotationMirror())
+              .withAnnotation(annotation)
               .warning(About.INCOMPAT, "@Builder annotation is applicable only on records."
-                  + " Use @Value.Immutable or @Builder.Constructor for abstract value types"
-                  + " and POJO constructors respectively, to generate builder");
+                  + " Use @Value.Immutable on abstract value types or @Builder.Constructor "
+                  + " on POJO constructors to generate builder");
         }
       }
 
@@ -426,4 +443,22 @@ public abstract class Round {
   }
 
   private static final int RECORD_ORDINAL = 18;
+
+  private List<String> debugLines = ImmutableList.of();
+
+  // This is not part of the logical structure of the protoclass,
+  // but it seems that this is the best place to have this info
+  void debug(String line) {
+    if (!DEBUG_ON) return;
+    if (debugLines.isEmpty()) {
+      debugLines = Lists.newArrayList();
+    }
+    debugLines.add(line);
+  }
+
+  List<String> getDebugLines() {
+    return debugLines;
+  }
+
+  private static final boolean DEBUG_ON = false;
 }

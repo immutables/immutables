@@ -199,7 +199,6 @@ public abstract class Constitution {
 		}
 
 		if (isFactory()) {
-
 			if (protoclass().kind().isRecord()) {
 				TypeElement enclosingType = (TypeElement) protoclass().sourceElement();
 
@@ -265,6 +264,10 @@ public abstract class Constitution {
 	public boolean hasTopLevelImmutable() {
 		return isTopLevelValue()
 				&& !hasImmutableInBuilder();
+	}
+
+	public boolean isTopLevelRecord() {
+		return protoclass().kind() == Protoclass.Kind.DEFINED_RECORD;
 	}
 
 	public boolean isOutsideBuilder() {
@@ -334,6 +337,9 @@ public abstract class Constitution {
 	 */
 	@Value.Lazy
 	public NameForms typeImmutable() {
+		if (protoclass().kind().isConstructor() || protoclass().kind().isRecord()) {
+			return typeValue();
+		}
 		String simple, relative;
 
 		if (protoclass().kind().isNested()) {
@@ -416,7 +422,8 @@ public abstract class Constitution {
 
 		String applied = methodBuilderNaming.apply(names().raw);
 		if (isNestedFactoryOrConstructor()) {
-			applied = names().raw + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, applied);
+			applied = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, names().raw)
+					+ CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, applied);
 		}
 		return typeNameForms.applied(applied);
 	}
@@ -529,7 +536,8 @@ public abstract class Constitution {
 	public NameForms typeWith() {
 		String simple, relative;
 
-		if (protoclass().kind().isNested()) {
+		if (protoclass().kind().isNested()
+				|| protoclass().kind() == Protoclass.Kind.DEFINED_NESTED_RECORD) {
 			String enclosingSimpleName = typeImmutableEnclosingSimpleName();
 			simple = names().typeWith();
 			relative = inPackage(enclosingSimpleName, simple);
@@ -567,7 +575,8 @@ public abstract class Constitution {
 		TypeNames names = names();
 
 		boolean outside = isOutsideBuilder();
-		boolean nested = protoclass().kind().isNested();
+		boolean nested = protoclass().kind().isNested()
+				|| protoclass().kind() == Protoclass.Kind.DEFINED_NESTED_RECORD;
 
 		String simple = typeBuilderSimpleName();
 		String relative;

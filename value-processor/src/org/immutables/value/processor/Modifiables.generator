@@ -531,6 +531,8 @@ public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
     return [v.name] instanceof [v.attributeValueType.constitution.typeModifiable.absoluteRaw]
         ? ([v.attributeValueType.constitution.typeModifiable.absolute]) [v.name]
         : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from]([v.name]);
+    [else if v.hasConstantDefault]
+    return [literal v.constantDefault];
     [else]
     return [invokeSuper v].[v.names.get]();
     [/if]

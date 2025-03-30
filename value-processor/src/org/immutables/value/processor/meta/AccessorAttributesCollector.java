@@ -126,7 +126,7 @@ final class AccessorAttributesCollector {
       }
     }
 
-    // We do this afterwards to observe field flag that can
+    // We do this afterward, to observe field flag that can
     // inform use during checking for warnings.
     for (Element element : processing.getElementUtils().getAllMembers(originalType)) {
       if (element.getKind() == ElementKind.METHOD) {
@@ -309,6 +309,8 @@ final class AccessorAttributesCollector {
   private void processGenerationCandidateMethod(ExecutableElement attributeMethodCandidate, TypeElement originalType) {
     Name name = attributeMethodCandidate.getSimpleName();
 
+    Reporter reporter = report(attributeMethodCandidate);
+
     if (CheckMirror.isPresent(attributeMethodCandidate)) {
       if (!attributeMethodCandidate.getParameters().isEmpty()
           || attributeMethodCandidate.getModifiers().contains(Modifier.PRIVATE)
@@ -316,7 +318,7 @@ final class AccessorAttributesCollector {
           || attributeMethodCandidate.getModifiers().contains(Modifier.STATIC)
           || attributeMethodCandidate.getModifiers().contains(Modifier.NATIVE)
           || !attributeMethodCandidate.getTypeParameters().isEmpty()) {
-        report(attributeMethodCandidate)
+        reporter
             .error("Method '%s' annotated with @%s must be non-private parameter-less method",
                 name,
                 CheckMirror.simpleName());
@@ -325,7 +327,7 @@ final class AccessorAttributesCollector {
       } else if (returnsNormalizedAbstractValueType(attributeMethodCandidate)) {
         type.addNormalizeMethod(name.toString(), true);
       } else {
-        report(attributeMethodCandidate)
+        reporter
             .error("Method '%s' annotated with @%s must return void or normalized instance of abstract value type",
                 name,
                 CheckMirror.simpleName());
@@ -337,7 +339,7 @@ final class AccessorAttributesCollector {
 
     if (isDiscoveredAttribute(attributeMethodCandidate, useDefaultAsDefault)) {
       if (!attributeMethodCandidate.getTypeParameters().isEmpty()) {
-        report(attributeMethodCandidate)
+        reporter
             .error("Method '%s' cannot have own generic type parameters."
                 + " Attribute accessors can only use enclosing type's type variables", name);
         return;
@@ -346,7 +348,7 @@ final class AccessorAttributesCollector {
       TypeMirror returnType = resolveReturnType(attributeMethodCandidate);
 
       ValueAttribute attribute = new ValueAttribute();
-      attribute.reporter = reporter;
+      attribute.reporter = this.reporter;
       attribute.returnType = returnType;
       attribute.names = deriveNames(name.toString());
       attribute.element = attributeMethodCandidate;
@@ -355,53 +357,63 @@ final class AccessorAttributesCollector {
       boolean isFinal = isFinal(attributeMethodCandidate);
       boolean isAbstract = isAbstract(attributeMethodCandidate);
       boolean defaultAnnotationPresent = DefaultMirror.isPresent(attributeMethodCandidate);
+      @Nullable Object constantDefault = DefaultAnnotations.extractConstantDefault(
+          reporter, attributeMethodCandidate, returnType);
+
       boolean derivedAnnotationPresent = DerivedMirror.isPresent(attributeMethodCandidate);
 
       if (isAbstract) {
         attribute.isGenerateAbstract = true;
 
+        // (constant) default provided by 'default' clause in annotation attribute definition
         if (attributeMethodCandidate.getDefaultValue() != null) {
           attribute.isGenerateDefault = true;
+        }
+
+        // Constant default via annotation
+        if (constantDefault != null) {
+          attribute.isGenerateDefault = true;
+          attribute.constantDefault = constantDefault;
         }
 
         if (defaultAnnotationPresent || derivedAnnotationPresent) {
           if (defaultAnnotationPresent) {
             if (attribute.isGenerateDefault) {
-              report(attributeMethodCandidate)
+              reporter
                   .annotationNamed(DefaultMirror.simpleName())
                   .warning(About.INCOMPAT,
                       "@Value.Default annotation is superfluous for default annotation attribute");
             } else {
-              report(attributeMethodCandidate)
+              reporter
                   .annotationNamed(DefaultMirror.simpleName())
                   .error("@Value.Default attribute should have initializer body", name);
             }
           }
           if (derivedAnnotationPresent) {
             if (attribute.isGenerateDefault) {
-              report(attributeMethodCandidate)
+              reporter
                   .annotationNamed(DerivedMirror.simpleName())
                   .error("@Value.Derived cannot be used with default annotation attribute");
             } else {
-              report(attributeMethodCandidate)
+              reporter
                   .annotationNamed(DerivedMirror.simpleName())
                   .error("@Value.Derived attribute should have initializer body", name);
             }
           }
         }
       } else if (defaultAnnotationPresent && derivedAnnotationPresent) {
-        report(attributeMethodCandidate)
+        reporter
             .annotationNamed(DerivedMirror.simpleName())
             .error("Attribute '%s' cannot be both @Value.Default and @Value.Derived", name);
         attribute.isGenerateDefault = true;
       } else if ((defaultAnnotationPresent || derivedAnnotationPresent) && isFinal) {
-        report(attributeMethodCandidate)
+        reporter
             .error("Annotated attribute '%s' will be overriden and cannot be final", name);
       } else if (defaultAnnotationPresent) {
         attribute.isGenerateDefault = true;
 
         if (useDefaultAsDefault && attribute.isInterfaceDefaultMethod()) {
-          report(attributeMethodCandidate)
+          reporter
               .annotationNamed(DefaultMirror.simpleName())
               .warning(About.INCOMPAT,
                   "@Value.Default annotation is superfluous for default annotation attribute"
@@ -415,10 +427,10 @@ final class AccessorAttributesCollector {
 
       if (LazyMirror.isPresent(attributeMethodCandidate)) {
         if (isAbstract || isFinal) {
-          report(attributeMethodCandidate)
+          reporter
               .error("@Value.Lazy attribute '%s' must be non abstract and non-final", name);
         } else if (defaultAnnotationPresent || derivedAnnotationPresent) {
-          report(attributeMethodCandidate)
+          reporter
               .error("@Value.Lazy attribute '%s' cannot be @Value.Derived or @Value.Default", name);
         } else {
           attribute.isGenerateLazy = true;

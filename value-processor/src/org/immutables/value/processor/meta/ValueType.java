@@ -447,8 +447,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
    * Check if criteria repository should be generated. Usually means {@code @Criteria.Repository}
    * annotation is present.
    * This type of repository is different from (legacy) mongo repository identified by
-   * {@code @Mongo.Repository}
-   * (see {@link #isGenerateRepository()}.
+   * {@code @Mongo.Repository}.
+   * @see #isGenerateRepository()
    */
   public boolean isGenerateCriteriaRepository() {
     return constitution.protoclass().criteriaRepository().isPresent();
@@ -607,7 +607,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isGenerateWithInterface() {
     ensureTypeIntrospected();
-    return implementedInterfacesNames.contains(typeWith().relative());
+    String relative = typeWith().relative();
+    return implementedInterfacesNames.contains(relative);
   }
 
   public boolean isUseCopyMethods() {

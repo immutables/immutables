@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
 import javax.annotation.Nullable;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Parameterizable;
@@ -62,6 +63,13 @@ final class FactoryMethodAttributesCollector {
       String parameterName = parameter.getSimpleName().toString();
       attribute.names = styles.forAccessorWithRaw(parameterName, parameterName);
 
+      attribute.constantDefault = DefaultAnnotations.extractConstantDefault(
+          reporter, parameter, returnType);
+
+      if (attribute.constantDefault != null) {
+        attribute.isGenerateDefault = true;
+      }
+
       attribute.containingType = type;
       attributes.add(attribute);
     }
@@ -87,5 +95,9 @@ final class FactoryMethodAttributesCollector {
     return FluentIterable.from(factoryMethodElement.getThrownTypes())
         .transform(Functions.toStringFunction())
         .toList();
+  }
+
+  private Reporter report(Element type) {
+    return Reporter.from(protoclass.processing()).withElement(type);
   }
 }

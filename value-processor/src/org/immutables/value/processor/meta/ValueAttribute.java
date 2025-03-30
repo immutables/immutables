@@ -81,6 +81,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public AttributeNames names;
   public boolean isGenerateDefault;
+  public @Nullable Object constantDefault;
   public boolean isGenerateDerived;
   public boolean isGenerateAbstract;
   public boolean isGenerateLazy;
@@ -190,6 +191,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return isPrimitive()
         || isStringType()
         || isEnumType();
+  }
+
+  public boolean hasConstantDefault() {
+    return constantDefault != null;
   }
 
   public boolean hasSimpleScalarElementType() {
@@ -1386,6 +1391,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       } else {
         Environment environment = protoclass().environment();
         for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
+          // TODO p.kind().isRecord()
           if ((p.kind().isDefinedValue() || p.kind().isModifiable() || p.kind().isJavaBean())
               && canAccessImplementation(p)
               && p.constitution().generics().isEmpty()) {

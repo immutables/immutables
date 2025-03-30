@@ -51,6 +51,8 @@ final class RecordComponentCollector {
 		for (ExecutableElement accessor : recordComponentAssessors(recordType)) {
 			TypeMirror returnType = accessor.getReturnType();
 
+			Reporter reporter = report(accessor);
+
 			ValueAttribute attribute = new ValueAttribute();
 			attribute.isGenerateAbstract = true;
 			attribute.reporter = reporter;
@@ -59,6 +61,13 @@ final class RecordComponentCollector {
 			attribute.element = accessor;
 			String parameterName = accessor.getSimpleName().toString();
 			attribute.names = styles.forAccessorWithRaw(parameterName, parameterName);
+
+			attribute.constantDefault = DefaultAnnotations.extractConstantDefault(
+					reporter, accessor, returnType);
+
+			if (attribute.constantDefault != null) {
+				attribute.isGenerateDefault = true;
+			}
 
 			attribute.containingType = type;
 			attributes.add(attribute);
@@ -110,5 +119,9 @@ final class RecordComponentCollector {
 		return FluentIterable.from(factoryMethodElement.getThrownTypes())
 				.transform(Functions.toStringFunction())
 				.toList();
+	}
+
+	private Reporter report(Element type) {
+		return Reporter.from(protoclass.processing()).withElement(type);
 	}
 }

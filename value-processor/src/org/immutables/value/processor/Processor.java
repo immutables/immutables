@@ -46,6 +46,7 @@ import java.util.Set;
     FactoryMirror.QUALIFIED_NAME,
     FConstructorMirror.QUALIFIED_NAME,
     FBuilderMirror.QUALIFIED_NAME,
+    VBuilderMirror.QUALIFIED_NAME,
     FIncludeMirror.QUALIFIED_NAME,
     EncodingMirror.QUALIFIED_NAME,
     CriteriaMirror.QUALIFIED_NAME,
