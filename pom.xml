@@ -42,7 +42,7 @@
     <module>gson</module>
 <!-- disable for now, maybe build will not timeout-->
 <!--    <module>criteria</module>-->
-<!--    <module>mongo</module>-->
+    <module>mongo</module>
     <module>func</module>
     <module>data</module>
     <module>value-processor</module>
