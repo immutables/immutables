@@ -118,13 +118,13 @@
       <version>${jackson.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <!-- test to ensure that Mongo and Criteria can co-exists. Annotations will be enabled at compile time -->
+<!--    <dependency>
+      &lt;!&ndash; test to ensure that Mongo and Criteria can co-exists. Annotations will be enabled at compile time &ndash;&gt;
       <groupId>org.immutables</groupId>
       <artifactId>criteria-common</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
-    </dependency>
+    </dependency>-->
   </dependencies>
 
   <profiles>
