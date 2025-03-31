@@ -209,6 +209,29 @@ public class ValuesTest {
   }
 
   @Test
+  public void legacySourceOrdering() {
+    check(ImmutableLegacyAttributeOrdering.SourceOrderingEntity.builder()
+        .b(2)
+        .a(1)
+        .z(4)
+        .y(3)
+        .build()).hasToString("SourceOrderingEntity{z=4, y=3, b=2, a=1}");
+  }
+
+  @Test
+  public void moreLegacySourceOrdering() {
+    check(ImmutableLegacyAttributeOrdering.D.builder()
+        .a1(1)
+        .a2(2)
+        .b1(3)
+        .b2(4)
+        .c1(5)
+        .c2(6)
+        .d(7)
+        .build()).hasToString("D{d=7, b1=3, b2=4, a1=1, a2=2, c1=5, c2=6}");
+  }
+
+  @Test
   @SuppressWarnings("CheckReturnValue")
   public void requiredAttributesSetChecked() {
     try {

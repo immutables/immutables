@@ -1671,6 +1671,19 @@ public @interface Value {
     boolean jakarta() default false;
 
     /**
+     * When set to {@code true}, processor will switch to legacy accessor (attribute)
+     * source ordering traversal method. Prior to <em>Immutables</em> {@code v2.7.5},
+     * the source ordering was defined be a "shallow-first" approach, where accessors
+     * from the child class were added first, then the superclass, then the interfaces.
+     * This changed in {@code v2.7.5}, where the order became interfaces, then superclass,
+     * then child class, this is current default traversal order. In addition to a style
+     * attribute, this behaviour can be also set via JVM boolean property (a {@code -D} one)
+     * {@code org.immutables.useLegacyAccessorOrdering=true}
+     * @return {@code true} if enabled. The default is {@code false}
+     */
+    boolean legacyAccessorOrdering() default false;
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * construction methods. Builder visibility will follow.

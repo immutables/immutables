@@ -115,7 +115,9 @@ final class AccessorAttributesCollector {
       accessorsInSourceOrder = SourceOrdering.getEnclosedElements(originalType);
     } else {
       AccessorProvider provider =
-          SourceOrdering.getAllAccessorsProvider(processing.getElementUtils(), processing.getTypeUtils(), originalType);
+          SourceOrdering.getAllAccessorsProvider(
+              processing.getElementUtils(), processing.getTypeUtils(), originalType,
+              styles.style().legacyAccessorOrdering());
       accessorsInSourceOrder = provider.get();
       accessorMapping = provider.accessorMapping();
     }

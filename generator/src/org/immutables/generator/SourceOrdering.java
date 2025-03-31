@@ -164,29 +164,28 @@ public final class SourceOrdering {
     ImmutableList<ExecutableElement> get();
   }
 
-  public interface TraversalOrdering {
-    void traverse(@Nullable TypeElement element, Set<TypeElement> linearizedTypes);
+  private static abstract class TraversalOrdering {
+    abstract void traverse(@Nullable TypeElement element, Set<TypeElement> linearizedTypes);
 
-    default Set<TypeElement> traverseElements(@Nullable TypeElement element) {
+    Set<TypeElement> traverseElements(@Nullable TypeElement element) {
       Set<TypeElement> linearizedTypes = new LinkedHashSet<>();
       traverse(element, linearizedTypes);
       return linearizedTypes;
     }
 
-    default void traverseInterfaces(TypeElement element, Set<TypeElement> linearizedTypes) {
+    final void traverseInterfaces(TypeElement element, Set<TypeElement> linearizedTypes) {
       for (TypeMirror implementedInterface : element.getInterfaces()) {
         traverse(toElement(implementedInterface), linearizedTypes);
       }
     }
 
-    default void traverseSuperclass(TypeElement element, Set<TypeElement> linearizedTypes) {
+    final void traverseSuperclass(TypeElement element, Set<TypeElement> linearizedTypes) {
       if (element.getKind().isClass()) {
         traverse(toElement(element.getSuperclass()), linearizedTypes);
       }
     }
 
-    @Nullable
-    default TypeElement toElement(TypeMirror type) {
+    @Nullable TypeElement toElement(TypeMirror type) {
       if (type.getKind() == TypeKind.DECLARED) {
         return (TypeElement) ((DeclaredType) type).asElement();
       }
@@ -194,16 +193,14 @@ public final class SourceOrdering {
         //noinspection CatchMayIgnoreException
         try {
           return (TypeElement) ((DeclaredType) type).asElement();
-        } catch (Exception bestEffortToHandleErrorElement) {
-        }
+        } catch (Exception bestEffortToHandleErrorElement) {}
       }
       return null;
     }
   }
 
-  static class TopDownOrdering implements TraversalOrdering {
-    @Override
-    public void traverse(@Nullable TypeElement element, Set<TypeElement> linearizedTypes) {
+  private static class TopDownOrdering extends TraversalOrdering {
+    @Override void traverse(@Nullable TypeElement element, Set<TypeElement> linearizedTypes) {
       if (element == null || isJavaLangObject(element)) {
         return;
       }
@@ -220,9 +217,8 @@ public final class SourceOrdering {
    * immutables and can hinder migration efforts for some clients. We've introduced this legacy
    * ordering under the system flag {@code org.immutables.useLegacyAccessorOrdering=true}
    */
-  static class BottomUpOrdering implements TraversalOrdering {
-    @Override
-    public void traverse(@Nullable TypeElement element, Set<TypeElement> linearizedTypes) {
+  private static class BottomUpOrdering extends TraversalOrdering {
+    @Override void traverse(@Nullable TypeElement element, Set<TypeElement> linearizedTypes) {
       if (element == null || isJavaLangObject(element)) {
         return;
       }
@@ -234,23 +230,33 @@ public final class SourceOrdering {
   }
 
   /**
-   * While we have {@link SourceOrdering}, there's still a problem: We have inheritance hierarchy
-   * and
-   * we want to have all defined or inherited accessors returned as members of target type, like
-   * {@link Elements#getAllMembers(TypeElement)}, but we need to have them properly and stably
-   * sorted.
+   * @see #getAllAccessorsProvider(Elements, Types, TypeElement, boolean)
+   */
+  public static AccessorProvider getAllAccessorsProvider(
+      Elements elements,
+      Types types,
+      TypeElement originatingType) {
+     return getAllAccessorsProvider(elements, types, originatingType, false);
+  }
+  /**
+   * While we have {@link SourceOrdering}, there's still a problem: We have inheritance hierarchy,
+   * and we want to have all defined or inherited accessors returned as members of target type,
+   * like {@link Elements#getAllMembers(TypeElement)},
+   * but we need to have them properly and stably sorted.
    * This implementation doesn't try to correctly resolve order for accessors inherited from
    * different supertypes(interfaces), just something that stable and reasonable wrt source ordering
    * without handling complex cases.
    * @param elements the elements utility
    * @param types the types utility
    * @param originatingType the type to traverse
+   * @param useLegacyAccessorOrdering switch to legacy, pre 2.7.5 accessor ordering
    * @return provider of all accessors in source order and mapping
    */
   public static AccessorProvider getAllAccessorsProvider(
-      final Elements elements,
-      final Types types,
-      final TypeElement originatingType) {
+      Elements elements,
+      Types types,
+      TypeElement originatingType,
+      boolean useLegacyAccessorOrdering) {
 
     class CollectedOrdering extends Ordering<Element> {
       class Intratype {
@@ -270,7 +276,7 @@ public final class SourceOrdering {
         }
       }
 
-      final boolean useLegacyMode = Boolean.getBoolean("org.immutables.useLegacyAccessorOrdering");
+      final boolean useLegacyMode = useLegacyAccessorOrdering || USE_LEGACY_ACCESSOR_ORDERING;
       final Map<String, Intratype> accessorOrderings = new LinkedHashMap<>();
       final ArrayListMultimap<String, TypeElement> accessorMapping = ArrayListMultimap.create();
       final Predicate<String> includeAccessorInOrdering = useLegacyMode
@@ -279,8 +285,9 @@ public final class SourceOrdering {
       final Set<TypeElement> linearizedTypes;
 
       CollectedOrdering() {
-        linearizedTypes = useLegacyMode ? new BottomUpOrdering().traverseElements(originatingType)
-          : new TopDownOrdering().traverseElements(originatingType);
+        linearizedTypes = useLegacyMode
+            ? new BottomUpOrdering().traverseElements(originatingType)
+            : new TopDownOrdering().traverseElements(originatingType);
         collectAccessors();
       }
 
@@ -408,4 +415,7 @@ public final class SourceOrdering {
   static boolean isJavaLangObject(TypeElement element) {
     return element.getQualifiedName().contentEquals(Object.class.getName());
   }
+
+  private static final boolean USE_LEGACY_ACCESSOR_ORDERING =
+      Boolean.getBoolean("org.immutables.useLegacyAccessorOrdering");
 }

@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Immutables Authors and Contributors
+   Copyright 2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@ package org.immutables.fixture;
 
 import org.immutables.value.Value;
 
+@Value.Style(legacyAccessorOrdering = true)
 @Value.Enclosing
-public interface AttributeOrdering {
+public interface LegacyAttributeOrdering {
 
   interface A {
     int a1();
@@ -59,4 +60,5 @@ public interface AttributeOrdering {
     @Override
     public abstract int y();
   }
+
 }

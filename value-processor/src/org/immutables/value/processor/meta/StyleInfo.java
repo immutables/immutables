@@ -468,6 +468,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract boolean jakarta();
 
+  @Value.Parameter
+  @Override
+  public abstract boolean legacyAccessorOrdering();
+
   static StyleInfo infoFrom(StyleMirror input) {
     return ImmutableStyleInfo.of(
         input.get(),
@@ -566,6 +570,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         ImmutableSet.copyOf(input.allowedClasspathAnnotationsName()),
         input.fallbackNullableAnnotationName(),
         input.limitStringLengthInToString(),
-        input.jakarta());
+        input.jakarta(),
+        input.legacyAccessorOrdering());
   }
 }
