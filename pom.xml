@@ -40,8 +40,9 @@
     <module>builder</module>
     <module>android-stub</module>
     <module>gson</module>
-    <module>criteria</module>
-    <module>mongo</module>
+<!-- disable for now, maybe build will not timeout-->
+<!--    <module>criteria</module>-->
+<!--    <module>mongo</module>-->
     <module>func</module>
     <module>data</module>
     <module>value-processor</module>

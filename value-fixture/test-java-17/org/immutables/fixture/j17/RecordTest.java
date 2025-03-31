@@ -63,11 +63,22 @@ public class RecordTest {
 				.build();
 	}
 
-	@Ignore @Test public void builderInBuilder() {
+	@Test public void factoryBuilderWithDefault() {
+		var result = Recss.factoryBuilder()
+				.left("A")
+				.right("1")
+				.build();
+		check(result).is("A::1");
+	}
+
+	@Test public void builderInBuilder() {
 		// TODO using nested builder
-		Recss.anotherBuilder()
+		var aaa = Recss.anotherBuilder()
 				.buildme(new Recs.One(1))
 				.andme(new Recs.Two("AAA"))
 				.build();
+
+		check(aaa.buildme().aaa()).is(1);
+		check(aaa.andme().bbb()).is("AAA");
 	}
 }

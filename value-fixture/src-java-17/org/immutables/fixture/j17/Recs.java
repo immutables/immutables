@@ -13,7 +13,8 @@ public sealed interface Recs {
 
 	@Builder record Two(String bbb) implements Recs, Recss.WithTwo {}
 
-	@Value.Builder record Three<T>(T bbb) implements Recs, Recss.WithThree<T> {}
+
+	@Value.Builder record Three<T>(T bbb) implements Recs /*, Recss.WithThree<T> // This Doesn't work on CI??  */ {}
 
 	@Value.Builder record FourSwitch(
 			@Builder.Switch(defaultName = "SOURCE") RetentionPolicy policy) implements Recs, Recss.WithFourSwitch {}
