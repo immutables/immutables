@@ -1244,9 +1244,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     validateTypeAndAnnotations();
 
     initAttributeValueType();
-    if (supportBuiltinContainerTypes()) {
-      initImmutableCopyOf();
-    }
+    initImmutableCopyOf();
 
     initAttributeBuilder();
     maybeInitJavaBean();
@@ -1377,7 +1375,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   private void initAttributeValueType() {
-
     if ((style().deepImmutablesDetection()
         || style().attributeBuilderDetection()
         || containingType.isGenerateCriteria())
@@ -1456,18 +1453,46 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   private void initTypeKind() {
+    boolean ensureTypeIntrospected = false;
+    boolean applyMaybeEnumContainedType = false;
+
     if (instantiation != null) {
       typeKind = AttributeTypeKind.ENCODING;
     } else if (isGenerateDerived) {
       typeKind = AttributeTypeKind.REGULAR;
-      ensureTypeIntrospected();
+      ensureTypeIntrospected = true;
     } else if (returnType.getKind() == TypeKind.ARRAY) {
       typeKind = AttributeTypeKind.ARRAY;
-      ensureTypeIntrospected();
+      ensureTypeIntrospected = true;
     } else {
       typeKind = AttributeTypeKind.forRawType(rawTypeName);
+      ensureTypeIntrospected = true;
+      if (!typeKind.isRegular()) {
+        applyMaybeEnumContainedType = true;
+      }
+    }
+
+    if (!typeKind.isRegular() && !supportBuiltinContainerTypes()) {
+      if (typeKind.isOptionalKind()) {
+        isSuppressedOptional = true;
+      }
+      applyMaybeEnumContainedType = false;
+      typeKind = AttributeTypeKind.REGULAR;
+    }
+
+    // This (boolean vars and check here) is an artifact of rearranging things,
+    // so that some logic happening after that will be correct,
+    // in particular, call to initAttributeValueType() should work on the outer type
+    // stored in containedTypeElement,
+    // not inner element type of container, which would be no longer a container due to
+    // supportBuiltinContainerTypes() logic above, which makes it not a container,
+    // overall it's dumb, but it's too late to make it correct and not break too much of
+    // functionality.
+    if (ensureTypeIntrospected) {
       ensureTypeIntrospected();
-      typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumContainedElementType());
+      if (applyMaybeEnumContainedType) {
+        typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumContainedElementType());
+      }
     }
   }
 
@@ -1529,12 +1554,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   private void validateTypeAndAnnotations() {
-    boolean wasOptional = isOptionalType();
-
-    if (!typeKind.isRegular() && !supportBuiltinContainerTypes()) {
-      typeKind = AttributeTypeKind.REGULAR;
-    }
-
     if (typeKind.isContainerKind() && typeParameters.isEmpty()) {
       typeKind = AttributeTypeKind.REGULAR;
       if (!SuppressedWarnings.forElement(element, false, false).rawtypes) {
@@ -1618,10 +1637,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       typeKind = AttributeTypeKind.REGULAR;
       report().warning(About.UNTYPE,
           "Optional<Optional<*>> is turned into regular attribute to avoid ambiguity problems");
-    }
-
-    if (wasOptional && !isOptionalType()) {
-      isSuppressedOptional = true;
     }
   }
 
