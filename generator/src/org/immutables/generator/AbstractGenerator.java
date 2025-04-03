@@ -90,7 +90,11 @@ public abstract class AbstractGenerator extends AbstractProcessor {
   public final boolean process(Set<? extends TypeElement> annotations, RoundEnvironment round) {
     try {
       env.initRound(annotations, round);
-      if (!round.processingOver() && !round.errorRaised()) { // idk if we should ignore errorRaised
+
+      if (!round.processingOver()) {
+        // removed error raised check: && !round.errorRaised()
+        // It would be worse to cancel generation, more symbol not found problems
+        // will clog the errors output
         process();
       }
       env.completeRound();
