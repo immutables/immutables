@@ -1,5 +1,5 @@
 [--
-   Copyright 2014-2021 Immutables Authors and Contributors
+   Copyright 2014-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -2308,7 +2308,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
-  [if v.jacksonAnyGetter]@com.fasterxml.jackson.annotation.JsonAnySetter[/if]
+  [if v.jacksonAnyGetter]@[jackson].annotation.JsonAnySetter[/if]
   [builderInitAccess v]final [builderReturnType type] [v.names.put]([atElementNullable v][uK] key, [atElementNullable v][uV] value) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
@@ -3271,7 +3271,7 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
 [/output.trim][/template]
 
 [template generateJacksonMapped Type type]
-[if type.generateJacksonMapped and (classpath.available 'com.fasterxml.jackson.annotation.JsonCreator')]
+[if type.generateJacksonMapped and (classpath.available (jackson '.annotation.JsonCreator'))]
   [if type.jacksonValue]
 [for jval = type.jacksonValue]
 
@@ -3282,10 +3282,10 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
  * @deprecated Do not use this method directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
-[if classpath.available 'com.fasterxml.jackson.annotation.JsonCreator.Mode']
-@com.fasterxml.jackson.annotation.JsonCreator(mode = com.fasterxml.jackson.annotation.JsonCreator.Mode.DELEGATING)
+[if classpath.available (jackson '.annotation.JsonCreator.Mode')]
+@[jackson].annotation.JsonCreator(mode = [jackson].annotation.JsonCreator.Mode.DELEGATING)
 [else]
-@com.fasterxml.jackson.annotation.JsonCreator
+@[jackson].annotation.JsonCreator
 [/if]
 static[type.generics.def] [type.typeImmutable.relative] fromJson([jval.type] jsonValue) {
 [let cast][if type.constitution.returnsAbstractValueType or type.innerBuilder.isExtending]([type.typeImmutable.relative]) [/if][/let]
@@ -3333,7 +3333,7 @@ itself immutable. Since it's private, that's benign. --]
 [hiddenMutableState type]
 [overrideJsonDeserialize type]
 [overrideJsonTypeInfo type]
-@com.fasterxml.jackson.annotation.JsonAutoDetect(fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE)
+@[jackson].annotation.JsonAutoDetect(fieldVisibility = [jackson].annotation.JsonAutoDetect.Visibility.NONE)
 static final [output.linesShortable]class Json[type.generics]
     [extendsImplements type][/output.linesShortable]
   [serialVersionUID type]
@@ -3374,7 +3374,7 @@ static final [output.linesShortable]class Json[type.generics]
 [/for]
 [for v in type.settableAttributes if v.jacksonAnyGetter]
 
-  @com.fasterxml.jackson.annotation.JsonAnySetter
+  @[jackson].annotation.JsonAnySetter
   public void set[toUpper v.name]([v.wrappedFirstElementType] key, [v.wrappedSecondaryElementType] value) {
     this.[v.name].put(key, value);
   }
@@ -3385,7 +3385,7 @@ static final [output.linesShortable]class Json[type.generics]
 [/for]
 [for v in type.allAccessibleAttributes]
   [if v.isGenerateDerived]
-  @com.fasterxml.jackson.annotation.JsonIgnore
+  @[jackson].annotation.JsonIgnore
   [/if]
   @Override[-- we actually don't need this implementation, signature is good enough --]
   [v.toSignature] { throw new UnsupportedOperationException(); }
@@ -3400,10 +3400,10 @@ static final [output.linesShortable]class Json[type.generics]
  * @deprecated Do not use this method directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
-[if classpath.available 'com.fasterxml.jackson.annotation.JsonCreator.Mode']
-@com.fasterxml.jackson.annotation.JsonCreator(mode = com.fasterxml.jackson.annotation.JsonCreator.Mode.DELEGATING)
+[if classpath.available (jackson 'annotation.JsonCreator.Mode')]
+@[jackson].annotation.JsonCreator(mode = [jackson].annotation.JsonCreator.Mode.DELEGATING)
 [else]
-@com.fasterxml.jackson.annotation.JsonCreator
+@[jackson].annotation.JsonCreator
 [/if]
 static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.generics.args] json) {
 [let cast][if type.constitution.returnsAbstractValueType or type.innerBuilder.isExtending]([type.typeImmutable.relative]) [/if][/let]
@@ -3486,12 +3486,12 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [/if]
   [/if]
  */
-[for a in v.annotations if a ne '@com.fasterxml.jackson.annotation.JsonAnyGetter']
+[for a in v.annotations if a ne ('@' jackson '.annotation.JsonAnyGetter')]
 [a]
 [/for]
 [for anj in v.accessorInjectedAnnotations][anj][/for]
-[if v.jacksonAnyGetter]@com.fasterxml.jackson.annotation.JsonAnyGetter[/if]
-[if v.jacksonValue]@com.fasterxml.jackson.annotation.JsonValue[/if]
+[if v.jacksonAnyGetter]@[jackson].annotation.JsonAnyGetter[/if]
+[if v.jacksonValue]@[jackson].annotation.JsonValue[/if]
 [deprecation v]
 @Override
   [if v.encoding]
@@ -5126,11 +5126,11 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template functionClass][if classpath.isJava8]java.util.function.Function[else][guava].base.Function[/if][/template]
 
-[template overrideJsonDeserialize Type type][if type.jacksonDeserialized]@com.fasterxml.jackson.databind.annotation.JsonDeserialize[/if][/template]
+[template overrideJsonDeserialize Type type][if type.jacksonDeserialized]@[jackson].databind.annotation.JsonDeserialize[/if][/template]
 
-[template overrideJsonTypeInfo Type type][if type.jacksonJsonTypeInfo]@com.fasterxml.jackson.annotation.JsonTypeInfo(use=com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NONE)[/if][/template]
+[template overrideJsonTypeInfo Type type][if type.jacksonJsonTypeInfo]@[jackson].annotation.JsonTypeInfo(use=[jackson].annotation.JsonTypeInfo.Id.NONE)[/if][/template]
 
-[template jsonIgnore Type type][if type.generateJacksonIngoreFields]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
+[template jsonIgnore Type type][if type.generateJacksonIngoreFields]@[jackson].annotation.JsonIgnore[/if][/template]
 
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
 

@@ -74,7 +74,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   private static final WholeTypeVariable NON_WHOLE_TYPE_VARIABLE = new WholeTypeVariable(-1);
   private static final int CONSTRUCTOR_PARAMETER_DEFAULT_ORDER = 0;
   private static final int CONSTRUCTOR_NOT_A_PARAMETER = -1;
-  private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.typeString("collect.Immutable");
+  private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.qualify("collect.Immutable");
   private static final String VALUE_ATTRIBUTE_NAME = "value";
   private static final String ID_ATTRIBUTE_NAME = "_id";
   private static final String[] EMPTY_SERIALIZED_NAMES = {};

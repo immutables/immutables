@@ -1,5 +1,5 @@
 /*
-   Copyright 2014-2019 Immutables Authors and Contributors
+   Copyright 2014-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package org.immutables.value.processor.meta;
 import com.google.common.base.MoreObjects;
 import javax.annotation.Nullable;
 
-public final class UnshadeGuava {
-  // hiding default prefix from accidental shading (via .concat)
+public final class UnshadeJackson {
+  // not sure if it's needed here, but also hiding default prefix from accidental shading (via .concat)
   // i.e. shading tools can mangle string constants which have fully qualified name prefix
   // of the package which is going to be relocated. We use this for Guava, as we use it
-  // internally and shade it.
-  private static final String GUAVA_PREFIX =
-      System.getProperty("guava.prefix", "com.go".concat("ogle.common"));
+  // internally and shade it. We don't shade Jackson, but if someone builds a fork of Immutables,
+  // this might be a possibility.
+  private static final String JACKSON_PREFIX =
+      System.getProperty("jackson.prefix", "com.fast".concat("erxml.jackson"));
 
   private static volatile @Nullable String prefixOverride;
 
@@ -37,6 +38,6 @@ public final class UnshadeGuava {
   }
 
   public static String prefix() {
-    return MoreObjects.firstNonNull(prefixOverride, GUAVA_PREFIX);
+    return MoreObjects.firstNonNull(prefixOverride, JACKSON_PREFIX);
   }
 }

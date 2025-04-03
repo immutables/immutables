@@ -35,19 +35,17 @@ final class Annotations {
 
   private static final String PREFIX_JAVA_LANG = "java.lang.";
   private static final String PREFIX_IMMUTABLES = "org.immutables.";
-  private static final String PREFIX_JACKSON = "com.fasterxml.jackson.";
+  private static final String PREFIX_JACKSON = UnshadeJackson.qualify("");
   private static final String PREFIX_JACKSON_IGNORE_PROPERTIES =
-      "com.fasterxml.jackson.annotation.JsonIgnoreProperties";
+      UnshadeJackson.qualify("annotation.JsonIgnoreProperties");
   static final String JACKSON_PROPERTY =
-      "com.fasterxml.jackson.annotation.JsonProperty";
+      UnshadeJackson.qualify("annotation.JsonProperty");
 
   static final String JACKSON_ANY_GETTER =
-      "com.fasterxml.jackson.annotation.JsonAnyGetter";
+      UnshadeJackson.qualify("annotation.JsonAnyGetter");
 
   static final String JACKSON_VALUE =
-      "com.fasterxml.jackson.annotation.JsonValue";
-
-  static final String NULLABLE_SIMPLE_NAME = "Nullable";
+      UnshadeJackson.qualify("annotation.JsonValue");
 
   static final String JAVAX_NULLABLE = "javax.annotation.Nullable";
   static final String JAVAX_CHECK_FOR_NULL = "javax.annotation.CheckForNull";

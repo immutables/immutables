@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
-import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,7 +62,6 @@ import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.meta.AnnotationInjections.AnnotationInjection;
 import org.immutables.value.processor.meta.AnnotationInjections.InjectionInfo;
-import org.immutables.value.processor.meta.BuilderMirrors.FBuilder;
 import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.verify;
@@ -342,13 +340,13 @@ public class Proto {
      * {@code base.MoreObjects} then {@code base.Objects}.
      * Return {@code null} if not found.
      * @return full class name for Guava's {@code MoreObjects} / {@code Objects} or {@code null} if
-     *         such class doesn't exists in classpath
+     *         such class doesn't exist in classpath
      */
     @Nullable
     @Value.Lazy
     String typeMoreObjects() {
       for (String shortName : Arrays.asList("base.MoreObjects", "base.Objects")) {
-        final String name = UnshadeGuava.typeString(shortName);
+        final String name = UnshadeGuava.qualify(shortName);
         if (hasElement(name)) {
           return name;
         }
@@ -2053,10 +2051,10 @@ public class Proto {
   }
 
   static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.ordinal.OrdinalValue";
-  static final String JACKSON_TYPE_INFO = "com.fasterxml.jackson.annotation.JsonTypeInfo";
-  static final String JACKSON_DESERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonDeserialize";
-  static final String JACKSON_SERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonSerialize";
-  static final String JACKSON_ANNOTATIONS_INSIDE = "com.fasterxml.jackson.annotation.JacksonAnnotationsInside";
+  static final String JACKSON_TYPE_INFO = UnshadeJackson.qualify("annotation.JsonTypeInfo");
+  static final String JACKSON_DESERIALIZE = UnshadeJackson.qualify("databind.annotation.JsonDeserialize");
+  static final String JACKSON_SERIALIZE = UnshadeJackson.qualify("databind.annotation.JsonSerialize");
+  static final String JACKSON_ANNOTATIONS_INSIDE = UnshadeJackson.qualify("annotation.JacksonAnnotationsInside");
   static final String PARCELABLE_INTERFACE_TYPE = "android.os.Parcelable";
   static final String PARCELABLE_CREATOR_FIELD = "CREATOR";
 }

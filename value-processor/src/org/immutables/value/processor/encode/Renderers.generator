@@ -283,10 +283,10 @@ private [inst.typer f.type] [inst.namer f] {
 [template annotsJI Attribute s Elem el]
 [eachLine s.fieldInjectedAnnotations]
 [if s.containingType.generateJacksonIngoreFields]
-[for a in el.annotations if not (a startsWith '@com.fasterxml.jackson.annotation.JsonIgnore')]
+[for a in el.annotations if not (a startsWith ('@' jackson '.annotation.JsonIgnore'))]
 [a]
 [/for]
-@com.fasterxml.jackson.annotation.JsonIgnore
+@[jackson].annotation.JsonIgnore
 [else]
 [annots el]
 [/if]
