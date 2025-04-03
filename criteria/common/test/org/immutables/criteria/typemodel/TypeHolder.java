@@ -442,6 +442,7 @@ public interface TypeHolder {
   /**
    * Definitions which usually don't make sense
    */
+  @Value.Style(forceEqualsInWithers = true)
   @Value.Immutable
   @Criteria
   @Criteria.Repository
