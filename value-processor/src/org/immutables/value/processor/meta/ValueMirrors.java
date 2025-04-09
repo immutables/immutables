@@ -327,6 +327,8 @@ public final class ValueMirrors {
 
     boolean legacyAccessorOrdering() default false;
 
+    boolean builderToString() default false;
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

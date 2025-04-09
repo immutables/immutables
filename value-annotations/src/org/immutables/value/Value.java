@@ -1684,6 +1684,16 @@ public @interface Value {
     boolean legacyAccessorOrdering() default false;
 
     /**
+     * When set to {@code true}, processor will generate {@code toString()} method on builders,
+     * which would be safe to call at any time. It will output values of the attributes set so far,
+     * and will also list required attributes which are not set yet. Historically, we've tried that
+     * our default generated code be compact, with only handful of conveniences,
+     * so {@code toString()} on builders are only generated if this flag is turned on.
+     * @return {@code true} if enabled. The default is {@code false}
+     */
+    boolean builderToString() default false;
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * construction methods. Builder visibility will follow.

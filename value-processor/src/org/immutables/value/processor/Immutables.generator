@@ -2708,6 +2708,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/if]
   [/if]
   [rr.builderHelperMethods setters]
+[if type.generateBuilderToString]
+  [generateToStringOnBuilder type]
+[/if]
 [if type.constitution.hasImmutableInBuilder]
   [generateImmutable type false]
   [if type.generateWithInterface]
@@ -2720,7 +2723,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 [if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
   [collectionUtility type]
 [/if]
-[if type.detectAttributeBuilders]
+[if type.detectAttributeBuilders][--???? TODO kill it? ]
   [attributeBuilderTransformUtilities type]
 [/if]
 }
@@ -3835,6 +3838,51 @@ public String toString() {
   [/if]
 }
 [/if]
+[/template]
+
+[template generateToStringOnBuilder Type type]
+
+/**
+ * Prints builder's state, all attributes set so far, and lists required,
+ * but not yet initialized attributes.
+ */
+@Override
+public String toString() {
+  java.lang.StringBuilder builder = new java.lang.StringBuilder("[type.typeBuilderImpl.relativeRaw]{");
+  [for v in type.equivalenceAttributes]
+    [if v.redactedCompletely][-- Nothing --]
+    [else if v.hasConstantDefault]
+  builder.append("[v.names.raw]").append([literal v.constantDefault]).append(", ");
+    [else if not (v.canUseNullAsUndefined or v.mandatory)]
+  builder.append("[v.names.raw]").append([maybeMasked v][valueFromBuilder v 'this.'][/maybeMasked]).append(", ");
+    [else]
+      [if v.canUseNullAsUndefined]
+  if ([valueFromBuilder v 'this.'] == null) {
+      [else]
+  if ([v.names.isSet]()) {
+      [/if]
+      [if v.encoding]
+    builder.append("[v.names.raw]=").append([maybeMasked v][valueFromBuilder v 'this.'][/maybeMasked]).append(", ");
+      [else if v.arrayType]
+    builder.append("[v.names.raw]=").append([maybeMasked v]java.util.Arrays.toString([valueFromBuilder v 'this.'])[/maybeMasked]).append(", ");
+      [else if v.jdkOptional]
+    builder.append("[v.names.raw]=").append([maybeMasked v][valueFromBuilder v 'this.'][/maybeMasked]).append(", ");
+      [else if v.guavaOptional]
+    builder.append("[v.names.raw]=").append([maybeMasked v][valueFromBuilder v 'this.'].orNull()[/maybeMasked]).append(", ");
+      [else if v.optionalType]
+    builder.append("[v.names.raw]=").append([maybeMasked v][valueFromBuilder v 'this.'].[optionalPresent v] ? [v.name].[optionalGet v] : null[/maybeMasked]).append(", ");
+      [else]
+    builder.append("[v.names.raw]=").append([maybeMasked v][v.name][/maybeMasked]).append(", ");
+      [/if]
+  }[if v.mandatory] else {
+    builder.append("[v.names.raw] <missing>").append(", ");
+  }[/if]
+    [/if]
+  [/for]
+  int maybeTrailingComma = builder.length() - 2;
+  if (builder.charAt(maybeTrailingComma) == ',') builder.setLength(maybeTrailingComma);
+  return builder.append('}').toString();
+}
 [/template]
 
 [template generateDerivedConstruction Type type Attribute... constructorArgs]

@@ -1,5 +1,5 @@
 /*
-   Copyright 2013-2018 Immutables Authors and Contributors
+   Copyright 2013-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -277,6 +277,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isGenerateBuildOrThrow() {
     return !style().buildOrThrow().isEmpty();
+  }
+
+  public boolean isGenerateBuilderToString() {
+    return style().builderToString();
   }
 
   public boolean isGenerateCanBuild() {
@@ -1584,6 +1588,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return !kind().isFactory()
         && !isUseStrictBuilder()
         && !isGenerateBuildOrThrow()
+        && !isGenerateBuilderToString()
         && !getThrowForInvalidImmutableState().isCustom;
   }
 
