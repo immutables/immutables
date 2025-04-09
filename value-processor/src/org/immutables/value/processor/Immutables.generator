@@ -3853,11 +3853,15 @@ public String toString() {
     [if v.redactedCompletely][-- Nothing --]
     [else if v.hasConstantDefault]
   builder.append("[v.names.raw]").append([literal v.constantDefault]).append(", ");
+    [else if v.arrayType and v.nullable]
+  if ([valueFromBuilder v 'this.'] != null) {
+    builder.append("[v.names.raw]=").append([maybeMasked v]java.util.Arrays.toString([valueFromBuilder v 'this.'])[/maybeMasked]).append(", ");
+  }
     [else if not (v.canUseNullAsUndefined or v.mandatory)]
   builder.append("[v.names.raw]").append([maybeMasked v][valueFromBuilder v 'this.'][/maybeMasked]).append(", ");
     [else]
       [if v.canUseNullAsUndefined]
-  if ([valueFromBuilder v 'this.'] == null) {
+  if ([valueFromBuilder v 'this.'] != null) {
       [else]
   if ([v.names.isSet]()) {
       [/if]
