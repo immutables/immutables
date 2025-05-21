@@ -577,7 +577,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
   [deprecation v]
   default [type.typeValue.relative] [v.names.with]([v.atNullability][v.elementType]... elements) {
     [recordSelf type]
-    [if type.forceEqualsInWithers]
+    [if v.forceEqualsInWithers]
     if (java.util.Arrays.equals(self.[v.name](), elements)) return self;
     [/if]
     [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if]elements.clone();
@@ -623,7 +623,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
   [deprecation v]
   default [type.typeValue.relative] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
     [recordSelf type]
-    [if type.forceEqualsInWithers]
+    [if v.forceEqualsInWithers]
     if ([objectsEqual type](self.[v.name](), elements)) return self;
     [else]
     if (self.[v.name]() == elements) return self;
@@ -650,7 +650,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
     java.util.List<[v.wrappedElementType]> elements = self.[v.name]().stream()
         .map(operator)
         .collect(java.util.stream.Collectors.toList());
-    [if type.forceEqualsInWithers]
+    [if v.forceEqualsInWithers]
     if (self.[v.name]().equals(elements)) return self;
     [/if]
     [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'elements'];
@@ -672,23 +672,23 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
     [v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] newValue = [optionalOf v](value);
     if (self.[v.name]().equals(newValue)) return self;
     [else if v.optionalAcceptNullable]
-      [if type.forceEqualsInWithers or (v.hasSimpleScalarElementType andnot v.enumType)][-- empty then ]
+      [if v.forceEqualsInWithers or (v.hasSimpleScalarElementType andnot v.enumType)][-- empty then ]
       [else]
     if (self.[v.name]().orElse(null) == value) return self;
       [/if]
     [v.rawType]<[v.wrappedElementType]> newValue = [v.rawType].ofNullable(value);
-      [if type.forceEqualsInWithers]
+      [if v.forceEqualsInWithers]
     if (self.[v.name]().equals(newValue)) return self;
       [else if v.hasSimpleScalarElementType andnot v.enumType]
     if (self.[v.name]().equals(newValue)) return self;
       [/if]
     [else]
-      [if type.forceEqualsInWithers or (v.hasSimpleScalarElementType andnot v.enumType)][-- empty then ]
+      [if v.forceEqualsInWithers or (v.hasSimpleScalarElementType andnot v.enumType)][-- empty then ]
       [else]
     if (self.[v.name]().orElse(null) == value) return self;
       [/if]
     [v.rawType]<[v.wrappedElementType]> newValue = [optionalOf v]([maybeCopyOf v][requireNonNull type](value, "[v.name]")[/maybeCopyOf]);
-      [if type.forceEqualsInWithers]
+      [if v.forceEqualsInWithers]
     if (self.[v.name]().equals(newValue)) return self;
       [else if v.hasSimpleScalarElementType andnot v.enumType]
     if (self.[v.name]().equals(newValue)) return self;
@@ -696,7 +696,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
     [/if]
   [else]
     [immutableImplementationType v] newValue = [optionalOf v]([maybeCopyOf v]value[/maybeCopyOf]);
-    [if type.forceEqualsInWithers]
+    [if v.forceEqualsInWithers]
     if (self.[v.name]().equals(newValue)) return self;
     [else if v.hasSimpleScalarElementType andnot v.enumType]
     if (self.[v.name]().equals(newValue)) return self;
@@ -711,7 +711,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * Copy the record by setting an optional value for the [sourceDocRef v] attribute.
   [if v.jdkOptional and v.hasSimpleScalarElementType]
    * An equality check is used on inner value to prevent copying of the same value by returning {@code this}.
-  [else if v.jdkOptional andnot type.forceEqualsInWithers]
+  [else if v.jdkOptional andnot v.forceEqualsInWithers]
    * A shallow reference equality check is used on unboxed optional value to prevent copying of the same value by returning {@code this}.
   [else if v.hasSimpleScalarElementType]
    * An equality check is used to prevent copying of the same value by returning {@code this}.
@@ -727,7 +727,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
     [suppressCovariantCastForOptional v]
     [optType] newValue = [requireNonNull type](([optType]) [v.name], "[v.name]");
     [recordSelf type]
-    [if type.forceEqualsInWithers]
+    [if v.forceEqualsInWithers]
     if (self.[v.name]().equals(newValue)) return self;
     [else if v.hasSimpleScalarElementType andnot v.enumType]
     if (self.[v.name]().equals(newValue)) return self;
@@ -759,7 +759,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
     [generateReturnRecordCopy type v 'newValue']
   [else if v.jdkOptional]
     [v.type] newValue = self.[v.name]().map(operator);
-    [if type.forceEqualsInWithers]
+    [if v.forceEqualsInWithers]
     if (self.[v.name]().equals(newValue)) return self;
     [else if v.hasSimpleScalarElementType andnot v.enumType]
     if (self.[v.name]().equals(newValue)) return self;
@@ -771,7 +771,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
     if (!self.[v.name]().[optionalPresent v]) return self;
     [v.unwrappedElementType] oldValue = self.[v.name]().[optionalGet v];
     [v.unwrappedElementType] newValue = operator.apply(oldValue);
-      [if type.forceEqualsInWithers]
+      [if v.forceEqualsInWithers]
     if ([objectsEqual type](oldValue, newValue)) return self;
       [else if v.hasSimpleScalarElementType andnot v.enumType]
     if ([objectsEqual type](oldValue, newValue)) return self;
@@ -789,7 +789,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
   /**
    * Copy the record by replacing the [sourceDocRef v] map with the specified map.
    * Nulls are not permitted as keys or values.
-  [if type.forceEqualsInWithers]
+  [if v.forceEqualsInWithers]
    * Equality check is performed to prevent copying of the same value by returning {@code this}
   [else]
    * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
@@ -800,7 +800,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
   [deprecation v]
   default [type.typeAbstract.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [recordSelf type]
-    [if type.forceEqualsInWithers]
+    [if v.forceEqualsInWithers]
     if ([objectsEqual type](self.[v.name](), entries)) return self;
     [else]
     if (self.[v.name]() == entries) return self;
@@ -834,7 +834,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
     if (Double.doubleToLongBits(self.[v.name]()) == Double.doubleToLongBits(value)) return self;
       [else if v.primitive]
     if (self.[v.name]() == value) return self;
-      [else if type.forceEqualsInWithers]
+      [else if v.forceEqualsInWithers]
     if ([objectsEqual type](self.[v.name](), value)) return self;
       [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
       [-- moved to after value assignment --]
@@ -851,7 +851,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
       [else if v.primitive]
     [generateReturnRecordCopy type v 'value']
       [else if v.nullable]
-      [if type.forceEqualsInWithers][-- do nothing, in the beginning --]
+      [if v.forceEqualsInWithers][-- do nothing, in the beginning --]
       [else if v.hasSimpleScalarElementType or v.isSuppressedOptional][-- moved from conditions in the beginning of the method --]
         [if v.enumType]
     if (self.[v.name]() == value) return self;
@@ -864,7 +864,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
     [generateReturnRecordCopy type v 'value']
       [else]
     [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
-      [if type.forceEqualsInWithers][-- do nothing, handled in the beginning --]
+      [if v.forceEqualsInWithers][-- do nothing, handled in the beginning --]
       [else if v.hasSimpleScalarElementType or v.isSuppressedOptional][-- moved from conditions in the beginning of the method --]
         [if v.enumType]
     if (self.[v.name]() == newValue) return self;
@@ -889,7 +889,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
   default [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
     [recordSelf type]
     [v.atNullabilityLocal][immutableImplementationType v] value = operator.apply(self.[v.name]());
-    [if type.forceEqualsInWithers]
+    [if v.forceEqualsInWithers]
     if ([objectsEqual type](self.[v.name](), value)) return self;
     [else if v.hasSimpleScalarElementType andnot v.enumType]
     if ([objectsEqual type](self.[v.name](), value)) return self;
@@ -3985,7 +3985,7 @@ return [validated type true]new [type.typeImmutable.relativeRaw][type.generics.d
 [varargsSafety v]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.elementType]... elements) {
-  [if type.forceEqualsInWithers]
+  [if v.forceEqualsInWithers]
   if (java.util.Arrays.equals(this.[v.name], elements)) return this;
   [/if]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if]elements.clone();
@@ -4023,7 +4023,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.un
 
 /**
  * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
-[if type.forceEqualsInWithers]
+[if v.forceEqualsInWithers]
  * Equality check is performed to prevent copying of the same value by returning {@code this}
 [else]
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
@@ -4033,7 +4033,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.un
  */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
-  [if type.forceEqualsInWithers]
+  [if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], elements)) return this;
   [else]
   if (this.[v.name] == elements) return this;
@@ -4058,7 +4058,7 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
   if ([if v.nullable]this.[v.name] == null || [/if]this.[v.name].isEmpty()) return this;
   java.util.List<[v.wrappedElementType]> elements = this.[v.name].stream().map(operator)
       .collect(java.util.stream.Collectors.toList());
-  [if type.forceEqualsInWithers]
+  [if v.forceEqualsInWithers]
   if (this.[v.name].equals(elements)) return this;
   [/if]
   [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'elements'];
@@ -4080,7 +4080,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
   [else]
   [unwrappedOptionalType v] newValue = [maybeCopyOf v][requireNonNull type](value, "[v.name]")[/maybeCopyOf];
   [/if]
-  [if type.forceEqualsInWithers]
+  [if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
   [else if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
@@ -4107,7 +4107,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
  * Copy the current immutable object by setting an optional value for the [sourceDocRef v] attribute.
 [if v.jdkOptional and v.hasSimpleScalarElementType]
  * An equality check is used on inner value to prevent copying of the same value by returning {@code this}.
-[else if v.jdkOptional andnot type.forceEqualsInWithers]
+[else if v.jdkOptional andnot v.forceEqualsInWithers]
  * A shallow reference equality check is used on unboxed optional value to prevent copying of the same value by returning {@code this}.
 [else if v.hasSimpleScalarElementType]
  * An equality check is used to prevent copying of the same value by returning {@code this}.
@@ -4122,7 +4122,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
 public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
 [if v.jdkOptional]
-  [if type.forceEqualsInWithers]
+  [if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], value)) return this;
   [else if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](this.[v.name], value)) return this;
@@ -4136,7 +4136,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
     [else]
   if (this.[v.name].equals(value)) return this;
     [/if]
-  [else if type.forceEqualsInWithers]
+  [else if v.forceEqualsInWithers]
   if (this.[v.name].equals(value)) return this;
   [else]
   if (!this.[v.name].[optionalPresent v] && !value.[optionalPresent v]) return this;
@@ -4158,7 +4158,7 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
 [if v.jdkOptional]
   if (this.[v.name] == null) return this;
   [immutableImplementationType v] value = operator.apply(this.[v.name]);
-  [if type.forceEqualsInWithers]
+  [if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], value)) return this;
   [else if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](this.[v.name], value)) return this;
@@ -4169,7 +4169,7 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
   if (!this.[v.name].[optionalPresent v]) return this;
   [v.unwrappedElementType] oldValue = this.[v.name].[optionalGet v];
   [v.unwrappedElementType] newValue = operator.apply(oldValue);
-    [if type.forceEqualsInWithers]
+    [if v.forceEqualsInWithers]
   if ([objectsEqual type](oldValue, newValue)) return this;
     [else if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](oldValue, newValue)) return this;
@@ -4187,7 +4187,7 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
 /**
  * Copy the current immutable object by replacing the [sourceDocRef v] map with the specified map.
  * Nulls are not permitted as keys or values.
-[if type.forceEqualsInWithers]
+[if v.forceEqualsInWithers]
  * Equality check is performed to prevent copying of the same value by returning {@code this}
 [else]
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
@@ -4197,7 +4197,7 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
  */
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
-  [if type.forceEqualsInWithers]
+  [if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], entries)) return this;
   [else]
   if (this.[v.name] == entries) return this;
@@ -4230,7 +4230,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
     [else if v.primitive]
   if (this.[v.name] == value) return this;
-    [else if type.forceEqualsInWithers]
+    [else if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], value)) return this;
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved to after value assignment --]
@@ -4247,7 +4247,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
     [else if v.primitive]
   [generateReturnCopy type v 'value']
     [else if v.nullable]
-    [if type.forceEqualsInWithers][-- do nothing, in the beginning --]
+    [if v.forceEqualsInWithers][-- do nothing, in the beginning --]
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
       [if v.enumType]
@@ -4261,7 +4261,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [generateReturnCopy type v 'value']
     [else]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
-    [if type.forceEqualsInWithers][-- do nothing, handled in the beginning --]
+    [if v.forceEqualsInWithers][-- do nothing, handled in the beginning --]
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
     [-- moved from conditions in the beginning of the method --]
       [if v.enumType]
@@ -4286,7 +4286,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
   [v.atNullabilityLocal][immutableImplementationType v] value = operator.apply(this.[v.name]);
-  [if type.forceEqualsInWithers]
+  [if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], value)) return this;
   [else if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](this.[v.name], value)) return this;

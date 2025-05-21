@@ -921,6 +921,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     }
   }
 
+  public boolean forceEqualsInWithers() {
+    return isSuppressedOptional || containingType.forceEqualsInWithers();
+  }
+
   public AttributeTypeKind typeKind() {
     return typeKind;
   }
@@ -1493,6 +1497,14 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       if (applyMaybeEnumContainedType) {
         typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumContainedElementType());
       }
+    }
+
+    // this is another attempt to establish isSuppressedOptional in case it was somehow
+    // skipped the logic above
+    if (!isSuppressedOptional
+        //&& typeKind == AttributeTypeKind.REGULAR
+        && AttributeTypeKind.forRawType(rawTypeName).isOptionalKind()) {
+      isSuppressedOptional = true;
     }
   }
 
