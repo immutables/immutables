@@ -25,6 +25,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.common.collect.ObjectArrays;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -49,6 +51,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import org.immutables.generator.ClasspathFence;
 import org.immutables.generator.EnvironmentState;
@@ -81,6 +84,7 @@ public class Proto {
   private static class TypeFactoryAndInflater implements Runnable {
     final Type.Factory factory = new Type.Producer();
     final Inflater inflater = new Inflater(factory);
+
     @Override public void run() {}
   }
 
@@ -264,6 +268,7 @@ public class Proto {
 
   private static class MetaAnnotatedCache implements Runnable {
     final ConcurrentMap<String, MetaAnnotated> cache = new ConcurrentHashMap<>(16, 0.7f, 1);
+
     @Override public void run() {
       // these clear() calls are not strictly necessary, just subject to GC after processing or round
       // but we try to be "paranoidaly consistent"
@@ -340,7 +345,7 @@ public class Proto {
      * {@code base.MoreObjects} then {@code base.Objects}.
      * Return {@code null} if not found.
      * @return full class name for Guava's {@code MoreObjects} / {@code Objects} or {@code null} if
-     *         such class doesn't exist in classpath
+     *     such class doesn't exist in classpath
      */
     @Nullable
     @Value.Lazy
@@ -368,7 +373,7 @@ public class Proto {
     public boolean hasGsonLib() {
       return hasElement("com.google.gson.Gson");
     }
-    
+
     @Value.Lazy
     public boolean hasDatatypesModule() {
       return hasElement(DataMirror.qualifiedName());
@@ -859,9 +864,8 @@ public class Proto {
     @Override
     @Value.Lazy
     public boolean isJacksonSerialized() {
-      boolean isJacksonSerialized = super.isJacksonSerialized();
-      if (isJacksonSerialized) {
-        return isJacksonSerialized;
+      if (super.isJacksonSerialized()) {
+        return true;
       }
       Optional<DeclaringPackage> parent = namedParentPackage();
       if (parent.isPresent()) {
@@ -964,7 +968,7 @@ public class Proto {
       }
       super.collectEncodings(encodings);
     }
-    
+
     @Override
     @Value.Lazy
     public Optional<DataMirror> datatypeEnabled() {
@@ -978,6 +982,54 @@ public class Proto {
       }
       return Optional.absent();
     }
+
+    @Value.Lazy
+    public boolean isJSpecifyNullMarked() {
+      if (JSpecifyNullMarkedMirror.isPresent(element())) {
+        return true;
+      }
+
+      @Nullable Element module = getModule();
+      if (module != null && JSpecifyNullMarkedMirror.isPresent(module)) {
+        return true;
+      }
+      // let's also check parent packages
+      String parentPackageName = SourceNames.parentPackageName(element());
+      while (!parentPackageName.isEmpty()) {
+        @Nullable PackageElement parentPackage = environment().processing()
+            .getElementUtils()
+            .getPackageElement(parentPackageName);
+        if (parentPackage != null && JSpecifyNullMarkedMirror.isPresent(parentPackage)) {
+          return true;
+        }
+        parentPackageName = SourceNames.parentPackageName(parentPackageName);
+      }
+      return false;
+    }
+
+    private @Nullable Element getModule() {
+      if (getModuleOf != null) {
+        try {
+          return (Element) getModuleOf.invoke(processing().getElementUtils(), element());
+        } catch (InvocationTargetException | IllegalAccessException e) {
+          return null;
+        }
+      }
+      return null;
+    }
+  }
+
+  // we're still on Java8 language level, getModuleOf is 9+
+  // just avoiding compiler/linter problems
+  private static final @Nullable Method getModuleOf;
+  static {
+    Method method;
+    try {
+      method = Elements.class.getMethod("getModuleOf", Element.class);
+    } catch (NoSuchMethodException e) {
+      method = null;
+    }
+    getModuleOf = method;
   }
 
   @Value.Immutable
@@ -1072,6 +1124,11 @@ public class Proto {
       }
 
       return Optional.absent();
+    }
+
+    @Value.Lazy
+    public boolean isJSpecifyNullMarked() {
+      return JSpecifyNullMarkedMirror.isPresent(element());
     }
 
     @Value.Lazy
@@ -1449,7 +1506,7 @@ public class Proto {
           ? Optional.<AbstractDeclaring>of(typeDefining.get())
           : Optional.<AbstractDeclaring>absent();
     }
-    
+
     @Value.Lazy
     public Optional<DataMirror> datatypeMarker() {
       Optional<AbstractDeclaring> provider = datatypeProvider();
@@ -1538,6 +1595,22 @@ public class Proto {
         }
       }
       return packageOf().serialVersion();
+    }
+
+    @Value.Lazy
+    public boolean isJSpecifyNullMarked() {
+      if (declaringType().isPresent()) {
+        DeclaringType t = declaringType().get();
+        if (t.isJSpecifyNullMarked()) {
+          return true;
+        }
+        if (t.enclosingTopLevel().isPresent()) {
+          if (t.enclosingTopLevel().get().isJSpecifyNullMarked()) {
+            return true;
+          }
+        }
+      }
+      return packageOf().isJSpecifyNullMarked();
     }
 
     @Value.Lazy
@@ -1745,43 +1818,43 @@ public class Proto {
 
       public boolean isNested() {
         switch (this) {
-        case INCLUDED_IN_TYPE:
-        case DEFINED_NESTED_TYPE:
-          return true;
-        default:
-          return false;
+          case INCLUDED_IN_TYPE:
+          case DEFINED_NESTED_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isNestedFactoryOrConstructor() {
         switch (this) {
-        case DEFINED_NESTED_FACTORY:
-        case DEFINED_NESTED_CONSTRUCTOR:
-        case DEFINED_NESTED_RECORD:
-          return true;
-        default:
-          return false;
+          case DEFINED_NESTED_FACTORY:
+          case DEFINED_NESTED_CONSTRUCTOR:
+          case DEFINED_NESTED_RECORD:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isIncluded() {
         switch (this) {
-        case INCLUDED_IN_PACKAGE:
-        case INCLUDED_IN_TYPE:
-        case INCLUDED_ON_TYPE:
-          return true;
-        default:
-          return false;
+          case INCLUDED_IN_PACKAGE:
+          case INCLUDED_IN_TYPE:
+          case INCLUDED_ON_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isEnclosing() {
         switch (this) {
-        case DEFINED_AND_ENCLOSING_TYPE:
-        case DEFINED_ENCLOSING_TYPE:
-          return true;
-        default:
-          return false;
+          case DEFINED_AND_ENCLOSING_TYPE:
+          case DEFINED_ENCLOSING_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
@@ -1791,28 +1864,28 @@ public class Proto {
 
       public boolean isValue() {
         switch (this) {
-        case INCLUDED_IN_PACKAGE:
-        case INCLUDED_ON_TYPE:
-        case INCLUDED_IN_TYPE:
-        case DEFINED_TYPE:
-        case DEFINED_TYPE_AND_COMPANION:
-        case DEFINED_AND_ENCLOSING_TYPE:
-        case DEFINED_NESTED_TYPE:
-          return true;
-        default:
-          return false;
+          case INCLUDED_IN_PACKAGE:
+          case INCLUDED_ON_TYPE:
+          case INCLUDED_IN_TYPE:
+          case DEFINED_TYPE:
+          case DEFINED_TYPE_AND_COMPANION:
+          case DEFINED_AND_ENCLOSING_TYPE:
+          case DEFINED_NESTED_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isDefinedValue() {
         switch (this) {
-        case DEFINED_TYPE:
-        case DEFINED_TYPE_AND_COMPANION:
-        case DEFINED_AND_ENCLOSING_TYPE:
-        case DEFINED_NESTED_TYPE:
-          return true;
-        default:
-          return false;
+          case DEFINED_TYPE:
+          case DEFINED_TYPE_AND_COMPANION:
+          case DEFINED_AND_ENCLOSING_TYPE:
+          case DEFINED_NESTED_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
@@ -1823,44 +1896,44 @@ public class Proto {
 
       public boolean isConstructor() {
         switch (this) {
-        case DEFINED_CONSTRUCTOR:
-        case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
-        case INCLUDED_CONSTRUCTOR_ON_TYPE:
-          return true;
-        default:
-          return false;
+          case DEFINED_CONSTRUCTOR:
+          case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
+          case INCLUDED_CONSTRUCTOR_ON_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isFactoryNotNested() {
         switch (this) {
-        case DEFINED_FACTORY:
-        case INCLUDED_FACTORY_IN_PACKAGE:
-        case INCLUDED_FACTORY_ON_TYPE:
-        case DEFINED_CONSTRUCTOR:
-        case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
-        case INCLUDED_CONSTRUCTOR_ON_TYPE:
-          return true;
-        default:
-          return false;
+          case DEFINED_FACTORY:
+          case INCLUDED_FACTORY_IN_PACKAGE:
+          case INCLUDED_FACTORY_ON_TYPE:
+          case DEFINED_CONSTRUCTOR:
+          case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
+          case INCLUDED_CONSTRUCTOR_ON_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isFactory() {
         switch (this) {
-        case DEFINED_FACTORY:
-        case DEFINED_NESTED_FACTORY:
-        case INCLUDED_FACTORY_IN_PACKAGE:
-        case INCLUDED_FACTORY_ON_TYPE:
-        case DEFINED_CONSTRUCTOR:
-        case DEFINED_RECORD:
-        case DEFINED_NESTED_RECORD:
-        case DEFINED_NESTED_CONSTRUCTOR:
-        case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
-        case INCLUDED_CONSTRUCTOR_ON_TYPE:
-          return true;
-        default:
-          return false;
+          case DEFINED_FACTORY:
+          case DEFINED_NESTED_FACTORY:
+          case INCLUDED_FACTORY_IN_PACKAGE:
+          case INCLUDED_FACTORY_ON_TYPE:
+          case DEFINED_CONSTRUCTOR:
+          case DEFINED_RECORD:
+          case DEFINED_NESTED_RECORD:
+          case DEFINED_NESTED_CONSTRUCTOR:
+          case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
+          case INCLUDED_CONSTRUCTOR_ON_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 

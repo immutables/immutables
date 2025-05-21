@@ -17,4 +17,5 @@ package org.immutables.value.processor.meta;
 
 public interface HasStyleInfo {
   StyleInfo style();
+  boolean isJSpecifyNullMarked();
 }

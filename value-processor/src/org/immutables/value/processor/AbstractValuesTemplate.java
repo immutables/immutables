@@ -97,6 +97,9 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
       input -> {
         String annotation = input.style().fallbackNullableAnnotationName();
         if (annotation.equals(Inherited.class.getCanonicalName())) {
+          if (input.isJSpecifyNullMarked()) {
+            return "/*!typeuse @org.jspecify.annotations.Nullable*/ "; // TODO ???? use it here or
+          }
           setJaxartaFrom(input.style());
 
           String defaultNullable = jaxarta() + ".annotation.Nullable";

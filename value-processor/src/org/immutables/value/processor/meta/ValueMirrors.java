@@ -44,6 +44,12 @@ public final class ValueMirrors {
     boolean builder() default true;
   }
 
+  @Mirror.Annotation("org.jspecify.annotations.Nullable")
+  public @interface JSpecifyNullable {}
+
+  @Mirror.Annotation("org.jspecify.annotations.NullMarked")
+  public @interface JSpecifyNullMarked {}
+
   @Mirror.Annotation("org.immutables.value.Value.NonAttribute")
   public @interface NonAttribute {}
 

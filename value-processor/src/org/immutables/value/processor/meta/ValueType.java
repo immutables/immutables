@@ -1550,8 +1550,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public Set<String> getImmutableCopyOfRoutines() {
-    Set<String> routines = new LinkedHashSet<>();
-    routines.addAll(style().immutableCopyOfRoutinesNames());
+    Set<String> routines = new LinkedHashSet<>(style().immutableCopyOfRoutinesNames());
     for (ValueType v : nested) {
       routines.addAll(v.style().immutableCopyOfRoutinesNames());
     }
@@ -1879,6 +1878,11 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   @Override
   public StyleInfo style() {
     return constitution.style();
+  }
+
+  @Override
+  public boolean isJSpecifyNullMarked() {
+    return constitution.protoclass().isJSpecifyNullMarked();
   }
 
   public Element originalElement() {

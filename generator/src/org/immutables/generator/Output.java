@@ -367,7 +367,8 @@ public final class Output {
       if (Strings.commonPrefix(charSequence, NO_IMPORTS).startsWith(NO_IMPORTS)) {
         return charSequence;
       }
-      return PostprocessingMachine.rewrite(charSequence);
+      //return PostprocessingMachine.rewrite(charSequence);
+      return ImportRewriter.rewrite(charSequence);
     }
   }
 

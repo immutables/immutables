@@ -1388,7 +1388,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       } else {
         Environment environment = protoclass().environment();
         for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
-          // TODO p.kind().isRecord()
+          // TODO (?) p.kind().isRecord()
           if ((p.kind().isDefinedValue() || p.kind().isModifiable() || p.kind().isJavaBean())
               && canAccessImplementation(p)
               && p.constitution().generics().isEmpty()) {
@@ -1894,6 +1894,11 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   @Override
   public StyleInfo style() {
     return containingType.constitution.style();
+  }
+
+  @Override
+  public boolean isJSpecifyNullMarked() {
+    return protoclass().isJSpecifyNullMarked();
   }
 
   public boolean supportsInternalImplConstructor() {
