@@ -2,7 +2,6 @@ package org.immutables.generator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +34,6 @@ import static java.lang.Character.isWhitespace;
 
 public class ImportRewriter {
   private final CharSequence source;
-  private final StringBuilder result = new StringBuilder();
 
   private final int len;
   private int at;
@@ -50,6 +48,7 @@ public class ImportRewriter {
   private final List<MaybeQualified> occurrences = new ArrayList<>();
   private final Map<String, String> usages = new HashMap<>();
   private final Set<String> newImports = new TreeSet<>();
+  private final StringBuilder segmentBuffer = new StringBuilder();
 
   private static final String USE_DECLARED = "!DECLARED!";
   private static final String USE_UNKNOWN = "!UNKNOWN!";
@@ -64,10 +63,10 @@ public class ImportRewriter {
     ImportRewriter rewriter = new ImportRewriter(content);
     rewriter.process();
     rewriter.rewrite();
-    return rewriter.result;
+    return rewriter.replace();
   }
 
-  abstract class Occurrence {
+  private static abstract class Occurrence {
     int at;
     int len;
 
@@ -77,7 +76,7 @@ public class ImportRewriter {
     }
   }
 
-  class Import extends Occurrence {
+  private static final class Import extends Occurrence {
     final LinkedList<String> packageSegments = new LinkedList<>();
     final LinkedList<String> classSegments = new LinkedList<>();
     final StringBuilder name = new StringBuilder();
@@ -99,7 +98,7 @@ public class ImportRewriter {
     }
   }
 
-  class Declaration extends Occurrence {
+  private static final class Declaration extends Occurrence {
     final StringBuilder name = new StringBuilder();
 
     @Override
@@ -112,7 +111,7 @@ public class ImportRewriter {
   // if there's no same-named annotation already,
   // we disregard (existence) repeatable annotations
   // or equality with regard to attributes
-  class MaybeQualified extends Occurrence {
+  private static final class MaybeQualified extends Occurrence {
     final LinkedList<String> packageSegments = new LinkedList<>();
     final LinkedList<String> classSegments = new LinkedList<>();
     final StringBuilder name = new StringBuilder();
@@ -137,7 +136,7 @@ public class ImportRewriter {
     }
   }
 
-  class AnnotationUse {
+  private static final class AnnotationUse {
     final MaybeQualified name = new MaybeQualified();
     final StringBuilder attributes = new StringBuilder();
 
@@ -147,34 +146,56 @@ public class ImportRewriter {
     }
   }
 
+  private String replace() {
+    int sourceAt = 0;
+
+    StringBuilder result = new StringBuilder(len); // the size should be roughly the same
+
+    // these blocks were kept inline to better see overall work done
+    // and preserve context/state of result content and sourceAt pointer
+
+    // Insert new imports
+    if (!newImports.isEmpty()) {
+      int insertAt = Math.max(beforeImportPosition, afterPackagePosition);
+      // append all header before insert position
+      result.append(source, sourceAt, insertAt);
+      sourceAt = insertAt;
+
+      for (String n : newImports) {
+        result.append("import ").append(n).append(";\n");
+      }
+    }
+
+    // Skip java lang imports
+    for (Import imp : imports) {
+      if (!imp.isStatic && imp.classSegments.size() == 1 && imp.packageSegments.equals(JAVA_LANG)) {
+        // append everything since last position
+        result.append(source, sourceAt, imp.at);
+        // and skipping this import
+        sourceAt = imp.at + imp.len;
+      }
+    }
+
+    // Replace rewritten
+    for (MaybeQualified q : occurrences) {
+      if (q.rewritten) {
+        // append what was before rewritten occurrence
+        result.append(source, sourceAt, q.at);
+        sourceAt = q.at + q.len;
+        printMaybeQualified(q, result);
+      }
+    }
+    // append tail remaining since last replace
+    result.append(source, sourceAt, source.length());
+
+    return result.toString();
+  }
+
   private void rewrite() {
-    // first process occurrences from top to bottom
+    // first process occurrences
     // mark unknown usages (same package or inherited)
     occurrences.forEach(this::recordUnknownUsages);
     occurrences.forEach(this::maybeRewrite);
-    // then replace from bottom to top
-    replaceRewrittenBackwards();
-
-    removeJavaLangImports();
-    insertNewImports();
-  }
-
-  private void removeJavaLangImports() {
-    Collections.reverse(imports);
-    for (Import imp : imports) {
-      if (!imp.isStatic && imp.classSegments.size() == 1 && imp.packageSegments.equals(JAVA_LANG)) {
-        result.delete(imp.at, imp.at + imp.len);
-      }
-    }
-  }
-
-  private void insertNewImports() {
-    StringBuilder buffer = new StringBuilder();
-    for (String n : newImports) {
-      buffer.append("import ").append(n).append(";\n");
-    }
-    int insertAt = Math.max(beforeImportPosition, afterPackagePosition);
-    result.insert(insertAt, buffer);
   }
 
   private void recordUnknownUsages(MaybeQualified q) {
@@ -289,19 +310,6 @@ public class ImportRewriter {
     return false;
   }
 
-  private void replaceRewrittenBackwards() {
-    Collections.reverse(occurrences);
-    StringBuilder buffer = new StringBuilder();
-    for (MaybeQualified q : occurrences) {
-      if (q.rewritten) {
-        buffer.setLength(0);
-        printMaybeQualified(q, buffer);
-        String ddd = buffer.toString();
-        result.replace(q.at, q.at + q.len, ddd);
-      }
-    }
-  }
-
   private void printMaybeQualified(MaybeQualified q, StringBuilder buffer) {
     if (q.packageSegments.isEmpty() && q.classSegments.size() == 1 && !q.typeAnnotations.isEmpty()) {
       // Type use annotations should be printed outside of local type segment
@@ -338,17 +346,17 @@ public class ImportRewriter {
       char c = source.charAt(at);
       switch (c) {
         case '\"':
-          consumeStringLiteral(result);
+          consumeStringLiteral();
           continue;
         case '\'':
-          consumeCharLiteral(result);
+          consumeCharLiteral();
           continue;
         case '/':
           if (processTypeUseMarker()) continue;
-          if (consumeEndOfLineComment(result) || consumeBlockComment(result)) continue;
+          if (consumeEndOfLineComment() || consumeBlockComment()) continue;
           break;
         default:
-          if (isWhitespace(c) && consumeWhitespace(result)) continue;
+          if (isWhitespace(c) && consumeWhitespace()) continue;
 
           char previous = at > 0 ? source.charAt(at - 1) : 0;
           if (isJavaIdentifierStart(c) && (!isJavaIdentifierPart(previous) || previous == 0)) {
@@ -376,31 +384,29 @@ public class ImportRewriter {
           }
           // default handling is just at++ and goto next char
       }
-      result.append(c);
       at++;
     }
   }
 
   private boolean processTypeUseMarker() {
     int begin = at;
-    StringBuilder throwaway = new StringBuilder();
+
     ok:
     {
-      if (consumeKeyword(throwaway, '/', '*', '!', 't', 'y', 'p', 'e', 'u', 's', 'e')) {
+      if (consumeKeyword('/', '*', '!', 't', 'y', 'p', 'e', 'u', 's', 'e')) {
 
         MaybeQualified qualified = new MaybeQualified();
 
         while (source.charAt(at) == '@') {
           at++;
-          throwaway.append('@');
-          consumeWhitespace(throwaway);
+          consumeWhitespace();
           AnnotationUse ann = new AnnotationUse();
           qualified.markerTypeAnnotations.add(ann);
 
-          if (consumeQualifiedName(throwaway, ann.name.packageSegments::add, ann.name.classSegments::add)) {
+          if (consumeQualifiedName(ann.name.packageSegments::add, ann.name.classSegments::add)) {
             if (source.charAt(at) == '(') {
               if (!consumeToMatchingClosingParen(ann.attributes)) break ok;
-              consumeWhitespace(throwaway);
+              consumeWhitespace();
             } // else seems like not a problem
           } else break ok;
         }
@@ -409,12 +415,12 @@ public class ImportRewriter {
 
         if (qualified.markerTypeAnnotations.isEmpty()) break ok;
 
-        consumeWhitespace(throwaway);
+        consumeWhitespace();
 
-        if (consumeMaybeAnnotatedQualifiedName(throwaway, qualified)) {
+        if (consumeMaybeAnnotatedQualifiedName(qualified)) {
           qualified.range(begin, qualified.at + qualified.len - begin);
           addMaybeQualified(qualified);
-          result.append(source, begin, at);
+          //into.append(source, begin, at);
           return true;
         }
       }
@@ -425,23 +431,22 @@ public class ImportRewriter {
 
   private boolean processPackage() {
     int begin = at;
-    if (consumeKeyword(result, 'p', 'a', 'c', 'k', 'a', 'g', 'e')) {
+    if (consumeKeyword('p', 'a', 'c', 'k', 'a', 'g', 'e')) {
       List<String> packageSegments = new ArrayList<>();
-      consumeQualifiedName(result, packageSegments::add, a -> {});
+      consumeQualifiedName(packageSegments::add, a -> {});
       thisPackage = String.join(".", packageSegments);
       //System.err.println("PACKAGE " + thisPackage);
-      consumeWhitespace(result);
-      consume(result, ';');
-      consumeWhitespace(result);
+      consumeWhitespace();
+      consume(';');
+      consumeWhitespace();
       afterPackagePosition = at;
       return true;
     }
     return false;
   }
 
-  private boolean consume(StringBuilder into, char c) {
+  private boolean consume(char c) {
     if (source.charAt(at) == c) {
-      into.append(c);
       at++;
       return true;
     }
@@ -449,7 +454,6 @@ public class ImportRewriter {
   }
 
   private boolean consumeQualifiedName(
-      StringBuilder into,
       Consumer<String> packageSegments,
       Consumer<String> classSegments) {
 
@@ -457,36 +461,32 @@ public class ImportRewriter {
     if (!isJavaIdentifierStart(c)) return false;
 
     while (at < len && isJavaIdentifierStart(c = source.charAt(at)) && isLowerCase(c)) {
-      StringBuilder segment = new StringBuilder();
-      consumeIdentifierSegment(segment);
-      into.append(segment);
-      packageSegments.accept(segment.toString());
+      segmentBuffer.setLength(0);
+      consumeIdentifierSegment(segmentBuffer);
+      packageSegments.accept(segmentBuffer.toString());
 
-      consumeWhitespace(into);
-      if (consume(into, '.')) {
-        consumeWhitespace(into);
+      consumeWhitespace();
+      if (consume('.')) {
+        consumeWhitespace();
       } else break;
     }
 
     while (at < len && isJavaIdentifierStart(c = source.charAt(at)) && isUpperCase(c)) {
-      StringBuilder segment = new StringBuilder();
-      consumeIdentifierSegment(segment);
-      into.append(segment);
-      classSegments.accept(segment.toString());
+      segmentBuffer.setLength(0);
+      consumeIdentifierSegment(segmentBuffer);
+      classSegments.accept(segmentBuffer.toString());
 
-      consumeWhitespace(into);
-      if (consume(into, '.')) {
-        consumeWhitespace(into);
+      consumeWhitespace();
+      if (consume('.')) {
+        consumeWhitespace();
       } else break;
     }
 
-    consumeWhitespace(into);
+    consumeWhitespace();
     return true;
   }
 
-  private boolean consumeMaybeAnnotatedQualifiedName(StringBuilder into, MaybeQualified qualified) {
-    StringBuilder throwaway = new StringBuilder();
-
+  private boolean consumeMaybeAnnotatedQualifiedName(MaybeQualified qualified) {
     int begin = at;
     char c = source.charAt(at);
     if (!isJavaIdentifierStart(c)) return false;
@@ -494,7 +494,7 @@ public class ImportRewriter {
     ok:
     {
       int beforeWhitespace = at;
-      StringBuilder segment = new StringBuilder();
+
       boolean qualifyingType = false;
       while (at < len && isJavaIdentifierStart(c = source.charAt(at))) {
         // once we're getting qualified classes we're unlikely to switch back
@@ -502,45 +502,45 @@ public class ImportRewriter {
         boolean isTypeCase = isUpperCase(c);
         qualifyingType |= isTypeCase;
 
-        segment.setLength(0);
-        consumeIdentifierSegment(segment);
+        segmentBuffer.setLength(0);
+        consumeIdentifierSegment(segmentBuffer);
 
         (qualifyingType ? qualified.classSegments : qualified.packageSegments)
-            .add(segment.toString());
+            .add(segmentBuffer.toString());
 
         // maybe break if keyword (need dictionary)
 
         beforeWhitespace = at;
 
-        consumeWhitespace(throwaway);
-        if (consume(throwaway, '.')) {
-          consumeWhitespace(throwaway);
+        consumeWhitespace();
+        if (consume('.')) {
+          consumeWhitespace();
           boolean hadTypeUseAnnotations = false;
           while (source.charAt(at) == '@') {
             at++;
             hadTypeUseAnnotations = true;
-            consumeWhitespace(throwaway);
+            consumeWhitespace();
             AnnotationUse ann = new AnnotationUse();
             qualified.typeAnnotations.add(ann);
 
-            if (consumeQualifiedName(throwaway, ann.name.packageSegments::add, ann.name.classSegments::add)) {
+            if (consumeQualifiedName(ann.name.packageSegments::add, ann.name.classSegments::add)) {
               if (source.charAt(at) == '(') {
                 if (!consumeToMatchingClosingParen(ann.attributes)) break ok;
                 beforeWhitespace = at;
-                consumeWhitespace(throwaway);
+                consumeWhitespace();
               } // else seems like not a problem
             } else break ok;
           }
           if (hadTypeUseAnnotations) {
-            segment.setLength(0);
+            segmentBuffer.setLength(0);
             if (isJavaIdentifierStart(c = source.charAt(at))
                 && isUpperCase(c)
-                && consumeIdentifierSegment(segment)) {
+                && consumeIdentifierSegment(segmentBuffer)) {
               beforeWhitespace = at;
-              qualified.classSegments.add(segment.toString());
+              qualified.classSegments.add(segmentBuffer.toString());
               qualified.range(begin, beforeWhitespace - begin); // range before consume whitespace
-              into.append(source, begin, at);
-              consumeWhitespace(into);
+              //into.append(source, begin, at);
+              consumeWhitespace();
               return true;
             } else break ok;
           }
@@ -550,8 +550,8 @@ public class ImportRewriter {
               && ((isJavaIdentifierStart(c = source.charAt(at)) && isLowerCase(c))
               || c == '<'/* this is for Collections.<String>emptySet() */)) {
             qualified.range(begin, beforeWhitespace - begin); // range before consume whitespace
-            into.append(source, begin, at);
-            consumeWhitespace(into);
+            //into.append(source, begin, at);
+            consumeWhitespace();
             return true;
           }
         } else {
@@ -563,8 +563,8 @@ public class ImportRewriter {
       if (qualified.classSegments.isEmpty()) break ok;
 
       qualified.range(begin, beforeWhitespace - begin); // range before consume whitespace
-      into.append(source, begin, at);
-      consumeWhitespace(into);
+      //into.append(source, begin, at);
+      consumeWhitespace();
       return true;
     }
     // bailing out, something wrong
@@ -575,28 +575,26 @@ public class ImportRewriter {
   private boolean consumeToMatchingClosingParen(StringBuilder attributes) {
     int begin = at;
     assert source.charAt(at) == '(';
-    attributes.append('(');
     at++;
     int open = 1;
     while (at < len) {
       char c = source.charAt(at);
       switch (c) {
         case '(':
-          attributes.append(c);
           open++;
           break;
         case ')':
-          attributes.append(c);
           if (--open == 0) {
             at++;
+            attributes.append(source, begin, at);
             return true;
           }
           break;
         case '\'':
-          consumeCharLiteral(attributes);
+          consumeCharLiteral();
           continue; // do not advance
         case '"':
-          consumeStringLiteral(attributes);
+          consumeStringLiteral();
           continue; // do not advance
         default:
           attributes.append(c);
@@ -622,16 +620,16 @@ public class ImportRewriter {
   private boolean processImport() {
     int begin = at;
 
-    if (consumeKeyword(result, 'i', 'm', 'p', 'o', 'r', 't')) {
+    if (consumeKeyword('i', 'm', 'p', 'o', 'r', 't')) {
       if (beforeImportPosition == 0) {
         beforeImportPosition = begin;
       }
       Import imp = new Import();
-      imp.isStatic = consumeKeyword(result, 's', 't', 'a', 't', 'i', 'c');
+      imp.isStatic = consumeKeyword('s', 't', 'a', 't', 'i', 'c');
 
-      consumeQualifiedName(result, imp.packageSegments::add, imp.classSegments::add);
-      if (consume(result, ';')) {
-        consumeWhitespace(result);
+      consumeQualifiedName(imp.packageSegments::add, imp.classSegments::add);
+      if (consume(';')) {
+        consumeWhitespace();
         // if we have semicolon here, we don't have any lowercase field or method imports
         // uppercase constants we can still add as import and actually ignore
 
@@ -653,42 +651,42 @@ public class ImportRewriter {
   }
 
   private boolean processRecord() {
-    if (consumeKeyword(result, 'r', 'e', 'c', 'o', 'r', 'd')) {
-      consumeDeclared(result);
+    if (consumeKeyword('r', 'e', 'c', 'o', 'r', 'd')) {
+      consumeDeclared();
       return true;
     }
     return false;
   }
 
   private boolean processInterface() {
-    if (consumeKeyword(result, 'i', 'n', 't', 'e', 'r', 'f', 'a', 'c', 'e')) {
-      consumeDeclared(result);
+    if (consumeKeyword('i', 'n', 't', 'e', 'r', 'f', 'a', 'c', 'e')) {
+      consumeDeclared();
       return true;
     }
     return false;
   }
 
   private boolean processEnum() {
-    if (consumeKeyword(result, 'e', 'n', 'u', 'm')) {
-      consumeDeclared(result);
+    if (consumeKeyword('e', 'n', 'u', 'm')) {
+      consumeDeclared();
       return true;
     }
     return false;
   }
 
   private boolean processClass() {
-    if (consumeKeyword(result, 'c', 'l', 'a', 's', 's')) {
-      consumeDeclared(result);
+    if (consumeKeyword('c', 'l', 'a', 's', 's')) {
+      consumeDeclared();
       return true;
     }
     return false;
   }
 
-  private void consumeDeclared(StringBuilder into) {
+  private void consumeDeclared() {
     int begin = at;
     Declaration declaration = new Declaration();
     consumeIdentifierSegment(declaration.name);
-    into.append(declaration.name);
+    //into.append(declaration.name);
     declaration.range(begin, at - begin);
     addDeclared(declaration);
   }
@@ -704,7 +702,7 @@ public class ImportRewriter {
     int begin = at;
     if (isJavaIdentifierStart(c)) {
       MaybeQualified qualified = new MaybeQualified();
-      if (consumeMaybeAnnotatedQualifiedName(result, qualified)) {
+      if (consumeMaybeAnnotatedQualifiedName(qualified)) {
         addMaybeQualified(qualified);
         return true;
       }
@@ -728,7 +726,7 @@ public class ImportRewriter {
     //System.err.println("?QUALIFIED " + qualified);
   }
 
-  private void consumeStringLiteral(StringBuilder result) {
+  private void consumeStringLiteral() {
     assert source.charAt(at) == '"';
     int begin = at;
     at++;
@@ -739,10 +737,10 @@ public class ImportRewriter {
       }
       at++;
     }
-    result.append(source, begin, at);
+    //result.append(source, begin, at);
   }
 
-  private void consumeCharLiteral(StringBuilder into) {
+  private void consumeCharLiteral() {
     assert source.charAt(at) == '\'';
     int begin = at;
     while (at < len) {
@@ -752,27 +750,27 @@ public class ImportRewriter {
       }
       at++;
     }
-    result.append(source, begin, at);
+    //result.append(source, begin, at);
   }
 
-  private boolean consumeWhitespace(StringBuilder into) {
+  private boolean consumeWhitespace() {
     if (isWhitespace(source.charAt(at))) {
       int begin = at;
       while (at < len && isWhitespace(source.charAt(at))) {
         at++;
       }
-      into.append(source, begin, at);
+      //into.append(source, begin, at);
       return true;
     }
     return false;
   }
 
-  private boolean consumeBlockComment(StringBuilder into) {
+  private boolean consumeBlockComment() {
     if (matches('/', '*')) {
       int begin = at;
       at += 2;
       advanceUntilCommentEnd();
-      into.append(source, begin, at);
+      //into.append(source, begin, at);
       return true;
     }
     return false;
@@ -788,7 +786,7 @@ public class ImportRewriter {
     }
   }
 
-  private boolean consumeEndOfLineComment(StringBuilder into) {
+  private boolean consumeEndOfLineComment() {
     if (matches('/', '/')) {
       int begin = at;
       at += 2;
@@ -799,7 +797,7 @@ public class ImportRewriter {
         }
         at++;
       }
-      into.append(source, begin, at);
+      //into.append(source, begin, at);
       return true;
     }
     return false;
@@ -811,28 +809,30 @@ public class ImportRewriter {
         && source.charAt(at + 1) == c1;
   }
 
-  private boolean consumeKeyword(StringBuilder into, char... chars) {
+  // All keywords we use must end with whitespace
+  // so these are not just any keyword
+  private boolean consumeKeyword(char... chars) {
     int begin = at;
     if (matches(chars)
         && at + chars.length < len
         && isWhitespace(source.charAt(at + chars.length))) {
       at += chars.length;
-      into.append(source, begin, at);
-      return consumeWhitespace(into);
+      //into.append(source, begin, at);
+      return consumeWhitespace();
     }
     return false;
   }
 
   private boolean matches(char... chars) {
-    if (at + chars.length < len) {
-      for (int i = 0; i < chars.length; i++) {
-        if (source.charAt(at + i) != chars[i]) {
-          return false;
-        }
+    if (at + chars.length >= len) return false;
+
+    for (int i = 0; i < chars.length; i++) {
+      if (source.charAt(at + i) != chars[i]) {
+        return false;
       }
-      return true;
     }
-    return false;
+
+    return true;
   }
 
   public static void main(String[] args) {
