@@ -16,6 +16,7 @@
 package org.immutables.value.processor.meta;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,96 +33,122 @@ import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
 final class RecordComponentCollector {
-	private final Protoclass protoclass;
-	private final ValueType type;
-	private final List<ValueAttribute> attributes = Lists.newArrayList();
-	private final Styles styles;
-	private final Reporter reporter;
+  private final Protoclass protoclass;
+  private final ValueType type;
+  private final List<ValueAttribute> attributes = Lists.newArrayList();
+  private final Styles styles;
+  private final Reporter reporter;
 
-	RecordComponentCollector(Protoclass protoclass, ValueType type) {
-		this.protoclass = protoclass;
-		this.styles = protoclass.styles();
-		this.type = type;
-		this.reporter = protoclass.report();
-	}
+  RecordComponentCollector(Protoclass protoclass, ValueType type) {
+    this.protoclass = protoclass;
+    this.styles = protoclass.styles();
+    this.type = type;
+    this.reporter = protoclass.report();
+  }
 
-	void collect() {
-		TypeElement recordType = (TypeElement) protoclass.sourceElement();
+  void collect() {
+    TypeElement recordType = (TypeElement) protoclass.sourceElement();
 
-		for (ExecutableElement accessor : recordComponentAssessors(recordType)) {
-			TypeMirror returnType = accessor.getReturnType();
+    for (ExecutableElement accessor : recordComponentAssessors(recordType)) {
+      TypeMirror returnType = accessor.getReturnType();
 
-			Reporter reporter = report(accessor);
+      Reporter reporter = report(accessor);
 
-			ValueAttribute attribute = new ValueAttribute();
-			attribute.isGenerateAbstract = true;
-			attribute.reporter = reporter;
-			attribute.returnType = returnType;
+      ValueAttribute attribute = new ValueAttribute();
+      attribute.isGenerateAbstract = true;
+      attribute.reporter = reporter;
+      attribute.returnType = returnType;
 
-			attribute.element = accessor;
-			String parameterName = accessor.getSimpleName().toString();
-			attribute.names = styles.forAccessorWithRaw(parameterName, parameterName);
+      attribute.element = accessor;
+      String parameterName = accessor.getSimpleName().toString();
+      attribute.names = styles.forAccessorWithRaw(parameterName, parameterName);
 
-			attribute.constantDefault = DefaultAnnotations.extractConstantDefault(
-					reporter, accessor, returnType);
+      attribute.constantDefault = DefaultAnnotations.extractConstantDefault(
+          reporter, accessor, returnType);
 
-			if (attribute.constantDefault != null) {
-				attribute.isGenerateDefault = true;
-			}
+      if (attribute.constantDefault != null) {
+        attribute.isGenerateDefault = true;
+      }
 
-			attribute.containingType = type;
-			attributes.add(attribute);
-		}
+      attribute.containingType = type;
+      attributes.add(attribute);
+    }
 
-		Instantiator encodingInstantiator = protoclass.encodingInstantiator();
+    Instantiator encodingInstantiator = protoclass.encodingInstantiator();
 
-		@Nullable InstantiationCreator instantiationCreator =
-				encodingInstantiator.creatorFor(recordType);
+    @Nullable InstantiationCreator instantiationCreator =
+        encodingInstantiator.creatorFor(recordType);
 
-		for (ValueAttribute attribute : attributes) {
-			attribute.initAndValidate(instantiationCreator);
-		}
+    for (ValueAttribute attribute : attributes) {
+      attribute.initAndValidate(instantiationCreator);
+    }
 
-		if (instantiationCreator != null) {
-			type.additionalImports(instantiationCreator.imports);
-		}
+    if (instantiationCreator != null) {
+      type.additionalImports(instantiationCreator.imports);
+    }
 
-		type.attributes.addAll(attributes);
-	}
+    type.attributes.addAll(attributes);
+  }
 
-	// we reflectively access newer annotation processing APIs by still compiling
-	// to an older version.
-	private List<ExecutableElement> recordComponentAssessors(TypeElement type) {
-		type = CachingElements.getDelegate(type);
-		List<ExecutableElement> accessors = new ArrayList<ExecutableElement>();
+  // we reflectively access newer annotation processing APIs by still compiling
+  // to an older version.
+  private List<ExecutableElement> recordComponentAssessors(TypeElement type) {
+    if (GET_RECORD_ACCESSOR == null) {
+      return Collections.emptyList();
+    }
 
-		try {
-			List<?> components = (List<?>) type.getClass()
-					.getMethod("getRecordComponents").invoke(type);
+    assert GET_RECORD_COMPONENTS != null;
+    type = CachingElements.getDelegate(type);
+    List<ExecutableElement> accessors = new ArrayList<ExecutableElement>();
 
-			for (Object c : components) {
-				ExecutableElement accessor = (ExecutableElement) c.getClass().getMethod("getAccessor").invoke(c);
-				accessors.add(accessor);
-			}
-		} catch (IllegalAccessException
-						 | InvocationTargetException
-						 | ClassCastException
-						 | NoSuchMethodException e) {
-			reporter.withElement(type)
-					.error("Problem with `TypeElement.getRecordComponents.*.getAccessors`"
-							+ " from record type mirror, compiler mismatch.\n"
-							+ Throwables.getStackTraceAsString(e));
-		}
-		return accessors;
-	}
+    try {
+      List<?> components = (List<?>) GET_RECORD_COMPONENTS.invoke(type);
 
-	private static ImmutableList<String> extractThrowsClause(ExecutableElement factoryMethodElement) {
-		return FluentIterable.from(factoryMethodElement.getThrownTypes())
-				.transform(Functions.toStringFunction())
-				.toList();
-	}
+      for (Object c : components) {
+        ExecutableElement accessor = (ExecutableElement) GET_RECORD_ACCESSOR.invoke(c);
+        accessors.add(accessor);
+      }
+    } catch (IllegalAccessException
+             | InvocationTargetException
+             | ClassCastException e) {
+      reporter.withElement(type)
+          .error("Problem with `TypeElement.getRecordComponents.*.getAccessor`"
+              + " from record type mirror, compiler mismatch.\n"
+              + Throwables.getStackTraceAsString(e));
+    }
+    return accessors;
+  }
 
-	private Reporter report(Element type) {
-		return Reporter.from(protoclass.processing()).withElement(type);
-	}
+  private static ImmutableList<String> extractThrowsClause(ExecutableElement factoryMethodElement) {
+    return FluentIterable.from(factoryMethodElement.getThrownTypes())
+        .transform(Functions.toStringFunction())
+        .toList();
+  }
+
+  private Reporter report(Element type) {
+    return Reporter.from(protoclass.processing()).withElement(type);
+  }
+
+  private static final @Nullable Method GET_RECORD_COMPONENTS;
+  private static final @Nullable Method GET_RECORD_ACCESSOR;
+  private static final String RECORD_COMPONENT_CLASSNAME = "javax.lang.model.element.RecordComponentElement";
+  static {
+    @Nullable Method getRecordComponents;
+    @Nullable Method getAccessor;
+
+    try {
+      Class<?> recordComponentClass = Class.forName(RECORD_COMPONENT_CLASSNAME, true,
+          TypeElement.class.getClassLoader());
+
+      getRecordComponents = TypeElement.class.getMethod("getRecordComponents");
+      getAccessor = recordComponentClass.getMethod("getAccessor");
+    } catch (NoSuchMethodException | ClassNotFoundException e) {
+      e.printStackTrace(); //TMP
+      // not available
+      getRecordComponents = null;
+      getAccessor = null;
+    }
+    GET_RECORD_COMPONENTS = getRecordComponents;
+    GET_RECORD_ACCESSOR = getAccessor;
+  }
 }
