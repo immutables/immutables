@@ -73,6 +73,7 @@ class TypeStringProvider {
   private final String[] allowedTypevars;
   private final @Nullable String[] typevarArguments;
   private final ImportsTypeStringResolver importsResolver;
+  private final String nullableAnnotationName;
 
   @Nullable
   String elementTypeAnnotations;
@@ -92,7 +93,8 @@ class TypeStringProvider {
       TypeMirror startType,
       ImportsTypeStringResolver importsResolver,
       String[] allowedTypevars,
-      @Nullable String[] typevarArguments) {
+      @Nullable String[] typevarArguments,
+      String nullableAnnotationName) {
 
     this.reporter = reporter;
     this.startType = startType;
@@ -100,6 +102,7 @@ class TypeStringProvider {
     this.allowedTypevars = allowedTypevars;
     this.typevarArguments = typevarArguments;
     this.importsResolver = importsResolver;
+    this.nullableAnnotationName = nullableAnnotationName;
     checkArgument(typevarArguments == null || allowedTypevars.length == typevarArguments.length,
         "Element %s, mismatching type variables, allowed: %s, given: %s",
         element.getSimpleName(),
@@ -215,7 +218,7 @@ class TypeStringProvider {
         continue;
       }
       CharSequence sequence = AnnotationMirrors.toCharSequence(annotationMirror, importsResolver);
-      if (!nullableTypeAnnotation && sequence.toString().endsWith(EPHEMERAL_ANNOTATION_NULLABLE)) {
+      if (!nullableTypeAnnotation && sequence.toString().endsWith(nullableAnnotationName)) {
         this.nullableTypeAnnotation = true;
       }
       annotationBuffer
@@ -423,7 +426,7 @@ class TypeStringProvider {
 
   private void assignElementNullness(String annotationString) {
     if (annotationString != null) {
-      if (annotationString.contains(EPHEMERAL_ANNOTATION_NULLABLE)
+      if (annotationString.contains(nullableAnnotationName)
           || annotationString.contains(EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
         nullElements = NullElements.ALLOW;
       } else if (annotationString.contains(EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
@@ -444,7 +447,6 @@ class TypeStringProvider {
     this.unresolvedYetArguments = unresolvedYetArguments;
   }
 
-  static final String EPHEMERAL_ANNOTATION_NULLABLE = "Nullable";
   static final String EPHEMERAL_ANNOTATION_ALLOW_NULLS = "AllowNulls";
   static final String EPHEMERAL_ANNOTATION_SKIP_NULLS = "SkipNulls";
 }

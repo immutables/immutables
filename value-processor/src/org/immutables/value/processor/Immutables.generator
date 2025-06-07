@@ -4397,23 +4397,23 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 
 [template immutableImplementationType Attribute v][output.trim]
 [if v.encoding]
-  [rr.implType v]
+  [tuNullable v][rr.implType v]
 [else if v.jdkOptional][-- need to watch out that here atNullable goes inside! --]
   [atNullable v][v.wrappedElementType]
 [else if v.customCollectionType]
-  [v.implementationType]
+  [tuNullable v][v.implementationType]
 [else if v.generateOrdinalValueSet andnot v.generateJdkOnly]
-  org.immutables.ordinal.ImmutableOrdinalSet[v.genericArgs]
+  [tuNullable v]org.immutables.ordinal.ImmutableOrdinalSet[v.genericArgs]
 [else if v.generateSortedSet andnot v.generateJdkOnly]
-  [guava].collect.ImmutableSortedSet[v.genericArgs]
+  [tuNullable v][guava].collect.ImmutableSortedSet[v.genericArgs]
 [else if v.collectionType andnot v.generateJdkOnly]
-  [guava].collect.Immutable[v.rawCollectionType][v.genericArgs]
+  [tuNullable v][guava].collect.Immutable[v.rawCollectionType][v.genericArgs]
 [else if v.generateSortedMap andnot v.generateJdkOnly]
-  [guava].collect.ImmutableSortedMap[v.genericArgs]
+  [tuNullable v][guava].collect.ImmutableSortedMap[v.genericArgs]
 [else if v.mapType andnot v.generateJdkOnly]
-  [guava].collect.Immutable[v.rawMapType][v.genericArgs]
+  [tuNullable v][guava].collect.Immutable[v.rawMapType][v.genericArgs]
 [else]
-  [v.implementationType]
+  [tuNullable v][v.implementationType]
 [/if]
 [/output.trim][/template]
 
@@ -4997,37 +4997,37 @@ this.[v.name] = null;
       [else if not (declare or v.nullableCollector)]
 this.[v.name].clear();
       [else if v.generateEnumMap]
-[if declare][updatableAccessModifier] java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class)[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if]java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class)[/if];
       [else if v.mapType]
-[if declare][updatableAccessModifier] java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if]java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>()[/if];
       [else if v.generateEnumSet]
-[if declare][updatableAccessModifier] java.util.EnumSet[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if]java.util.EnumSet[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
       [else]
         [if v.isAttributeBuilder]
-[if declare][updatableAccessModifier] java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]>()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if]java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]>()[/if];
         [else]
-[if declare][updatableAccessModifier] java.util.List[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList[v.genericArgs]()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if]java.util.List[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList[v.genericArgs]()[/if];
         [/if]
       [/if]
     [else]
       [if v.generateSortedSet]
-[if declare][updatableAccessModifier] [guava].collect.ImmutableSortedSet.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if][guava].collect.ImmutableSortedSet.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
       [else if v.generateSortedMultiset]
-[if declare][updatableAccessModifier] [guava].collect.ImmutableSortedMultiset.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMultiset.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if][guava].collect.ImmutableSortedMultiset.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMultiset.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
       [else if v.customCollectionType]
-[if declare][updatableAccessModifier] [v.rawType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][v.rawType].builder()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if][v.rawType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][v.rawType].builder()[/if];
       [else if v.collectionType]
         [if v.isAttributeBuilder]
-[if declare][updatableAccessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if][guava].collect.Immutable[v.rawCollectionType].Builder<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
         [else]
-[if declare][updatableAccessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if][guava].collect.Immutable[v.rawCollectionType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
         [/if]
       [else if v.optionalType]
 [if declare][accessModifier] [v.type] [else]this.[/if][v.name] = [optionalEmpty v];
       [else if v.generateSortedMap]
-[if declare][updatableAccessModifier] [guava].collect.ImmutableSortedMap.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if][guava].collect.ImmutableSortedMap.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
       [else if v.mapType]
-[if declare][updatableAccessModifier] [guava].collect.Immutable[v.rawMapType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawMapType].builder()[/if];
+[if declare][updatableAccessModifier] [if toNull][atFallbackNullable v][/if][guava].collect.Immutable[v.rawMapType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawMapType].builder()[/if];
       [/if]
     [/if]
   [else if v.primitive]
@@ -5159,6 +5159,12 @@ private static final long serialVersionUID = [literal serialVersion];
 [template atCanIgnoreReturnValue HasStyleInfo s][if s allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue']@com.google.errorprone.annotations.CanIgnoreReturnValue [/if][/template]
 
 [template atNullable HasStyleInfo s][atFallbackNullable s][/template]
+
+[template tuNullable Attribute a][if a.whenTypeuseFallbackNullable][atFallbackNullable a][/if][/template]
+
+[template tuNullElem Attribute a][if a.whenTypeuseNullableElement][atFallbackNullable a][/if][/template]
+
+[template tuNullParam Attribute a][if a.whenTypeuseNullableElementParameter][atFallbackNullable a][/if][/template]
 
 [template atVar HasStyleInfo s][if s allowsClasspathAnnotation 'com.google.errorprone.annotations.Var']@com.google.errorprone.annotations.Var [/if][/template]
 

@@ -468,7 +468,8 @@ final class AccessorAttributesCollector {
         resolveReturnType(validationMethodCandidate),
         new ImportsTypeStringResolver(declaringType.orNull(), declaringType.orNull()),
         protoclass.constitution().generics().vars(),
-        null);
+        null,
+        styles.style().nullableAnnotation());
     provider.process();
     String returnTypeName = provider.returnTypeName();
     boolean isCompatibleReturnType =

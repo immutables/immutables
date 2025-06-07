@@ -56,6 +56,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -213,8 +214,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   public boolean requiresAlternativeStrictConstructor() {
     return typeKind.isCollectionKind()
         || (typeKind.isMappingKind()
-            && !typeKind.isPlainMapKind()
-            && !typeKind.isMultimap());
+        && !typeKind.isPlainMapKind()
+        && !typeKind.isMultimap());
   }
 
   public boolean isSettable() {
@@ -400,7 +401,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       return extractAnnotationsForElement(
           ElementType.METHOD,
           protoclass().styles().style().passAnnotationsNames());
-
     }
     return Annotations.getAnnotationLines(element,
         protoclass().styles().style().passAnnotationsNames(),
@@ -453,18 +453,17 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
     if (!propertyAnnotationFields.isEmpty()) {
       String propertyAnnotationFieldString = propertyAnnotationFields
-        .entrySet().stream()
-        .map((propertyAnnotationField) -> propertyAnnotationField.getKey() + " = " + propertyAnnotationField.getValue())
-        .collect(Collectors.joining(", "));
+          .entrySet().stream()
+          .map((propertyAnnotationField) -> propertyAnnotationField.getKey() + " = " + propertyAnnotationField.getValue())
+          .collect(Collectors.joining(", "));
 
       propertyAnnotation.append("(")
-        .append(propertyAnnotationFieldString)
-        .append(")");
+          .append(propertyAnnotationFieldString)
+          .append(")");
     }
 
     return propertyAnnotation;
   }
-
 
   public List<CharSequence> getBuilderAttributeAnnotation() {
     if (containingType.isGenerateJacksonProperties()
@@ -717,12 +716,16 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public String getConsumedElementType() {
-    return (isUnwrappedElementPrimitiveType()
-        || isStringType()
-        || (hasContainedElementType() && firstTypeParameter().equals(String.class.getName()))
-        || hasEnumFirstTypeParameter())
-            ? getWrappedElementType()
-            : "? extends " + getWrappedElementType();
+    return consumesWildcardExtends()
+        ? "? extends " + getWrappedElementType()
+        : getWrappedElementType();
+  }
+
+  private boolean consumesWildcardExtends() {
+    return !isUnwrappedElementPrimitiveType()
+        && !isStringType()
+        && !(hasContainedElementType() && firstTypeParameter().equals(String.class.getName()))
+        && !hasEnumFirstTypeParameter();
   }
 
   public boolean hasEnumFirstTypeParameter() {
@@ -910,14 +913,14 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   private String optionalSpecializedType() {
     switch (typeKind) {
-    case OPTIONAL_INT_JDK:
-      return int.class.getName();
-    case OPTIONAL_LONG_JDK:
-      return long.class.getName();
-    case OPTIONAL_DOUBLE_JDK:
-      return double.class.getName();
-    default:
-      throw new AssertionError();
+      case OPTIONAL_INT_JDK:
+        return int.class.getName();
+      case OPTIONAL_LONG_JDK:
+        return long.class.getName();
+      case OPTIONAL_DOUBLE_JDK:
+        return double.class.getName();
+      default:
+        throw new AssertionError();
     }
   }
 
@@ -1338,7 +1341,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         returnType,
         importsResolver,
         protoclass().constitution().generics().vars(),
-        null);
+        null,
+        style().nullableAnnotation());
 
     provider.sourceExtractionCache = containingType;
     provider.forAttribute = true;
@@ -1407,7 +1411,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   private boolean canAccessImplementation(Protoclass p) {
     return p.constitution().implementationVisibility().isPublic()
         || (!p.constitution().implementationVisibility().isPrivate()
-            && p.constitution().implementationPackage().equals(p.constitution().definingPackage()));
+        && p.constitution().implementationPackage().equals(p.constitution().definingPackage()));
   }
 
   public String implementationModifiableType() {
@@ -1618,7 +1622,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         report()
             .annotationNamed(DefaultMirror.simpleName())
             .warning(About.UNTYPE,
-                "@Value.Default on a container attribute make it lose its special treatment (when strictBuilder = true)");
+                "@Value.Default on a container attribute make it lose its special treatment (when strictBuilder = " +
+                    "true)");
       } else if (isNullable()) {
         typeKind = AttributeTypeKind.REGULAR;
         report()
@@ -1909,8 +1914,20 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   @Override
-  public boolean isJSpecifyNullMarked() {
-    return protoclass().isJSpecifyNullMarked();
+  public FallbackNullableKind fallbackNullableKind() {
+    return containingType.fallbackNullableKind();
+  }
+
+  public boolean whenTypeuseFallbackNullable() {
+    return isNullable() && fallbackNullableKind().isTypeuse();
+  }
+
+  public boolean whenTypeuseNullableElement() {
+    return nullElements.allow() && fallbackNullableKind().isTypeuse();
+  }
+
+  public boolean whenTypeuseNullableElementParameter() {
+    return (nullElements.allow() || nullElements.skip()) && fallbackNullableKind().isTypeuse();
   }
 
   public boolean supportsInternalImplConstructor() {

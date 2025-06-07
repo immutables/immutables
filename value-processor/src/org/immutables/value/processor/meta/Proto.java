@@ -25,6 +25,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.common.collect.ObjectArrays;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -508,8 +510,10 @@ public class Proto {
     private final Map<Set<EncodingInfo>, Instantiator> instantiators = new HashMap<>();
 
     Instantiator instantiatorFor(Set<EncodingInfo> encodings) {
-      return instantiators.computeIfAbsent(encodings,
-          key -> typeFactoryAndInflater().inflater.instantiatorFor(key));
+      Inflater inflater = typeFactoryAndInflater().inflater;
+      synchronized (instantiators) {
+        return instantiators.computeIfAbsent(encodings, inflater::instantiatorFor);
+      }
     }
 
     public boolean isCheckedException(TypeMirror throwable) {
@@ -521,6 +525,45 @@ public class Proto {
       return new CheckedExceptionProbe(
           processing().getTypeUtils(),
           processing().getElementUtils());
+    }
+
+    private final Map<String, Boolean> whetherTypeuseOnly = new HashMap<>(1);
+
+    public boolean isTypeuseOnly(String annotation) {
+      synchronized (whetherTypeuseOnly) {
+        // don't want to run computation inside computeIfAbsent lambda
+        @Nullable Boolean is = whetherTypeuseOnly.get(annotation);
+        if (is == null) {
+          is = determineIfUnambiguousTypeuse(annotation);
+          whetherTypeuseOnly.put(annotation, is);
+        }
+        return is;
+      }
+    }
+
+    private boolean determineIfUnambiguousTypeuse(String annotationClassName) {
+      TypeElement annotationTypeElement = processing().getElementUtils().getTypeElement(annotationClassName);
+      @Nullable Target targetAnnotation = annotationTypeElement.getAnnotation(Target.class);
+      if (targetAnnotation == null) {
+        // annotation can be used anywhere
+        return false;
+      }
+      boolean isTypeUse = false;
+      for (ElementType elementType : targetAnnotation.value()) {
+        switch (elementType) {
+          case LOCAL_VARIABLE:
+          case PARAMETER:
+          case FIELD:
+          case METHOD:
+            // these might conflict with TYPE_USE
+            return false;
+          case TYPE_USE:
+            isTypeUse = true;
+            continue;
+          default: // skip
+        }
+      }
+      return isTypeUse;
     }
   }
 

@@ -118,7 +118,8 @@ public final class Generics implements Iterable<String> {
             type,
             new ImportsTypeStringResolver(declaringType, declaringType),
             vars,
-            null);
+            null,
+            protoclass.styles().style().nullableAnnotation());
       }
     }
     return new Creator().create();

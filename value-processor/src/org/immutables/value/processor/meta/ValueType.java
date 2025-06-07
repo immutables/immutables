@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1163,12 +1164,12 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
           && !attribute.isGuavaImmutableDeclared();
       if (def) {
         switch (kind) {
-        case MAP:
-        case LIST:
-        case SET:
-          return !attribute.isGenerateJdk9();
-        default:
-          return true;
+          case MAP:
+          case LIST:
+          case SET:
+            return !attribute.isGenerateJdk9();
+          default:
+            return true;
         }
       }
       return false;
@@ -1379,7 +1380,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
             input,
             newTypeStringResolver(),
             context.parameters.toArray(new String[0]),
-            context.arguments.toArray(new String[0]));
+            context.arguments.toArray(new String[0]),
+            style().nullableAnnotation());
         provider.collectUnresolvedYetArgumentsTo(this.unresolvedYetArguments);
         provider.process();
         return provider.returnTypeName();
@@ -1621,8 +1623,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     if (docComment == null) {
       this.docComment = constitution.isImplementationPrimary()
           || style().getStyles().isImmutableIdentityNaming()
-              ? extractDocComment(element)
-              : ImmutableList.<String>of();
+          ? extractDocComment(element)
+          : ImmutableList.<String>of();
     }
     return docComment;
   }
@@ -1815,7 +1817,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
             type,
             new ImportsTypeStringResolver(constitution.protoclass().declaringType().orNull(), declaringType),
             constitution.generics().vars(),
-            null);
+            null,
+            style().nullableAnnotation());
     provider.process();
     return provider.returnTypeName();
   }
@@ -1880,9 +1883,27 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return constitution.style();
   }
 
+  private FallbackNullableKind fallbackNullableKind;
+
   @Override
-  public boolean isJSpecifyNullMarked() {
-    return constitution.protoclass().isJSpecifyNullMarked();
+  public FallbackNullableKind fallbackNullableKind() {
+    if (fallbackNullableKind == null) {
+      String annotation = style().fallbackNullableAnnotationName();
+      if (annotation.equals(INHERITED_CLASS_NAME)) {
+        if (constitution.protoclass().isJSpecifyNullMarked()) {
+          fallbackNullableKind = FallbackNullableKind.JSPECIFY;
+        } else {
+          fallbackNullableKind = FallbackNullableKind.UNSPECIFIED;
+        }
+      } else {
+        if (constitution.protoclass().environment().isTypeuseOnly(annotation)) {
+          fallbackNullableKind = FallbackNullableKind.SPECIFIED_TYPEUSE;
+        } else {
+          fallbackNullableKind = FallbackNullableKind.SPECIFIED;
+        }
+      }
+    }
+    return fallbackNullableKind;
   }
 
   public Element originalElement() {
@@ -1988,4 +2009,5 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   private static final Splitter DOC_COMMENT_LINE_SPLITTER = Splitter.on('\n').omitEmptyStrings();
+  private static final String INHERITED_CLASS_NAME = Inherited.class.getName();
 }

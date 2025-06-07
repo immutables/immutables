@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Immutables Authors and Contributors
+   Copyright 2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,12 +21,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import com.google.common.base.Functions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
@@ -99,7 +98,7 @@ final class RecordComponentCollector {
 
     assert GET_RECORD_COMPONENTS != null;
     type = CachingElements.getDelegate(type);
-    List<ExecutableElement> accessors = new ArrayList<ExecutableElement>();
+    List<ExecutableElement> accessors = new ArrayList<>();
 
     try {
       List<?> components = (List<?>) GET_RECORD_COMPONENTS.invoke(type);
@@ -117,12 +116,6 @@ final class RecordComponentCollector {
               + Throwables.getStackTraceAsString(e));
     }
     return accessors;
-  }
-
-  private static ImmutableList<String> extractThrowsClause(ExecutableElement factoryMethodElement) {
-    return FluentIterable.from(factoryMethodElement.getThrownTypes())
-        .transform(Functions.toStringFunction())
-        .toList();
   }
 
   private Reporter report(Element type) {
@@ -143,8 +136,7 @@ final class RecordComponentCollector {
       getRecordComponents = TypeElement.class.getMethod("getRecordComponents");
       getAccessor = recordComponentClass.getMethod("getAccessor");
     } catch (NoSuchMethodException | ClassNotFoundException e) {
-      e.printStackTrace(); //TMP
-      // not available
+      // records not available in javax.lang.model
       getRecordComponents = null;
       getAccessor = null;
     }
