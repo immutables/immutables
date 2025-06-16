@@ -592,7 +592,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    */
   [deprecation v]
   [varargsSafetyAbstract v]
-  default [type.typeValue.relative] [v.names.with]([v.atNullability][v.unwrappedElementType]... elements) {
+  default [type.typeValue.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements) {
     [recordSelf type]
     [if v.nullable]
     if (elements == null) {
@@ -621,7 +621,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of the record or {@code this} if not changed
    */
   [deprecation v]
-  default [type.typeValue.relative] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+  default [type.typeValue.relative] [v.names.with]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements) {
     [recordSelf type]
     [if v.forceEqualsInWithers]
     if ([objectsEqual type](self.[v.name](), elements)) return self;
@@ -629,7 +629,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
     if (self.[v.name]() == elements) return self;
     [/if]
     [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if][if v.isGenerateJdk9]elements instanceof java.util.Collection<?>
-        ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[v.consumedElementType]>) elements)
+        ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[qExtends v][v.wrappedElementType]>) elements)
         : java.util.[v.rawCollectionType].copyOf(java.util.stream.StreamSupport.stream(elements.spliterator(), false)
             .collect(java.util.stream.Collectors.to[v.rawCollectionType]()))[else][immutableCollectionCopyOf v 'elements'][/if];
     [generateReturnRecordCopy type v 'newValue']
@@ -644,7 +644,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of the record or {@code this} if not changed
    */
   [deprecation v]
-  default [type.typeValue.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+  default [type.typeValue.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullElem v][v.wrappedElementType]> operator) {
     [recordSelf type]
     if ([if v.nullable]self.[v.name]() == null || [/if]self.[v.name]().isEmpty()) return self;
     java.util.List<[v.wrappedElementType]> elements = self.[v.name]().stream()
@@ -722,7 +722,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of the record or {@code this} if not changed
    */
   [deprecation v]
-  default [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] [v.name]) {
+  default [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] [v.name]) {
     [let optType][v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if][/let]
     [suppressCovariantCastForOptional v]
     [optType] newValue = [requireNonNull type](([optType]) [v.name], "[v.name]");
@@ -784,7 +784,8 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
   }
 [/if]
       [else if v.mapType]
-      [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+      [let gE][qExtends v][tuNullParam v][v.wrappedElementType][/let][let wV][tuNullParam v][v.wrappedSecondaryElementType][/let]
+      [for uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType]
 
   /**
    * Copy the record by replacing the [sourceDocRef v] map with the specified map.
@@ -886,7 +887,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of the record or {@code this} if not changed
    */
   [deprecation v]
-  default [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+  default [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullable v][v.wrappedElementType]> operator) {
     [recordSelf type]
     [v.atNullabilityLocal][immutableImplementationType v] value = operator.apply(self.[v.name]());
     [if v.forceEqualsInWithers]
@@ -927,7 +928,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    */
   [deprecation v]
   [varargsSafetyAbstract v]
-  [type.typeAbstract.relative] [v.names.with]([v.unwrappedElementType]... elements);
+  [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements);
 
   /**
    * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
@@ -936,7 +937,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of {@code this} object
    */
   [deprecation v]
-  [type.typeAbstract.relative] [v.names.with](Iterable<[v.consumedElementType]> elements);
+  [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements);
 [if type.generateWithUnaryOperator]
 
   /**
@@ -947,7 +948,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of {@code this} object
    */
   [deprecation v]
-  [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator);
+  [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullElem v][v.wrappedElementType]> operator);
   [/if]
       [else if v.optionalType]
 
@@ -966,7 +967,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of {@code this} object
    */
   [deprecation v]
-  [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional);
+  [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] optional);
 [if type.generateWithUnaryOperator]
 
   /**
@@ -980,7 +981,8 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
   [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator);
 [/if]
       [else if v.mapType]
-      [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+      [let gE][qExtends v][tuNullParam v][v.wrappedElementType][/let][let wV][tuNullParam v][v.wrappedSecondaryElementType][/let]
+      [for uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType]
 
   /**
    * Copy the current immutable object by replacing the [sourceDocRef v] map with the specified map.
@@ -1015,7 +1017,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of {@code this} object
    */
   [deprecation v]
-  [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator);
+  [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullable v][v.wrappedElementType]> operator);
 [/if]
       [/if]
     [/for]
@@ -1034,16 +1036,17 @@ public final [type.typeAbstract.relative] [v.names.with]([v.elementType]... elem
     [else if v.collectionType]
 @Override
 [varargsSafety v]
-public final [type.typeAbstract.relative] [v.names.with]([v.unwrappedElementType]... elements) { throw new UnsupportedOperationException(); }
+public final [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements) { throw new UnsupportedOperationException(); }
 @Override
-public [type.typeAbstract.relative] [v.names.with](Iterable<[v.consumedElementType]> elements) { throw new UnsupportedOperationException(); }
+public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]>) { throw new UnsupportedOperationException(); }
     [else if v.optionalType]
 @Override
 public [type.typeAbstract.relative] [v.names.with]([unwrappedOptionalType v] value) { throw new UnsupportedOperationException(); }
 @Override
-public [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) { throw new UnsupportedOperationException(); }
+public [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] optional) { throw new UnsupportedOperationException(); }
     [else if v.mapType]
-      [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+      [let gE][qExtends v][tuNullParam v][v.wrappedElementType][/let][let wV][tuNullParam v][v.wrappedSecondaryElementType][/let]
+      [for uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType]
 @Override
 public [type.typeAbstract.relative] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) { throw new UnsupportedOperationException(); }
       [/for]
@@ -1438,7 +1441,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [tb.nameBuildFinal][type.generics.args] [v.names.addv]([v.unwrappedElementType]... elements);
+  [tb.nameBuildFinal][type.generics.args] [v.names.addv]([tuNullParam v][v.unwrappedElementType]... elements);
 
   /**
    * Adds elements to [sourceDocRef v] [toLower v.rawCollectionType].
@@ -1446,7 +1449,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [tb.nameBuildFinal][type.generics.args] [v.names.addAll](Iterable<[v.consumedElementType]> elements);
+  [tb.nameBuildFinal][type.generics.args] [v.names.addAll](Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements);
 [else if v.optionalType]
 
   /**
@@ -1463,9 +1466,10 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [tb.nameBuildFinal][type.generics.args] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] [v.name]);
+  [tb.nameBuildFinal][type.generics.args] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] [v.name]);
 [else if v.mapType]
-  [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+  [let gE][qExtends v][tuNullParam v][v.wrappedElementType][/let][let wV][tuNullParam v][v.wrappedSecondaryElementType][/let]
+  [for uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType]
     [if v.multimapType]
 
   /**
@@ -1941,7 +1945,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [eachLine v.elementInitializerInjectedAnnotations]
   [deprecation v]
   [varargsSafety v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.addv]([v.unwrappedElementType]... elements) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.addv]([tuNullParam v][v.unwrappedElementType]... elements) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -2050,7 +2054,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [eachLine v.builderAttributeAnnotation]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements) {
     [if v.nullable]
     if (elements == null) {
       [defineOrResetBuildingFieldAlt v false true]
@@ -2072,7 +2076,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.addAll](Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements) {
     [if v.nullableCollector]
     [requireNonNull type](elements, "[v.name] element");
     if (this.[v.name] == null) {
@@ -2238,7 +2242,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [eachLine v.builderAttributeAnnotation]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] [v.name]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
   [if v.jdkOptional and type.kind.isFactory]
     this.[v.name] = ([v.type]) [requireNonNull type]([v.name], "[v.name]");
@@ -2251,7 +2255,8 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     return [builderReturnThis type];
   }
   [else if v.mapType]
-    [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+    [let gE][qExtends v][tuNullParam v][v.wrappedElementType][/let][let wV][tuNullParam v][v.wrappedSecondaryElementType][/let]
+    [for uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType]
       [if v.multimapType]
         [if not v.isBuilderParameter]
 
@@ -2849,7 +2854,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [else if v.jdkOptional]
   [if v.jdkSpecializedOptional][expression].isPresent() ? [expression].getAs[toUpper v.unwrappedElementType]() : null[else][maybeCopyOf v][expression].orElse(null)[/maybeCopyOf][/if]
 [else if v.optionalType]
-  [if v.consumedElementType ne v.wrappedElementType]([v.type]) [/if][maybeCopyOf v expression]
+  [if v.consumesWildcardExtends]([v.type]) [/if][maybeCopyOf v expression]
 [else if v.arrayType][-- we don't make a safe copy for nullable array --]
   [if v.nullable][expression][else][expression].clone()[/if]
 [else if v.attributeValueKindCopy]
@@ -2858,7 +2863,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [if mayBeNullable and v.nullable][expression] == null ? null : [/if][immutableCollectionCopyOf v expression]
 [else if v.collectionType]
   [if mayBeNullable and v.nullable][expression] == null ? null : [/if][if v.isGenerateJdk9][expression] instanceof java.util.Collection<?>
-       ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[v.consumedElementType]>) [expression])
+       ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[qExtends v][v.wrappedElementType]>) [expression])
        : java.util.[v.rawCollectionType].copyOf(java.util.stream.StreamSupport.stream([expression].spliterator(), false)
              .collect(java.util.stream.Collectors.to[v.rawCollectionType]()))[else][immutableCollectionCopyOf v expression][/if]
 [else]
@@ -3259,17 +3264,17 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
 
 [template constructorAcceptType Attribute a][output.trim]
 [if a.encoding]
-  [rr.constructorAcceptType a]
+  [tuNullable a][rr.constructorAcceptType a]
 [else if a.typeKind.isMultimapKind]
-  [guava].collect.Multimap<[a.consumedElementType], ? extends [a.secondaryElementType]>
+  [tuNullable a][guava].collect.Multimap<[qExtends a][tuNullParam a][a.wrappedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isMapKind]
-  java.util.Map<[a.consumedElementType], ? extends [a.secondaryElementType]>
+  [tuNullable a]java.util.Map<[qExtends a][tuNullParam a][a.wrappedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isCollectionKind]
-  Iterable<[a.consumedElementType]>
+  [tuNullable a]Iterable<[qExtends a][tuNullParam a][a.wrappedElementType]>
 [else if a.optionalType andnot a.jdkSpecializedOptional]
-  [a.rawType]<[a.consumedElementType]>
+  [tuNullable a][a.rawType]<[qExtends a][tuNullParam a][a.wrappedElementType]>
 [else]
-  [a.type]
+  [tuNullable a][a.type]
 [/if]
 [/output.trim][/template]
 
@@ -4000,7 +4005,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.el
  */
 [varargsSafety v]
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.unwrappedElementType]... elements) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements) {
   [if v.nullable]
   if (elements == null) {
     if (this.[v.name] == null) return this;
@@ -4032,14 +4037,14 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.un
  * @return A modified copy or {@code this} if not changed
  */
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements) {
   [if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], elements)) return this;
   [else]
   if (this.[v.name] == elements) return this;
   [/if]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if][if v.isGenerateJdk9]elements instanceof java.util.Collection<?>
-      ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[v.consumedElementType]>) elements)
+      ? java.util.[v.rawCollectionType].copyOf((java.util.Collection<[qExtends v][v.wrappedElementType]>) elements)
       : java.util.[v.rawCollectionType].copyOf(java.util.stream.StreamSupport.stream(elements.spliterator(), false)
           .collect(java.util.stream.Collectors.to[v.rawCollectionType]()))[else][immutableCollectionCopyOf v 'elements'][/if];
   [generateReturnCopyContextual type v]
@@ -4054,7 +4059,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Itera
  * @return A modified copy or {@code this} if not changed
  */
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullElem v][v.wrappedElementType]> operator) {
   if ([if v.nullable]this.[v.name] == null || [/if]this.[v.name].isEmpty()) return this;
   java.util.List<[v.wrappedElementType]> elements = this.[v.name].stream().map(operator)
       .collect(java.util.stream.Collectors.toList());
@@ -4119,7 +4124,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
  */
 [suppressCovariantCastForOptional v]
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) {
+public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
 [if v.jdkOptional]
   [if v.forceEqualsInWithers]
@@ -4182,7 +4187,8 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
 }
 [/if]
     [else if v.mapType]
-    [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+    [let gE][qExtends v][tuNullParam v][v.wrappedElementType][/let][let wV][tuNullParam v][v.wrappedSecondaryElementType][/let]
+    [for uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType]
 
 /**
  * Copy the current immutable object by replacing the [sourceDocRef v] map with the specified map.
@@ -4284,7 +4290,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
  * @return A modified copy or {@code this} if not changed
  */
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
+public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullable v][v.wrappedElementType]> operator) {
   [v.atNullabilityLocal][immutableImplementationType v] value = operator.apply(this.[v.name]);
   [if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], value)) return this;
@@ -4380,15 +4386,15 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
  * [docEscaped type.factoryBuilder.relative]()
 [for v in type.settableAttributes]
   [if v.encoding]
- *    .[rr.builderCopyFrom v]([docEscaped v.type]) // [sourceDocRef v]
+ *    .[rr.builderCopyFrom v]([docEscaped v.rawTypeOrPrimitive][docEscaped v.genericArgs]) // [sourceDocRef v]
   [else if v.nullable]
- *    .[v.names.init]([docEscaped v.type] | null) // nullable [sourceDocRef v]
+ *    .[v.names.init]([docEscaped v.rawTypeOrPrimitive][docEscaped v.genericArgs] | null) // nullable [sourceDocRef v]
   [else if v.collectionType]
  *    .[v.names.add]|[v.names.addAll]([docEscaped v.unwrappedElementType]) // [sourceDocRef v] elements
   [else if v.mapType]
  *    .[v.names.put]|[v.names.putAll]([docEscaped v.unwrappedElementType] =&gt; [docEscaped v.unwrappedSecondaryElementType]) // [sourceDocRef v] mappings
   [else]
- *    .[v.names.init]([docEscaped v.elementType]) // [if v.isMandatory]required[else]optional[/if] [sourceDocRef v]
+ *    .[v.names.init]([docEscaped v.rawTypeOrPrimitive][docEscaped v.genericArgs]) // [if v.isMandatory]required[else]optional[/if] [sourceDocRef v]
   [/if]
 [/for]
  *    .[type.names.build]();
@@ -5165,6 +5171,8 @@ private static final long serialVersionUID = [literal serialVersion];
 [template tuNullElem Attribute a][if a.whenTypeuseNullableElement][atFallbackNullable a][/if][/template]
 
 [template tuNullParam Attribute a][if a.whenTypeuseNullableElementParameter][atFallbackNullable a][/if][/template]
+
+[template qExtends Attribute a][if a.consumesWildcardExtends]? extends [/if][/template]
 
 [template atVar HasStyleInfo s][if s allowsClasspathAnnotation 'com.google.errorprone.annotations.Var']@com.google.errorprone.annotations.Var [/if][/template]
 

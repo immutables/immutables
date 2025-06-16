@@ -1,5 +1,5 @@
 [--
-   Copyright 2015-2021 Immutables Authors and Contributors
+   Copyright 2015-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -613,7 +613,7 @@ public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] elemen
 [eachLine v.elementInitializerInjectedAnnotations]
 [varargsSafety v]
 [atCanIgnoreReturnValue type]
-public final [thisSetterReturnType type] [v.names.addv]([v.unwrappedElementType]... elements) {
+public final [thisSetterReturnType type] [v.names.addv]([tuNullParam v][v.unwrappedElementType]... elements) {
   for ([v.unwrappedElementType] e : elements) {
     [if v.unwrappedElementPrimitiveType][-- anti sneaky autounboxing NPE --]
     [v.names.add]([im.requireNonNull type](e, "[v.name] element"));
@@ -633,7 +633,7 @@ public final [thisSetterReturnType type] [v.names.addv]([v.unwrappedElementType]
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
-public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanFriendlyModifiable][v.type][else]Iterable<[v.consumedElementType]>[/if] elements) {
+public [thisSetterReturnType type] [v.names.set]([v.atNullability][tuNullable v][if type.beanFriendlyModifiable][v.type][else]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]>[/if] elements) {
 [if type.beanFriendlyModifiable]
   this.[v.name] = [if v.nullable]elements[else][im.requireNonNull type](elements, "elements")[/if];
 [else]
@@ -666,7 +666,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
-public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+public [thisSetterReturnType type] [v.names.addAll]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements) {
   [if v.nullableCollector]
   if (elements == null) [thisSetterReturn type]
   if (this.[v.name] == null) {
@@ -709,7 +709,8 @@ public [thisSetterReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecial
   [thisSetterReturn type]
 }
 [else if v.mapType]
-  [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+  [let gE][qExtends v][tuNullParam v][v.wrappedElementType][/let][let wV][tuNullParam v][v.wrappedSecondaryElementType][/let]
+  [for uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType]
     [if v.multimapType]
 
 /**
@@ -867,7 +868,7 @@ public [thisSetterReturnType type] [v.names.putAll]([if v.multimapType][guava].c
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
-public final [thisSetterReturnType type] [v.names.set]([v.elementType]... elements) {
+public final [thisSetterReturnType type] [v.names.set]([v.atNullability][v.elementType][atForceTypeuseNullable v]... elements) {
   this.[v.name] = [if v.nullable]elements == null ? null : [/if]elements.clone();
   [mandatorySetter v]
   [nondefaultSetter v]
@@ -905,13 +906,13 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
 
 [template constructorAcceptType Attribute a][output.trim]
 [if a.typeKind.isMultimapKind]
-  [guava].collect.Multimap<[a.consumedElementType], ? extends [a.secondaryElementType]>
+  [tuNullable a][guava].collect.Multimap<[qExtends a][tuNullParam a][a.wrappedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isMapKind]
-  java.util.Map<[a.consumedElementType], ? extends [a.secondaryElementType]>
+  [tuNullable a]java.util.Map<[qExtends a][tuNullParam a][a.wrappedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isCollectionKind]
-  Iterable<[a.consumedElementType]>
+  [tuNullable a]Iterable<[qExtends a][tuNullParam a][a.wrappedElementType]>
 [else]
-  [a.type]
+  [tuNullable a][a.type]
 [/if]
 [/output.trim][/template]
 
@@ -952,7 +953,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
 [template defineOrResetField Attribute v Boolean declare][defineOrResetFieldAlt v declare false][/template]
 
 [template defineOrResetFieldAlt Attribute v Boolean declare Boolean deferAllocation][output.trim]
-[let fn][if not (v.nullableCollector or v.beanFriendlyModifiable)]final [/if][if v.nullable][v.atNullability][/if][/let]
+[let fn][if not (v.nullableCollector or v.beanFriendlyModifiable)]final [/if][if v.nullable][v.atNullability][/if][if v.whenTypeuseFallbackNullable and ( v.nullableCollector or v.nullable)][atFallbackNullable v][/if][/let]
   [if v.containerType]
     [if v.generateEnumMap]
 [if declare]private [fn]java.util.[if not v.beanFriendlyModifiable]Enum[/if]Map[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.EnumMap[v.genericArgs]([v.elementType].class)[/if];
@@ -1375,6 +1376,14 @@ import [starImport];
 [template unwrappedOptionalType Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable a][a.wrappedElementType][else][a.unwrappedElementType][/if][/template]
 
 [template atNullable HasStyleInfo s][atFallbackNullable s][/template]
+
+[template tuNullable Attribute a][if a.whenTypeuseFallbackNullable][atFallbackNullable a][/if][/template]
+
+[template tuNullElem Attribute a][if a.whenTypeuseNullableElement][atFallbackNullable a][/if][/template]
+
+[template tuNullParam Attribute a][if a.whenTypeuseNullableElementParameter][atFallbackNullable a][/if][/template]
+
+[template qExtends Attribute a][if a.consumesWildcardExtends]? extends [/if][/template]
 
 [template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
 

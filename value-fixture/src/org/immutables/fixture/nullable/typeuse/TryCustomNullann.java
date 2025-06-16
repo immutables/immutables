@@ -12,5 +12,7 @@ import org.immutables.value.Value;
 public interface TryCustomNullann {
   @CusNull Integer aa();
   @CusNull List<@CusNull String> lst();
+  //TypeMirrors for Arrays do not provide any type annotations
+  //@CusNull String @CusNull [] arr();
   Optional<String> opt();
 }

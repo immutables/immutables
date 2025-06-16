@@ -39,6 +39,7 @@ public class ImportRewriter {
   private int at;
 
   private String thisPackage;
+  private String thisPackagePrefix;
 
   private int beforeImportPosition;
   private int afterPackagePosition;
@@ -164,11 +165,18 @@ public class ImportRewriter {
       for (String n : newImports) {
         result.append("import ").append(n).append(";\n");
       }
+
+      // guess I know why we don't have a newline after inserted imports,
+      // but it's too cumbersome to solve "properly", better just insert newline here
+      // this might cause a blank line between generated and preexisting imports,
+      // however this is fine most of the time.
+      result.append("\n");
     }
 
-    // Skip java lang imports
     for (Import imp : imports) {
-      if (!imp.isStatic && imp.classSegments.size() == 1 && imp.packageSegments.equals(JAVA_LANG)) {
+      if (!imp.isStatic
+          && imp.classSegments.size() == 1
+          && imp.packageSegments.equals(JAVA_LANG)) {
         // append everything since last position
         result.append(source, sourceAt, imp.at);
         // and skipping this import
@@ -258,19 +266,32 @@ public class ImportRewriter {
       if (topClassSegments.isEmpty()) {
         // if local segment is first segment now
         existing = usages.get(localSegment);
+
+        String qualified = packagePrefix + localSegment;
         // when it exising not null, we've handled it above
         if (existing == null) {
-          String qualified = packagePrefix + localSegment;
           usages.put(localSegment, qualified);
 
-          if (!packagePrefix.equals("java.lang.")) {
+          if (!packagePrefix.equals("java.lang.") && !packagePrefix.equals(thisPackagePrefix)) {
             newImports.add(qualified);
           }
 
           q.rewritten = true;
           // removing package segments, will rely on import
           q.packageSegments.clear();
+
+        } else if (packagePrefix.equals(thisPackagePrefix) && existing != USE_DECLARED) {
+          if (existing == USE_UNKNOWN || existing.equals(qualified)) {
+            if (existing == USE_UNKNOWN) {
+              // assert this qualified name
+              usages.put(localSegment, qualified);
+            }
+            q.rewritten = true;
+            q.packageSegments.clear();
+            // no import necessary, same package - no conflicts
+          }
         }
+
         return;
       }
     }
@@ -435,6 +456,7 @@ public class ImportRewriter {
       List<String> packageSegments = new ArrayList<>();
       consumeQualifiedName(packageSegments::add, a -> {});
       thisPackage = String.join(".", packageSegments);
+      thisPackagePrefix = thisPackage + ".";
       //System.err.println("PACKAGE " + thisPackage);
       consumeWhitespace();
       consume(';');
@@ -694,7 +716,6 @@ public class ImportRewriter {
   private void addDeclared(Declaration declared) {
     declarations.add(declared);
     usages.put(declared.name.toString(), USE_DECLARED);
-    //System.err.println("DECLARED " + declared);
   }
 
   private boolean processIdentifier() {

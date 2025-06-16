@@ -601,10 +601,12 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       if (isMaybeComparableKey()) {
         this.orderKind = orderKind;
       } else {
-        reportOrderingError(annotationName, "requires that a (multi)set's elements or a map's keys are Comparable");
+        reportOrderingError(annotationName,
+            "requires that a (multi)set's elements or a map's keys are Comparable");
       }
     } else {
-      reportOrderingError(annotationName, "can be applied only to SortedSet, SortedMap and SortedMultiset attributes");
+      reportOrderingError(annotationName,
+          "can be applied only to SortedSet(NavigableSet), SortedMap(NavigableMap) and SortedMultiset attributes");
     }
   }
 
@@ -715,13 +717,22 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return rawTypeName;
   }
 
+  // this is similar to getUnwrapperOrRawElementType, but arguably faster
+  public String getRawTypeOrPrimitive() {
+    return rawTypeName != null ? rawTypeName : returnTypeName;
+  }
+
+  // It will still be referenced from (more legacy) mongodb repositories, transformers and visitors
+  // very rarely used by anyone nowadays, including me. But we remove the use of it from
+  // Immutables.generator and Modifiables.generator
+  @Deprecated
   public String getConsumedElementType() {
     return consumesWildcardExtends()
         ? "? extends " + getWrappedElementType()
         : getWrappedElementType();
   }
 
-  private boolean consumesWildcardExtends() {
+  public boolean consumesWildcardExtends() {
     return !isUnwrappedElementPrimitiveType()
         && !isStringType()
         && !(hasContainedElementType() && firstTypeParameter().equals(String.class.getName()))
@@ -1179,9 +1190,16 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return isPrimitiveType(getUnwrappedElementType());
   }
 
+  /**
+   * This is confusing, but we're {@code true} here if it is optional type, and when we cast it
+   * we would produce unsafe unchecked cast, so we actually suppress it. The general rule is that
+   * if we have {@code Optional<? extends A>} we can cast it to {@code Optional<A>} because Optional
+   * is immutable and its type parameter is covariant, runtime instances are indistinguishable,
+   * and not heap pollution possible by such cast. If we don't have an {@code extends}, then we
+   * don't need a cast, and we don't need to suppress any unchecked warnings.
+   */
   public boolean isSafeUncheckedCovariantCast() {
-    return isOptionalType()
-        && !getConsumedElementType().equals(getWrappedElementType());
+    return isOptionalType() && consumesWildcardExtends();
   }
 
   public boolean isAuxiliary() {

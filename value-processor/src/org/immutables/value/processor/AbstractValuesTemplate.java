@@ -67,10 +67,10 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
   // Same as in .meta.Annotations.JAKARTA_NULLABLE
   private static final String JAKARTA_NULLABLE = "jakarta.annotation.Nullable";
 
-  protected final Function<Object, String> docEscaped = input -> input.toString()
+  protected final Function<Object, String> docEscaped = input -> (input != null ? input : "").toString()
+      .replace("&", "&amp;")
       .replace("<", "&lt;")
       .replace(">", "&gt;")
-      .replace("&", "&amp;")
       .replace("java.lang.", "")
       .replace("java.util.", "");
 
@@ -93,6 +93,7 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
     jaxartaPackage = style.jakarta() ? "jakarta" : "javax";
   }
 
+  @Deprecated
   protected final Function<HasStyleInfo, String> atForceTypeuseNullable =
       input -> {
         // these are surrounded by spaces, so far, intentionally.
