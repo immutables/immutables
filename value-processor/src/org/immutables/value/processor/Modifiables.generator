@@ -737,7 +737,7 @@ public final [thisSetterReturnType type] [v.names.putv]([uK] key, [uV]... values
 [deprecation v]
 [eachLine v.elementInitializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
-public [thisSetterReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
+public [thisSetterReturnType type] [v.names.putAll]([uK] key, Iterable<? extends [wV]> values) {
   [if v.nullableCollector]
   if (this.[v.name] == null) {
     this.[defineOrResetField v false]
