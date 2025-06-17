@@ -19,6 +19,8 @@ import static org.immutables.check.Checkers.check;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.immutables.fixture.jackson.bug1505.Order;
+import org.immutables.fixture.jackson.bug1505.OrderLine;
 import org.junit.jupiter.api.Test;
 
 public class BugsTest {
@@ -67,5 +69,22 @@ public class BugsTest {
 
     check(json).matches("\\{(?:'abra_cadabra':1,'focus_pocus':true|'focus_pocus':true,'abra_cadabra':1)}"
             .replace('\'', '"'));
+  }
+
+  @Test void bug1505() throws Exception {
+    var o = Order.builder()
+        .id(0)
+        .addOrderLines(OrderLine.builder()
+            .id(1)
+            .description("ABC")
+            .build())
+        .addOrderLines(OrderLine.builder()
+            .id(2)
+            .description("XYZ")
+            .build())
+        .build();
+    var json = mapper.writeValueAsString(o);
+    var parsedOrder = mapper.readValue(json, Order.class);
+    check(o).is(parsedOrder);
   }
 }

@@ -2075,6 +2075,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    */
   [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
+  [if type.useStrictBuilder]
+  [eachLine v.builderAttributeAnnotation]
+  [/if]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.addAll](Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements) {
     [if v.nullableCollector]
@@ -2402,6 +2405,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    */
   [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
+  [if type.useStrictBuilder]
+  [eachLine v.builderAttributeAnnotation]
+  [/if]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if v.nullableCollector]
