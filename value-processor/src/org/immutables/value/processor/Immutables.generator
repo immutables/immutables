@@ -1488,7 +1488,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [tb.nameBuildFinal][type.generics.args] [v.names.putAll]([uK] key, Iterable<[wV]> values);
+  [tb.nameBuildFinal][type.generics.args] [v.names.putAll]([uK] key, Iterable<? extends [wV]> values);
     [/if]
 
   /**
@@ -2290,7 +2290,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<? extends [wV]> values) {
     [if v.nullable]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
