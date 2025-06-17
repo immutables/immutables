@@ -72,7 +72,7 @@ public class BugsTest {
   }
 
   @Test void bug1505() throws Exception {
-    var o = Order.builder()
+    Order o = Order.builder()
         .id(0)
         .addOrderLines(OrderLine.builder()
             .id(1)
@@ -83,8 +83,8 @@ public class BugsTest {
             .description("XYZ")
             .build())
         .build();
-    var json = mapper.writeValueAsString(o);
-    var parsedOrder = mapper.readValue(json, Order.class);
+    String json = mapper.writeValueAsString(o);
+    Order parsedOrder = mapper.readValue(json, Order.class);
     check(o).is(parsedOrder);
   }
 }
