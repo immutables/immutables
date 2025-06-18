@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 Immutables Authors and Contributors
+   Copyright 2016-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -443,7 +443,6 @@ public interface Type {
         resolvedTypes.put(Reference.VOID.name, Reference.VOID);
       }
     }
-
     @Override
     public Primitive primitive(String name) {
       @Nullable Primitive type = PRIMITIVE_TYPES.get(name);
@@ -688,6 +687,9 @@ public interface Type {
     private final Factory factory;
     private final Parameters parameters;
 
+    public @Nullable String nullableAnnotationSimpleName;
+    public boolean seenNullableTypeAnnotation;
+
     public Parser(Factory factory, Parameters parameters) {
       this.factory = factory;
       this.parameters = parameters;
@@ -711,6 +713,8 @@ public interface Type {
     }
 
     public Type parse(String input) {
+      // reset flag before each parsing
+      seenNullableTypeAnnotation = false;
       try {
         return doParse(input);
       } catch (RuntimeException ex) {
@@ -723,7 +727,7 @@ public interface Type {
     }
 
     private Type doParse(String input) {
-      final Deque<Term> terms = new LinkedList<>();
+      final Deque<Term> terms = new ArrayDeque<>();
 
       for (Term t : Code.termsFrom(input)) {
         if (!t.isWhitespace())
@@ -734,6 +738,16 @@ public interface Type {
 
         Type type() {
           Term t = terms.peek();
+          if (t != null && t.is('.')) {
+            // no package, starting with strangely formatted
+            // (javac TypeMirror.toString() for ERROR type?).
+            // Just consume the dot
+            terms.remove();
+            return named();
+          }
+          if (t == null) {
+            throw new IllegalStateException("unexpected end in: " + input);
+          }
           if (t.isWordOrNumber()) {
             Type type = named();
 
@@ -820,7 +834,7 @@ public interface Type {
           expect(terms.poll(), "<");
 
           List<Nonprimitive> arguments = new ArrayList<>();
-          for (;;) {
+          for (; ; ) {
             if (terms.peek().is("?")) {
               arguments.add(wildcard());
             } else {
@@ -840,11 +854,13 @@ public interface Type {
         Type named() {
           List<String> segments = new ArrayList<>();
 
-          for (;;) {
-            if (terms.peek().isWordOrNumber()) {
-              segments.add(terms.poll().toString());
-            } else if (terms.peek().is("@")) {
-              terms.poll();
+          for (; !terms.isEmpty(); ) {
+            Term t = terms.peek();
+            if (t.isWordOrNumber()) {
+              terms.remove();
+              segments.add(t.toString());
+            } else if (t.is("@")) {
+              terms.remove();
               // just consume type annotation
               consumeAnnotation();
               continue;
@@ -854,7 +870,7 @@ public interface Type {
 
             if (!terms.isEmpty() && terms.peek().is(".")) {
               if (terms.size() >= 2) {
-                // case when varargs may be so more than one dot
+                // case when varargs may be so more than one dot,
                 // but we handle rest of it elsewhere
                 Iterator<Term> it = terms.iterator();
                 if (it.next().is(".") && it.next().is(".")) {
@@ -871,7 +887,14 @@ public interface Type {
         }
 
         private void consumeAnnotation() {
-          named();
+          Type named = named();
+          // this hacky flag setting might work on nested types, but it's ok
+          // to declare nullable in false positive way for our use case
+          if (nullableAnnotationSimpleName != null && named instanceof Type.Reference) {
+            if (((Reference) named).name.endsWith(nullableAnnotationSimpleName)) {
+              seenNullableTypeAnnotation = true;
+            }
+          }
           consumeAnnotationParameters();
           consumeErraticTrailingComma();
         }
@@ -879,14 +902,14 @@ public interface Type {
         private void consumeAnnotationParameters() {
           consumeRecursiveUntil("(", ")");
         }
-        
+
         private void consumeRecursiveUntil(String begin, String end) {
           if (!terms.isEmpty() && terms.peek().is(begin)) {
-            terms.poll();
-            while(!terms.isEmpty()) {
+            terms.remove();
+            while (!terms.isEmpty()) {
               Term t = terms.peek();
               if (t.is(end)) {
-                terms.poll();
+                terms.remove();
                 return;
               }
               if (t.is(begin)) {
@@ -931,7 +954,7 @@ public interface Type {
     }
 
     public Optional<VariableResolver> match(Type type) {
-      final VariableResolver[] holder = new VariableResolver[] {VariableResolver.empty()};
+      final VariableResolver[] holder = new VariableResolver[]{VariableResolver.empty()};
 
       class Decomposer implements Visitor<Boolean> {
         final Type type;

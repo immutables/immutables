@@ -206,19 +206,30 @@ public final class FromSupertypesModel {
       }
     }
     try {
-      String ownType = accessor.getReturnType().toString();
-      String inheritedType = attr.returnType.toString();
+      String settledType = attr.returnType.toString();
+      String supertypeMethod = accessor.getReturnType().toString();
+
       // This kind of parsing normalizes and ignores type annotations
       Type.Producer tf = new Type.Producer();
       Type.Parser parser = new Type.Parser(tf, tf.parameters());
+      parser.nullableAnnotationSimpleName = attr.style().nullableAnnotation();
+      Type parsedSupersType = parser.parse(supertypeMethod);
+      boolean seenNullableAnnotation = parser.seenNullableTypeAnnotation;
 
-      if (parser.parse(ownType).equals(parser.parse(inheritedType))) {
-        attr.initNullabilitySupertype(accessor);
+      Type parsedSettledType = parser.parse(settledType);
+
+      if (parsedSupersType.equals(parsedSettledType)) {
+        if (seenNullableAnnotation) {
+          attr.initTypeuseNullableSupertype();
+        } else {
+          attr.initNullabilitySupertype(accessor);
+        }
         return true;
       }
     } catch (Exception typeParseException) {
       if (typeParseExceptionReported.compareAndSet(false, true)) {
-        reporter.warning("Type parsing problem in FromSupertypesModel: %s", typeParseException);
+        reporter.warning("Type parsing problem in FromSupertypesModel: %s", typeParseException + "\n\tat " + typeParseException.getStackTrace()[0]);
+        //Throwables.getStackTraceAsString(typeParseException)
       }
     }
 

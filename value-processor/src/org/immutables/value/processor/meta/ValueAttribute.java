@@ -1,5 +1,5 @@
 /*
-   Copyright 2013-2018 Immutables Authors and Contributors
+   Copyright 2013-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -1995,6 +1995,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     if (nullabilityInSupertype == null && !isPrimitive() && !isNullable()) {
       nullabilityInSupertype = isAccessorNullableAccessor(accessor);
     }
+  }
+
+  void initTypeuseNullableSupertype() {
+    nullabilityInSupertype = NullabilityAnnotationInfo.forTypeUse(true);
   }
 
   public boolean isNullableInSupertype() {

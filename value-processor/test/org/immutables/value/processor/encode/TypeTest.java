@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 Immutables Authors and Contributors
+   Copyright 2016-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -84,6 +84,25 @@ public class TypeTest {
   public void parseIngoreTypeAnnotation() {
     check(parser.parse("@type.annotation.TypeA @TypeD int")).is(Primitive.INT);
     check(parser.parse("java.lang.@type.annotation.TypeA @type.annotation.TypeB @TypeC String")).is(Reference.STRING);
+    check(parser.parse("java.lang.@type.annotation.TypeA @type.annotation.TypeB @TypeC String")).is(Reference.STRING);
+  }
+
+  @Test
+  public void parseBypassNullableTypeAnnotation() {
+    parser.nullableAnnotationSimpleName = "Nullable";
+    check(parser.parse("java.lang.@type.Nonnull String")).is(Reference.STRING);
+    check(!parser.seenNullableTypeAnnotation);
+
+    check(parser.parse("java.lang.@type.annotation.Nullable String")).is(Reference.STRING);
+    check(parser.seenNullableTypeAnnotation);
+
+    Type parsed1 = parser.parse(".@annotation.Nullable Unknown");
+    check(parsed1 instanceof Type.Reference && ((Reference) parsed1).name.equals("Unknown"));
+    check(parser.seenNullableTypeAnnotation);
+
+    Type parsed2 = parser.parse(".@Nullable Some");
+    check(parsed2 instanceof Type.Reference && ((Reference) parsed2).name.equals("Some"));
+    check(parser.seenNullableTypeAnnotation);
   }
 
   @Test

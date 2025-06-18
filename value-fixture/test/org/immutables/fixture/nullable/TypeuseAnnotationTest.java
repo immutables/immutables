@@ -42,6 +42,6 @@ public class TypeuseAnnotationTest {
         .from(firstChild)
         .build();
 
-    //check(secondChild.myField()).notNull();
+    check(secondChild.myField()).notNull();
   }
 }
