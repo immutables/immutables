@@ -1029,14 +1029,14 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
 [if type.generateWithInterface]
 [-- we actually don't need those implementation, signatures are good enough --]
   [for v in type.settableAttributes]
+
     [if v.arrayType]
-@Override
 [varargsSafety v]
-public final [type.typeAbstract.relative] [v.names.with]([v.elementType]... elements) { throw new UnsupportedOperationException(); }
+public [type.typeAbstract.relative] [v.names.with]([v.elementType]... elements) { throw new UnsupportedOperationException(); }
     [else if v.collectionType]
 @Override
 [varargsSafety v]
-public final [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements) { throw new UnsupportedOperationException(); }
+public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements) { throw new UnsupportedOperationException(); }
 @Override
 public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]>) { throw new UnsupportedOperationException(); }
     [else if v.optionalType]
@@ -3350,33 +3350,32 @@ itself immutable. Since it's private, that's benign. --]
 static final [output.linesShortable]class Json[type.generics]
     [extendsImplements type][/output.linesShortable]
   [serialVersionUID type]
+[let forceJsonIgnore]@[jackson].annotation.JsonIgnore [/let]
 [for v in type.settableAttributes if not v.jacksonAnyGetter]
-  @[jackson].annotation.JsonIgnore[-- this one unconditional, see jsonIgnoreTemplate --]
   [if v.encoding]
     [if v.instantiation.supportsDefaultValue]
-  [v.type] [v.name] = [rr.defaultValue v];
+  [forceJsonIgnore][v.type] [v.name] = [rr.defaultValue v];
     [else]
-  [atNullable v][v.type] [v.name];
+  [forceJsonIgnore][atNullable v][v.type] [v.name];
     [/if]
   [else if v.optionalType]
-  [atNullable v][v.type] [v.name] = [optionalEmpty v];
+  [forceJsonIgnore][atNullable v][v.type] [v.name] = [optionalEmpty v];
   [else if v.collectionType or v.mapType]
-  [atNullable v][v.type] [v.name] = [emptyImmutableInstance v ''];
+  [forceJsonIgnore][atNullable v][v.type] [v.name] = [emptyImmutableInstance v ''];
   [else if v.primitive]
-  [v.type] [v.name];
+  [forceJsonIgnore][v.type] [v.name];
   [else]
-  [atNullable v][v.type] [v.name];
+  [forceJsonIgnore][atNullable v][v.type] [v.name];
   [/if]
   [if v.primitive or (v.requiresTrackIsSet andnot v.jacksonAnyGetter)]
-  @[jackson].annotation.JsonIgnore
-  boolean [disambiguateField type (v.name 'IsSet')];
+  [forceJsonIgnore]boolean [disambiguateField type (v.name 'IsSet')];
   [/if]
 [/for]
 [for v in type.settableAttributes if v.jacksonAnyGetter]
-  @[jackson].annotation.JsonIgnore
-  final [v.type] [v.name] = new java.util.HashMap[v.genericArgs]();
+  [forceJsonIgnore]final [v.type] [v.name] = new java.util.HashMap[v.genericArgs]();
 [/for]
 [for v in type.settableAttributes if not v.jacksonAnyGetter]
+
   [eachLine v.annotations]
   [eachLine v.initializerInjectedAnnotations]
   public void [v.names.beanSet]([v.atNullability][v.type] [v.name]) {
@@ -3396,12 +3395,14 @@ static final [output.linesShortable]class Json[type.generics]
   }
 [/for]
 [for signature in type.nonAttributeAbstractMethodSignatures]
+  
   @Override[-- we actually don't need this implementation, signature is good enough --]
   [signature] { throw new UnsupportedOperationException(); }
 [/for]
 [for v in type.allAccessibleAttributes]
+
   [if v.isGenerateDerived]
-  @[jackson].annotation.JsonIgnore
+  [forceJsonIgnore]
   [/if]
   @Override[-- we actually don't need this implementation, signature is good enough --]
   [v.toSignature] { throw new UnsupportedOperationException(); }
