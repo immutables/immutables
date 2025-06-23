@@ -1393,7 +1393,7 @@ import [starImport];
 
 [template varargsSafety Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SafeVarargs[/if][/template]
 
-[template jsonIgnore Type type][if type.generateJacksonIngoreFields]@[jackson].annotation.JsonIgnore[/if][/template]
+[template jsonIgnore Type type][if type.generateJacksonIgnoreFields]@[jackson].annotation.JsonIgnore[/if][/template]
 
 [template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]
 

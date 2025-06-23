@@ -404,7 +404,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return constitution.protoclass().isJacksonProperties();
   }
 
-  public boolean isGenerateJacksonIngoreFields() {
+  public boolean isGenerateJacksonIgnoreFields() {
     return isGenerateJacksonProperties()
         && style().forceJacksonIgnoreFields();
   }

@@ -3347,11 +3347,11 @@ itself immutable. Since it's private, that's benign. --]
 [hiddenMutableState type]
 [overrideJsonDeserialize type]
 [overrideJsonTypeInfo type]
-@[jackson].annotation.JsonAutoDetect(fieldVisibility = [jackson].annotation.JsonAutoDetect.Visibility.NONE)
 static final [output.linesShortable]class Json[type.generics]
     [extendsImplements type][/output.linesShortable]
   [serialVersionUID type]
 [for v in type.settableAttributes if not v.jacksonAnyGetter]
+  @[jackson].annotation.JsonIgnore[-- this one unconditional, see jsonIgnoreTemplate --]
   [if v.encoding]
     [if v.instantiation.supportsDefaultValue]
   [v.type] [v.name] = [rr.defaultValue v];
@@ -3368,10 +3368,12 @@ static final [output.linesShortable]class Json[type.generics]
   [atNullable v][v.type] [v.name];
   [/if]
   [if v.primitive or (v.requiresTrackIsSet andnot v.jacksonAnyGetter)]
+  @[jackson].annotation.JsonIgnore
   boolean [disambiguateField type (v.name 'IsSet')];
   [/if]
 [/for]
 [for v in type.settableAttributes if v.jacksonAnyGetter]
+  @[jackson].annotation.JsonIgnore
   final [v.type] [v.name] = new java.util.HashMap[v.genericArgs]();
 [/for]
 [for v in type.settableAttributes if not v.jacksonAnyGetter]
@@ -5196,7 +5198,7 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template overrideJsonTypeInfo Type type][if type.jacksonJsonTypeInfo]@[jackson].annotation.JsonTypeInfo(use=[jackson].annotation.JsonTypeInfo.Id.NONE)[/if][/template]
 
-[template jsonIgnore Type type][if type.generateJacksonIngoreFields]@[jackson].annotation.JsonIgnore[/if][/template]
+[template jsonIgnore Type type][if type.generateJacksonIgnoreFields]@[jackson].annotation.JsonIgnore[/if][/template]
 
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
 

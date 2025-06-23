@@ -282,7 +282,7 @@ private [inst.typer f.type] [inst.namer f] {
 
 [template annotsJI Attribute s Elem el]
 [eachLine s.fieldInjectedAnnotations]
-[if s.containingType.generateJacksonIngoreFields]
+[if s.containingType.generateJacksonIgnoreFields]
 [for a in el.annotations if not (a startsWith ('@' jackson '.annotation.JsonIgnore'))]
 [a]
 [/for]

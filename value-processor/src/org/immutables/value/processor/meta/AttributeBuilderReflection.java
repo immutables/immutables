@@ -17,15 +17,12 @@ import org.immutables.value.Value.Derived;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
 import org.immutables.value.Value.Parameter;
-import org.immutables.value.Value.Style;
-import org.immutables.value.Value.Style.ImplementationVisibility;
 import org.immutables.value.processor.meta.AttributeBuilderDescriptor.ValueToBuilderTarget;
 
 /**
  * Reflects over the returnType and generates strings for the {@link AttributeBuilderDescriptor}
  */
 @Immutable(builder = false)
-@Style(visibility = ImplementationVisibility.PRIVATE)
 public abstract class AttributeBuilderReflection {
   private static final Map<String, AttributeBuilderDescriptor> analyzedReturnTypes = new HashMap<>();
 
