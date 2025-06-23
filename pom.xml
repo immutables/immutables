@@ -35,24 +35,24 @@
     <module>generator-fixture</module>
     <module>metainf</module>
     <module>mirror</module>
-    <module>annotate</module>
-    <module>ordinal</module>
-    <module>builder</module>
-    <module>android-stub</module>
-    <module>gson</module>
+<!--    <module>annotate</module>-->
+<!--    <module>ordinal</module>-->
+<!--    <module>builder</module>-->
+<!--    <module>android-stub</module>-->
+<!--    <module>gson</module>-->
 <!-- disable for now, maybe build will not time out-->
 <!--    <module>criteria</module>-->
-    <module>mongo</module>
-    <module>func</module>
-    <module>data</module>
+<!--    <module>mongo</module>-->
+<!--    <module>func</module>-->
+<!--    <module>data</module>-->
     <module>value-processor</module>
-    <module>processor-testlib</module>
+<!--    <module>processor-testlib</module>-->
     <module>value-annotations</module>
     <module>value-fixture</module>
     <module>value</module>
-    <module>serial</module>
-    <module>trees</module>
-    <module>encode</module>
+<!--    <module>serial</module>-->
+<!--    <module>trees</module>-->
+<!--    <module>encode</module>-->
     <module>bom</module>
   </modules>
 

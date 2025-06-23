@@ -86,7 +86,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   public boolean isGenerateDerived;
   public boolean isGenerateAbstract;
   public boolean isGenerateLazy;
-  public boolean isAttributeBuilder;
   public ImmutableList<String> typeParameters = ImmutableList.of();
   public ImmutableList<AnnotationInjection> annotationInjections = ImmutableList.of();
   // Replace with delegation?
@@ -1063,7 +1062,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public boolean isAttributeBuilder() {
-    return isAttributeBuilder;
+    return attributeBuilderDescriptor != null;
   }
 
   // undefined value is any less than CONSTRUCTOR_NOT_A_PARAMETER
@@ -1315,12 +1314,12 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   private void initAttributeBuilder() {
-    AttributeBuilderReflection attributeBuilderReflection =
-        AttributeBuilderReflection.forValueType(this);
-    isAttributeBuilder = attributeBuilderReflection.isAttributeBuilder();
+    if (style().attributeBuilderDetection() && containedTypeElement != null) {
+      AttributeBuilderReflection attributeBuilderReflection = AttributeBuilderReflection.forValueType(this);
 
-    if (isAttributeBuilder) {
-      attributeBuilderDescriptor = attributeBuilderReflection.getAttributeBuilderDescriptor();
+      if (attributeBuilderReflection.isAttributeBuilder()) {
+        attributeBuilderDescriptor = attributeBuilderReflection.getAttributeBuilderDescriptor();
+      }
     }
   }
 
@@ -1415,7 +1414,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         Environment environment = protoclass().environment();
         for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
           // TODO (?) p.kind().isRecord()
-          if ((p.kind().isDefinedValue() || p.kind().isModifiable() || p.kind().isJavaBean())
+          if ((p.kind().isRecord() || p.kind().isDefinedValue() || p.kind().isModifiable() || p.kind().isJavaBean())
               && canAccessImplementation(p)
               && p.constitution().generics().isEmpty()) {
             this.attributeValueType = environment.composeValue(p);

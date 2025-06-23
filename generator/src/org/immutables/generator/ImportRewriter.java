@@ -279,9 +279,12 @@ public class ImportRewriter {
           q.rewritten = true;
           // removing package segments, will rely on import
           q.packageSegments.clear();
-
-        } else if (packagePrefix.equals(thisPackagePrefix) && existing != USE_DECLARED) {
-          if (existing == USE_UNKNOWN || existing.equals(qualified)) {
+        } else if (packagePrefix.equals(thisPackagePrefix)) {
+          if (existing == USE_DECLARED) {
+            // declared here, in this very package
+            q.rewritten = true;
+            q.packageSegments.clear();
+          } else if (existing == USE_UNKNOWN || existing.equals(qualified)) {
             if (existing == USE_UNKNOWN) {
               // assert this qualified name
               usages.put(localSegment, qualified);

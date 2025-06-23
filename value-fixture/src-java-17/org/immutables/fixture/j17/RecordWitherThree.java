@@ -9,9 +9,9 @@ import java.util.OptionalInt;
 import java.util.Set;
 import javax.annotation.Nullable;
 import com.google.common.collect.Multimap;
-import org.immutables.builder.Builder;
 import org.immutables.fixture.nullable.SkipNulls;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Builder;
 
 @Value.Style(
 		jdkOnly = true,

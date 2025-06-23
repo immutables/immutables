@@ -1713,7 +1713,7 @@ public interface [tb.nameBuildFinal][type.generics] {
     return [builderReturnThis type];
   }
 [/if]
-[if type.kind.isValue]
+[if type.kind.isValue or type.kind.isRecord]
   [if type.generateBuilderFrom]
   [if type.kind.isModifiable]
 
@@ -2248,7 +2248,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
   [if v.jdkOptional and type.kind.isFactory]
-    this.[v.name] = ([v.type]) [requireNonNull type]([v.name], "[v.name]");
+    this.[v.name] = [if v.consumesWildcardExtends]([v.type]) [/if][requireNonNull type]([v.name], "[v.name]");
   [else if v.isAttributeBuilder]
     this.[v.name] = [convertToBuilderType v.getAttributeBuilderDescriptor]([valueFromValue v v.name]);
   [else]
@@ -4710,51 +4710,45 @@ private static boolean equals(Object left, Object right) {
 [if type.detectAttributeBuilders]
 [for v in type.uniqueAttributeBuilderAttributes]
 
-[atNullable v][-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
-private static [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable v] [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] builder) {
-  if (builder == null) return null;
-  return builder.[v.getAttributeBuilderDescriptor.getBuildMethod]();
+private static [atFallbackNullable v][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] [convertToValueType v.getAttributeBuilderDescriptor]([atFallbackNullable v][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] builder) {
+  return builder == null ? null : builder.[v.getAttributeBuilderDescriptor.getBuildMethod]();
 }
 
-[atNullable v][-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
-private static [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable v] [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
-  if (value == null) return null;
-  return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder].[v.getAttributeBuilderDescriptor.getBuildMethod]();
+private static [atFallbackNullable v][if v.hasAttributeValue][v.attributeValueType.typeValue][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atFallbackNullable v][if v.hasAttributeValue][v.attributeValueType.typeAbstract][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
+  return value == null ? null : [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder].[v.getAttributeBuilderDescriptor.getBuildMethod]();
 }
 
-[atNullable v]
-private static [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertToBuilderType v.getAttributeBuilderDescriptor]([atNullable v] [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
-  if (value == null) return null;
-  return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder];
+private static [atFallbackNullable v][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertToBuilderType v.getAttributeBuilderDescriptor]([atFallbackNullable v][if v.hasAttributeValue][v.attributeValueType.typeAbstract][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
+  return value == null ? null : [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder];
 }
 [/for]
 [for v in type.uniqueAttributeBuilderListAttributes]
 
-[let listType][if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][/let]
-private static java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> builderList) {
-[copyBuilderListBody v true false]builderList[/copyBuilderListBody]
+[let listType][if v.hasAttributeValue][v.attributeValueType.typeValue][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][/let]
+private static java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> builders) {
+[copyBuilderListBody v true false]builders[/copyBuilderListBody]
 }
 
-private static java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]... builderArray) {
-[copyBuilderListBody v true true]builderArray[/copyBuilderListBody]
+private static java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]... builders) {
+[copyBuilderListBody v true true]builders[/copyBuilderListBody]
 }
 
-private static java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> valueList) {
-[copyBuilderListBody v false false]valueList[/copyBuilderListBody]
+private static java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> values) {
+[copyBuilderListBody v false false]values[/copyBuilderListBody]
 }
 
-private static java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]... valueArray) {
-[copyBuilderListBody v false true]valueArray[/copyBuilderListBody]
+private static java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]... values) {
+[copyBuilderListBody v false true]values[/copyBuilderListBody]
 }
 [/for]
 [/if]
 [/template]
 
-[template convertToBuilderType AttributeBuilder n]convertToBuilderType[n.getQualifiedValueTypeNameWithUnderscores][/template]
-[template convertToValueType AttributeBuilder n]convertToValueType[n.getQualifiedValueTypeNameWithUnderscores][/template]
+[template convertToBuilderType AttributeBuilder n][n.attributeName]ToBuilder[/template]
+[template convertToValueType AttributeBuilder n][n.attributeName]ValueOf[/template]
 
 [template copyBuilderListBody Attribute v Boolean toValueType Boolean vargs String listToTransform]
-[let listType][if toValueType][if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][else][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName][/if][/let]
+[let listType][if toValueType][if v.hasAttributeValue][v.attributeValueType.typeValue][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][else][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName][/if][/let]
   [if v.generateJdkOnly]
   java.util.ArrayList<[listType]> list;
     [if vargs]
@@ -4822,7 +4816,7 @@ private static <T> java.util.List<T> createSafeList(Iterable<? extends T> iterab
 [/if]
 [if type.useListUtility]
 
-private static <T> java.util.List<T> createUnmodifiableList(boolean clone, java.util.List<T> list) {
+private static <T> java.util.List<T> createUnmodifiableList(boolean clone, java.util.List<? extends T> list) {
   switch(list.size()) {
   case 0: return java.util.Collections.emptyList();
   case 1: return java.util.Collections.singletonList(list.get(0));
@@ -4841,7 +4835,7 @@ private static <T> java.util.List<T> createUnmodifiableList(boolean clone, java.
 [if type.useSetUtility]
 
 /** Unmodifiable set constructed from list to avoid rehashing. */
-private static <T> java.util.Set<T> createUnmodifiableSet(java.util.List<T> list) {
+private static <T> java.util.Set<T> createUnmodifiableSet(java.util.List<? extends T> list) {
   switch(list.size()) {
   case 0: return java.util.Collections.emptySet();
   case 1: return java.util.Collections.singleton(list.get(0));
@@ -4855,7 +4849,7 @@ private static <T> java.util.Set<T> createUnmodifiableSet(java.util.List<T> list
 [if type.useEnumSetUtility]
 
 @SuppressWarnings("unchecked")
-private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(Iterable<T> iterable) {
+private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(Iterable<? extends T> iterable) {
   if (iterable instanceof java.util.EnumSet<?>) {
     return java.util.Collections.unmodifiableSet(java.util.EnumSet.copyOf((java.util.EnumSet<T>) iterable));
   }
@@ -4876,7 +4870,7 @@ private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(It
 [/if]
 [/output.trim][/let]
 
-private static <T extends Comparable<? super T>> java.util.[unmodifiableSortedSetInterface]<T> createUnmodifiableSortedSet(boolean reverse, java.util.List<T> list) {
+private static <T extends Comparable<? super T>> java.util.[unmodifiableSortedSetInterface]<T> createUnmodifiableSortedSet(boolean reverse, java.util.List<? extends T> list) {
   java.util.TreeSet<T> set = reverse
       ? new java.util.TreeSet<T>(java.util.Collections.<T>reverseOrder())
       : new java.util.TreeSet<T>();

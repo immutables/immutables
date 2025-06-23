@@ -1,7 +1,5 @@
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +12,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Types;
+import com.google.common.base.Preconditions;
 import org.immutables.value.Value.Derived;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
@@ -33,9 +32,8 @@ public abstract class AttributeBuilderReflection {
   // The discovery is based off of the class being investigated, AND the current attributeBuilder discovery pattern
   // The same class included in two parents, may or may not be nested builders based on that discovery pattern
   private static String cachingKey(ValueAttribute valueAttribute) {
-    return String.format("%s-%s",
-        valueAttribute.containedTypeElement.getQualifiedName(),
-        Joiner.on(".").join(valueAttribute.containingType.constitution.style().attributeBuilder()));
+    return valueAttribute.containedTypeElement.getQualifiedName()
+        + Arrays.toString(valueAttribute.containingType.constitution.style().attributeBuilder());
   }
 
   public static AttributeBuilderReflection forValueType(ValueAttribute valueAttribute) {
@@ -46,7 +44,7 @@ public abstract class AttributeBuilderReflection {
   abstract ValueAttribute valueAttribute();
 
   @Lazy
-  protected List<Strategy> getStrategies() {
+  List<Strategy> getStrategies() {
     // Order here matters. We want first party to be found first.
     return Arrays.asList(
         ImmutableFirstPartyStrategy.of(valueAttribute()),
@@ -56,7 +54,7 @@ public abstract class AttributeBuilderReflection {
 
   @Lazy
   boolean isAttributeBuilder() {
-    if (!valueAttribute().containingType.constitution.style().attributeBuilderDetection()) {
+    if (!valueAttribute().style().attributeBuilderDetection()) {
       return false;
     }
 
@@ -104,8 +102,7 @@ public abstract class AttributeBuilderReflection {
     return descriptor;
   }
 
-  @Lazy
-  protected Strategy getReflectionStrategy() {
+  @Lazy Strategy getReflectionStrategy() {
     for (Strategy strategy : getStrategies()) {
       if (strategy.isAttributeBuilder()) {
         return strategy;
@@ -117,7 +114,7 @@ public abstract class AttributeBuilderReflection {
 
   /**
    * Allows for different mechanisms of discovering nested builders.
-   *
+   * <p>
    * This is needed because Immutables value objects may not be available on the
    * class path during processing, which will be order dependent.
    */
@@ -140,34 +137,32 @@ public abstract class AttributeBuilderReflection {
 
     @Override
     public boolean isAttributeBuilder() {
-      return valueAttribute().attributeValueType != null &&
-          valueAttribute().attributeValueType.isUseBuilder();
-
+      return valueAttribute().attributeValueType != null
+          && valueAttribute().attributeValueType.isUseBuilder();
     }
 
     @Override
     public AttributeBuilderDescriptor getAttributeBuilderDescriptor() {
+      ValueAttribute attribute = valueAttribute();
+      ValueType type = attribute.attributeValueType;
+
       return ImmutableAttributeBuilderDescriptor.builder()
+          .attributeName(attribute.name())
           .valueToBuilderTarget(ValueToBuilderTarget.BUILDER_INSTANCE)
-          .valueToBuilderMethod(attributeValueType().names().from)
-          .buildMethod(attributeValueType().names().build)
-          .qualifiedValueTypeName(attributeValueType().typeValue().toString())
-          .qualifiedBuilderTypeName(attributeValueType().typeBuilderImpl().toString())
-          .qualifiedBuilderConstructorMethod(attributeValueType().factoryBuilder().toString())
+          .valueToBuilderMethod(type.names().from)
+          .buildMethod(type.names().build)
+          .qualifiedValueTypeName(type.typeValue().toString())
+          .qualifiedBuilderTypeName(type.typeBuilder().toString())
+          .qualifiedBuilderConstructorMethod(type.factoryBuilder().toString())
           .build();
-
-    }
-
-    ValueType attributeValueType() {
-      return valueAttribute().attributeValueType;
     }
   }
 
   /**
    * Strategy for parsing third party immutables. for example: the protocol buffer API.
-   *
+   * <p>
    * Assumes that all third party classes are available on the class path at processing time.
-   *
+   * <p>
    * If this is not the case, we may need to use a processing method that allows deferring of
    * compilation. Example, moving from auto-value to immutables... though maybe you would just
    * implement a new strategy for that use case...
@@ -180,14 +175,17 @@ public abstract class AttributeBuilderReflection {
      * @return model of how to generate attributeBuilder.
      */
     @Nullable @Parameter
-    protected abstract AttributeBuilderThirdPartyModel builderModel();
+    abstract AttributeBuilderThirdPartyModel builderModel();
 
     /**
      * Guaranteed not null if isAttributeBuilder is true.
      * @return containingType of the value attribute.
      */
     @Nullable @Parameter
-    protected abstract TypeElement attributeValueType();
+    abstract TypeElement attributeValueType();
+
+    @Parameter
+    abstract String attributeName();
 
     @Override
     public boolean isAttributeBuilder() {
@@ -203,10 +201,11 @@ public abstract class AttributeBuilderReflection {
       }
 
       ValueToBuilderTarget target;
-      ExecutableElement copyMethod = builderModel().copyMethod();
-      ExecutableElement builderMethod = builderModel().builderMethod();
-      ExecutableElement buildMethod = builderModel().buildMethod();
-      TypeElement attributeBuilderType = builderModel().builderType();
+      AttributeBuilderThirdPartyModel model = builderModel();
+      ExecutableElement copyMethod = model.copyMethod();
+      ExecutableElement builderMethod = model.builderMethod();
+      ExecutableElement buildMethod = model.buildMethod();
+      TypeElement attributeBuilderType = model.builderType();
 
       if (copyMethod.getKind() == ElementKind.CONSTRUCTOR) {
         target = ValueToBuilderTarget.BUILDER_CONSTRUCTOR;
@@ -226,21 +225,19 @@ public abstract class AttributeBuilderReflection {
 
       String qualifiedBuilderConstructorMethod;
       if (builderMethod.getEnclosingElement().equals(attributeValueType())) {
-        qualifiedBuilderConstructorMethod = String.format("%s.%s",
-            attributeValueType().getQualifiedName(),
-            builderMethod.getSimpleName());
+        qualifiedBuilderConstructorMethod =
+            attributeValueType().getQualifiedName() + "." + builderMethod.getSimpleName();
       } else {
         if (builderMethod.getKind() == ElementKind.CONSTRUCTOR) {
-          qualifiedBuilderConstructorMethod = String.format("new %s",
-              attributeBuilderType.getQualifiedName());
+          qualifiedBuilderConstructorMethod = "new " + attributeBuilderType.getQualifiedName();
         } else {
-          qualifiedBuilderConstructorMethod = String.format("%s.%s",
-              attributeBuilderType.getQualifiedName(),
-              builderMethod.getSimpleName());
+          qualifiedBuilderConstructorMethod =
+              attributeBuilderType.getQualifiedName() + "." + builderMethod.getSimpleName();
         }
       }
 
       return ImmutableAttributeBuilderDescriptor.builder()
+          .attributeName(attributeName())
           .valueToBuilderTarget(target)
           .valueToBuilderMethod(copyMethod.getSimpleName().toString())
           .buildMethod(buildMethod.getSimpleName().toString())
@@ -256,7 +253,7 @@ public abstract class AttributeBuilderReflection {
     static ThirdPartyAttributeBuilderStrategy of(ValueAttribute valueAttribute) {
       TypeElement attributeValueType = valueAttribute.containedTypeElement;
       if (attributeValueType == null) {
-        return ImmutableThirdPartyAttributeBuilderStrategy.of(null, null);
+        return ImmutableThirdPartyAttributeBuilderStrategy.of(null, null, valueAttribute.name());
       }
 
       // Map of possible builder class to needed methods.
@@ -294,20 +291,19 @@ public abstract class AttributeBuilderReflection {
           if (maybeCompleteModel.complete()) {
             return ImmutableThirdPartyAttributeBuilderStrategy.of(
                 maybeCompleteModel.toImmutable(),
-                valueAttribute.containedTypeElement);
+                valueAttribute.containedTypeElement,
+                valueAttribute.name());
           }
         }
       }
 
-      return ImmutableThirdPartyAttributeBuilderStrategy.of(null, null);
+      return ImmutableThirdPartyAttributeBuilderStrategy.of(null, null, valueAttribute.name());
     }
-
 
     // NB: because of the null checks here, we will prefer using static initialization
     // from the value object, but eh, doesn't really work that well because we may
     // break out of the value loop if this call to processPossibleBuilder completes the model.
-    private static void processPossibleBuilder(ValueAttribute attribute,
-        AttributeBuilderThirdPartyModel.Creator builderModel) {
+    private static void processPossibleBuilder(ValueAttribute attribute, AttributeBuilderThirdPartyModel.Creator builderModel) {
       for (Element possibleBuildMethodOrConstructor : builderModel.findBuilderType().getEnclosedElements()) {
 
         if (builderModel.buildMethod() == null
@@ -329,7 +325,6 @@ public abstract class AttributeBuilderReflection {
 
     /**
      * Returns true if there's a public way to build the value type with an instance no-arg method.
-     *
      * @param attribute value attribute to check.
      * @param possibleBuildMethod method which matches {@link StyleMirror#attributeBuilder()}
      * @return true if this is the possibleBuildMethod can build the value type.
@@ -359,12 +354,11 @@ public abstract class AttributeBuilderReflection {
     /**
      * Return true if the possibleBuilderMethod matches the
      * Style#attributeBuilder() and returns a class.
-     *
      * TODO: may need to make this return true if the return type is an interface too...
-     *
      * @param possibleBuilderMethod executableElement
      */
-    private static boolean isPossibleBuilderMethod(Element possibleBuilderMethod, boolean onValueType, ValueAttribute valueAttribute) {
+    private static boolean isPossibleBuilderMethod(Element possibleBuilderMethod, boolean onValueType,
+        ValueAttribute valueAttribute) {
       if (possibleBuilderMethod.getKind() == ElementKind.METHOD) {
         if (!valueAttribute.containingType.names().possibleAttributeBuilder(possibleBuilderMethod.getSimpleName())) {
           return false;
@@ -379,7 +373,6 @@ public abstract class AttributeBuilderReflection {
             && candidateMethod.getParameters().isEmpty()
             && candidateMethod.getReturnType().getKind() == TypeKind.DECLARED
             && !kind.isPrimitive() && kind != TypeKind.ARRAY;
-
       } else if (!onValueType && possibleBuilderMethod.getKind() == ElementKind.CONSTRUCTOR) {
         if (!valueAttribute.containingType.names().newTokenInAttributeBuilder()) {
           return false;
@@ -395,7 +388,6 @@ public abstract class AttributeBuilderReflection {
 
     /**
      * Determine if inner class could be a builder.
-     *
      * @param possibleBuilderClass nested value element that could be builder class.
      * @return true if it's a static inner class.
      */
@@ -411,7 +403,6 @@ public abstract class AttributeBuilderReflection {
 
     /**
      * Applies to both builder and value candidates.
-     *
      * @param valueAttribute the valueAttribute.
      * @param possibleCopyMethod candidate to check.
      */
@@ -433,14 +424,14 @@ public abstract class AttributeBuilderReflection {
 
         if (candidateCopyMethod.getParameters().size() == 1
             && typeUtils.isSameType(
-                candidateCopyMethod.getParameters().get(0).asType(),
-                valueAttribute.containedTypeElement.asType())) {
+            candidateCopyMethod.getParameters().get(0).asType(),
+            valueAttribute.containedTypeElement.asType())) {
 
           TypeKind kind = candidateCopyMethod.getReturnType().getKind();
           return !kind.isPrimitive() && kind != TypeKind.ARRAY;
           // handle proto style toBuilder() copy method... lots of BuilderModels created because of this
         } else if (onValueType
-            && candidateCopyMethod.getParameters().size() == 0
+            && candidateCopyMethod.getParameters().isEmpty()
             && !candidateCopyMethod.getModifiers().contains(Modifier.STATIC)) {
 
           TypeKind kind = candidateCopyMethod.getReturnType().getKind();

@@ -11,7 +11,7 @@ import org.immutables.value.Value.Style;
 
 @Immutable
 abstract class AttributeBuilderThirdPartyModel {
-  // Must be instance
+  // Must be an instance
   protected abstract ExecutableElement buildMethod();
 
   // Constructor, Static, or Instance
