@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * Use nested annotations to control serialization of value objects.
  * This serialization module currently is in experimental state.
  * <p>
- * This umbrella annotaion does nothing.
+ * This umbrella annotation does nothing.
  * @see Version
  * @see Structural
  */
@@ -54,7 +54,7 @@ public @interface Serial {
    * builders, and not the internal representation, thus all singletons, interning and other
    * invariants will be preserved and data migration made possible (using either optional or
    * nullable attributes) or changing types of collections, moving from scalar values to collections
-   * etc. Constuction using builder and constructor (if builder is disabled) is supported.
+   * etc. Construction using builder and constructor (if builder is disabled) is supported.
    * <p>
    * If {@link Structural} serialization is used and no {@code serialVersionUID} is declared, i.e.
    * {@link Version} annotation is missing, serialized form will have serial version 0L assigned.
