@@ -19,7 +19,7 @@
 
   <groupId>org.immutables</groupId>
   <artifactId>immutables</artifactId>
-  <version>2.11.0-beta3</version>
+  <version>2.11.0-beta4</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}.${project.artifactId}</name>
@@ -40,8 +40,7 @@
     <module>builder</module>
     <module>android-stub</module>
     <module>gson</module>
-<!-- disable for now, maybe build will not time out-->
-<!--    <module>criteria</module>-->
+    <module>criteria</module>
     <module>mongo</module>
     <module>func</module>
     <module>data</module>
@@ -94,11 +93,10 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <module.name>${project.groupId}.${project.artifactId}</module.name>
-    <sonatypeOssDistMgmtSnapshotsUrl>https://oss.sonatype.org/content/repositories/snapshots/</sonatypeOssDistMgmtSnapshotsUrl>
     <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <!-- Shared versions -->
     <retro.version>2.7.5</retro.version>
     <errorprone.version>2.10.0</errorprone.version>
@@ -131,7 +129,7 @@
     <repository>
       <id>sonatype-nexus-snapshots</id>
       <name>Sonatype Nexus Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <url>https://central.sonatype.com/content/repositories/snapshots/</url>
       <releases>
         <enabled>false</enabled>
       </releases>
@@ -145,12 +143,12 @@
     <snapshotRepository>
       <id>sonatype-nexus-snapshots</id>
       <name>Sonatype Nexus Snapshots</name>
-      <url>${sonatypeOssDistMgmtSnapshotsUrl}</url>
+      <url>https://central.sonatype.com/content/repositories/snapshots/</url>
     </snapshotRepository>
     <repository>
       <id>sonatype-nexus-staging</id>
       <name>Nexus Release Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <url>https://central.sonatype.com/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
 
@@ -263,7 +261,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.0.2</version>
+          <version>3.4.2</version>
 
           <executions>
             <execution>
@@ -300,7 +298,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.10.1</version>
+            <version>3.11.2</version>
             <configuration>
               <quiet>true</quiet>
               <nonavbar>true</nonavbar>
@@ -336,9 +334,20 @@
             </executions>
           </plugin>
           <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.8.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central2</publishingServerId>
+              <autoPublish>false</autoPublish>
+              <skipPublishing>true</skipPublishing>
+            </configuration>
+          </plugin>
+          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.6</version>
+            <version>3.2.7</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -360,7 +369,7 @@
             <!-- Used to validate/lint javadocs -->
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.10.4</version>
+            <version>3.11.2</version>
             <configuration>
               <quiet>true</quiet>
               <nonavbar>true</nonavbar>
