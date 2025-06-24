@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Immutables Authors and Contributors
+ * Copyright 2019-2025 Immutables Authors and Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,6 @@
 
 package org.immutables.criteria.mongo.bson4jackson;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.PropertyName;
-import com.fasterxml.jackson.databind.introspect.Annotated;
-import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector;
-import com.google.common.reflect.TypeToken;
-import org.immutables.criteria.Criteria;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -33,6 +25,12 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.PropertyName;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector;
+import org.immutables.criteria.Criteria;
 
 /**
  * Allows mapping of {@code ID} property (usually declared as {@link Criteria.Id})
@@ -40,7 +38,7 @@ import java.util.function.Predicate;
  *
  * <p>Uses simple heuristics to identify ID attribute:
  * <ul>
- *   <li>For fields it will apply predicate directly</li>
+ *   <li>For fields, it will apply predicate directly</li>
  *   <li>For methods, check current (or parent) class method as well interface definition of the method</li>
  * </ul>
  *
@@ -153,18 +151,60 @@ public class IdAnnotationModule extends Module {
         return Optional.of(method);
       }
 
-      final String name = method.getName();
-      final Class<?>[] params = method.getParameterTypes();
-      // check for all available interfaces
-      for (Class<?> iface: TypeToken.of(method.getDeclaringClass()).getTypes().interfaces().rawTypes()) {
-        try {
-          final Method maybe = iface.getMethod(name, params);
-          if (predicate.test(maybe)) {
-            return Optional.of(maybe);
-          }
-        } catch(NoSuchMethodException ignore) {
-          // continue
+      // Here we want may want to find from associated setter or getter,
+      // including switching between two - i.e. having a setter - look at a getter
+      // and its hierarchy
+
+      String name = method.getName();
+      Class<?>[] params = method.getParameterTypes();
+      Class<?> declaringClass = method.getDeclaringClass();
+
+      boolean maybeGetter = params.length == 0;
+      boolean maybeSetter = params.length == 1;
+
+      if (maybeSetter) {
+        String baseName = name.startsWith("set") ? name.substring("set".length()) : name;
+        if (baseName.isEmpty()) return Optional.empty();
+
+        String decapitalize = Character.toLowerCase(baseName.charAt(0)) + baseName.substring(1);
+        Optional<AnnotatedElement> getter = tryFindMatchingGetter(declaringClass, decapitalize);
+        if (getter.isPresent()) return getter;
+
+        getter = tryFindMatchingGetter(declaringClass, "get" + baseName);
+        if (getter.isPresent()) return getter;
+      }
+
+      if (maybeGetter) {
+        // we've already tried to match method itself, so we go to supertypes
+        Optional<AnnotatedElement> getter = tryFindMatchingGetterFromSupertypes(declaringClass, name);
+        if (getter.isPresent()) return getter;
+      }
+
+      return Optional.empty();
+    }
+
+    private Optional<AnnotatedElement> tryFindMatchingGetter(Class<?> declaringClass, String name) {
+      try {
+        Method method = declaringClass.getDeclaredMethod(name);
+        if (predicate.test(method)) {
+          return Optional.of(method);
         }
+      } catch (NoSuchMethodException e) {
+        //continue
+      }
+      return tryFindMatchingGetterFromSupertypes(declaringClass, name);
+    }
+
+    private Optional<AnnotatedElement> tryFindMatchingGetterFromSupertypes(Class<?> declaringClass, String name) {
+      Class<?> superclass = declaringClass.getSuperclass();
+      if (superclass != null) {
+        Optional<AnnotatedElement> getter = tryFindMatchingGetter(superclass, name);
+        if (getter.isPresent()) return getter;
+      }
+
+      for (Class<?> iface : declaringClass.getInterfaces()) {
+        Optional<AnnotatedElement> getter = tryFindMatchingGetter(iface, name);
+        if (getter.isPresent()) return getter;
       }
 
       return Optional.empty();
