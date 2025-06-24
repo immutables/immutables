@@ -612,8 +612,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isGenerateWithInterface() {
     ensureTypeIntrospected();
-    String relative = typeWith().relative();
-    return implementedInterfacesNames.contains(relative);
+    // if it is a not-yet-generated type, it will be relative simple name
+    // if it is already generated (incremental compilation), then it may be resolved to fqcn
+    return implementedInterfacesNames.contains(typeWith().relative())
+        || implementedInterfacesNames.contains(typeWith().absolute());
   }
 
   public boolean isUseCopyMethods() {
