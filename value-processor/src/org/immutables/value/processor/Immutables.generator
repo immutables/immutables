@@ -1072,7 +1072,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
     @Override
     public boolean equals([atNullable type]Object another) {
-      return another != null && instance.equalTo(0, ((InternProxy) another).instance);
+      return another != null && instance.equalsByValue(((InternProxy) another).instance);
     }
 
     @Override
@@ -1258,7 +1258,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [if type.useSingletonOnlyForConstruction]
     return instance;
   [else]
-    return INSTANCE != null && INSTANCE.equalTo(0, instance) ? INSTANCE : instance;[-- may be null during initialization --]
+    return INSTANCE != null && INSTANCE.equalsByValue(instance) ? INSTANCE : instance;[-- may be null during initialization --]
   [/if]
 [else]
     return instance;
@@ -3579,7 +3579,7 @@ public boolean equals([atNullable type]Object another) {
   [else]
   if (this == another) return true;
   return another instanceof [equalToType]
-      && equalTo(0, ([equalToType]) another);
+      && equalsByValue(([equalToType]) another);
   [/if]
 }
 [/if]
@@ -3591,8 +3591,8 @@ public boolean equals([atNullable type]Object another) {
 [else]
 @SuppressWarnings("MethodCanBeStatic")
 [/if]
-[-- adding synthetic parameter for macros-hygiene: do not overlap with any customized equalTo method --]
-private boolean equalTo(int synthetic, [equalToType] another) {
+[-- probability of this method class is low, previously used synthetic param, but that seems to have the same overall low probability --]
+private boolean equalsByValue([equalToType] another) {
   [if type.equalToDefined][-- type.useEqualTo is usually false when type.equalToDefined, but not always --]
     [if type.underrideEquals]
       [if type.underrideEquals.isStatic]
