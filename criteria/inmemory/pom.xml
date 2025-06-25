@@ -26,6 +26,7 @@
   <description>
     Adapter for in-memory sources like Iterable
   </description>
+  <url>https://github.com/immutables/immutables/tree/master/criteria/inmemory</url>
 
   <properties>
     <module.name>${project.groupId}.criteria.inmemory</module.name>

@@ -23,6 +23,7 @@
   </parent>
   <artifactId>data</artifactId>
   <description>(experimental) Annotations and runtime interfaces for generated datatype metadata</description>
+  <url>https://github.com/immutables/immutables/tree/data</url>
   <name>${project.groupId}.${project.artifactId}</name>
   <properties>
     <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>

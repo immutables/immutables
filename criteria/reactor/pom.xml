@@ -26,6 +26,7 @@
     <description>
       Project Reactor implementation for Repository (readers / writers)
     </description>
+    <url>https://github.com/immutables/immutables/tree/master/criteria/reactor</url>
 
     <properties>
         <module.name>${project.groupId}.criteria.reactor</module.name>

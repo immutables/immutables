@@ -22,6 +22,7 @@
     <version>2.11.0-beta4</version>
   </parent>
   <artifactId>encode</artifactId>
-  <description />
+  <description>Annotations for creating encoding, i.e. plugging custom type handling into immutable objects and builders</description>
+  <url>https://github.com/immutables/immutables/tree/encode</url>
   <name>${project.groupId}.${project.artifactId}</name>
 </project>

@@ -26,6 +26,7 @@
     <description>
       Geode Adapter for Criteria
     </description>
+    <url>https://github.com/immutables/immutables/tree/master/criteria/geode</url>
 
     <properties>
         <module.name>${project.groupId}.criteria.geode</module.name>

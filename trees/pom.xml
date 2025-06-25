@@ -25,6 +25,7 @@
 
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Stuff related to immutable object trees, including parboiled as and transformers.</description>
+  <url>https://github.com/immutables/immutables/tree/trees</url>
 
   <dependencies>
     <dependency>

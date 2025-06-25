@@ -24,6 +24,8 @@
 
   <artifactId>generator-processor</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
+  <description>Template annotation processor</description>
+  <url>https://github.com/immutables/immutables/tree/generator-processor</url>
 
   <properties>
     <module.name>${project.groupId}.generator.processor</module.name>

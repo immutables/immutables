@@ -23,6 +23,8 @@
   </parent>
   <artifactId>builder</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
+  <description>Specialized annotations for builders, optional annotation module</description>
+  <url>https://github.com/immutables/immutables/tree/master/builder</url>
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>

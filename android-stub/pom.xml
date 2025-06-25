@@ -24,9 +24,10 @@
   <artifactId>android-stub</artifactId>
   <description>
   Compile only library for libraries which want to compile immutable objects for Android.
-  It contains `android.R` class to indicate presense of android API. If you using android sdk as dependency,
+  It contains `android.R` class to indicate presense of android API. If you're using android sdk as dependency,
   you don't need this stub
   </description>
+  <url>https://github.com/immutables/immutables/tree/master/android-stub</url>
   <name>${project.groupId}.${project.artifactId}</name>
 
   <properties>

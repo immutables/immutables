@@ -26,6 +26,7 @@
   <artifactId>testing</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Testing dependencies and utilities. Expected to be used only in test scope</description>
+  <url>https://github.com/immutables/immutables/tree/testing</url>
 
   <dependencies>
     <dependency>

@@ -23,6 +23,8 @@
   </parent>
   <artifactId>annotate</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
+  <description>Annotations to configure annotation injection into generated code</description>
+  <url>https://github.com/immutables/immutables/tree/master/annotate</url>
   <properties>
       <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
       <maven.compiler.source>1.8</maven.compiler.source>

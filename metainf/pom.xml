@@ -25,6 +25,7 @@
   <artifactId>metainf</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Simple, but superior to others, META-INF/service file generator</description>
+  <url>https://github.com/immutables/immutables/tree/metainf</url>
 
   <dependencies>
     <dependency>

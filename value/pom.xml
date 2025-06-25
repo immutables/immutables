@@ -27,6 +27,7 @@
     Compile time annotations and compile time annotation processor to generate consistent value object using
     either abstract class, interface or annotation as a base.
   </description>
+  <url>https://github.com/immutables/immutables/tree/value</url>
 
   <artifactId>value</artifactId>
 

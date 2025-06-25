@@ -28,6 +28,7 @@
   <description>
     Module that contains all tests for the code generation capability
   </description>
+  <url>https://github.com/immutables/immutables/tree/generator-fixture</url>
 
   <properties>
     <module.name>${project.groupId}.generator.fixture</module.name>

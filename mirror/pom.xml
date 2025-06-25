@@ -25,6 +25,7 @@
   <artifactId>mirror</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Annotation mirror generator</description>
+  <url>https://github.com/immutables/immutables/tree/mirror</url>
 
   <dependencies>
     <dependency>

@@ -23,6 +23,8 @@
   </parent>
   <artifactId>serial</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
+  <description>Specialized annotations to configure Java serialization (SerialID, Structural)</description>
+  <url>https://github.com/immutables/immutables/tree/serial</url>
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>

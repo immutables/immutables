@@ -29,6 +29,7 @@
     allows for special performance optiomization, like using bit-sets to
     efficiently calculate inclusion in set or set differences.
   </description>
+  <url>https://github.com/immutables/immutables/tree/mongo</url>
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>

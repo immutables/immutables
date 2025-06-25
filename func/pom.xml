@@ -23,6 +23,7 @@
   </parent>
   <artifactId>func</artifactId>
   <description>Contains annotations for function and predicate generation for Guava pre-java8</description>
+  <url>https://github.com/immutables/immutables/tree/func</url>
   <name>${project.groupId}.${project.artifactId}</name>
   <dependencies>
     <dependency><!-- making non-optional dependency to guava as otherwise generated function would not compile -->

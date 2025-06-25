@@ -26,6 +26,7 @@
   <artifactId>processor-testlib</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Processor test utils</description>
+  <url>https://github.com/immutables/immutables/tree/processor-testlib</url>
 
   <properties>
     <module.name>${project.groupId}.processor.testlib</module.name>

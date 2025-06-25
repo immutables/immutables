@@ -24,9 +24,10 @@
   <artifactId>gson</artifactId>
 
   <name>${project.groupId}.${project.artifactId}</name>
-  <description>Gson integration for Immutables. Also includes optional integration with Jackson to speed-up
+  <description>(Outdated) Gson integration for Immutables. Also includes optional integration with Jackson to speed-up
     streaming parsing of Gson, while using all of gson binding infrastructure.
   </description>
+  <url>https://github.com/immutables/immutables/tree/gson</url>
 
   <dependencies>
     <dependency>

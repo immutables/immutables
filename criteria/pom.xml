@@ -27,6 +27,7 @@
     <description>
         Annotation and runtime support to generate criteria classes based on immutables model
     </description>
+    <url>https://github.com/immutables/immutables/tree/master/criteria</url>
 
     <properties>
         <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>

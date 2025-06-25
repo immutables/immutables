@@ -24,6 +24,7 @@
   <artifactId>criteria-sql</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>SQL Criteria backend</description>
+  <url>https://github.com/immutables/immutables/tree/master/criteria/sql</url>
 
   <properties>
     <module.name>${project.groupId}.criteria.sql</module.name>

@@ -24,10 +24,11 @@
   <artifactId>mongo</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
-    Annotation and runtime support to generate MongoDB repositories.
+    (Outdated) Annotation and runtime support to generate MongoDB repositories.
     Mongo java driver, Gson and Guava are required runtime dependencies,
     which are included as transitive dependencies.
   </description>
+  <url>https://github.com/immutables/immutables/tree/mongo</url>
   <properties>
     <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
     <maven.compiler.source>1.8</maven.compiler.source>

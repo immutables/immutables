@@ -26,6 +26,7 @@
   <artifactId>value-processor</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Immutable objects processor, new generation</description>
+  <url>https://github.com/immutables/immutables/tree/value-processor</url>
 
   <properties>
     <module.name>${project.groupId}.value.processor</module.name>

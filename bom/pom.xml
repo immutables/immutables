@@ -24,6 +24,8 @@
     <artifactId>bom</artifactId>
     <name>${project.groupId}.${project.artifactId}</name>
     <packaging>pom</packaging>
+    <description>Organizes all versions modules in a single BOM POM</description>
+    <url>https://github.com/immutables/immutables/tree/master/bom</url>
 
     <dependencyManagement>
         <dependencies>

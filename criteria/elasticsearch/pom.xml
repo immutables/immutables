@@ -26,6 +26,7 @@
     <description>
         Criteria support for ElasticSearch
     </description>
+    <url>https://github.com/immutables/immutables/tree/master/criteria/elasticsearch</url>
 
     <properties>
         <module.name>${project.groupId}.criteria.elasticsearch</module.name>

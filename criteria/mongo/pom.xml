@@ -26,6 +26,7 @@
     <description>
       Mongo Adapter for Criteria
     </description>
+    <url>https://github.com/immutables/immutables/tree/master/criteria/mongo</url>
 
     <properties>
         <module.name>${project.groupId}.criteria.mongo</module.name>

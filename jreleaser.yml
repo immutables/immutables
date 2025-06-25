@@ -1,0 +1,24 @@
+project:
+  name: immutables
+  version: 2.11.0-beta4
+  languages:
+    java:
+      groupId: org.immutables
+
+signing:
+  active: ALWAYS
+  armored: true
+  verify: true
+  mode: FILE
+
+deploy:
+  maven:
+    mavenCentral:
+      sonatype:
+        active: ALWAYS
+        namespace: org.immutables
+        sign: true
+        url: https://central.sonatype.com/api/v1/publisher
+        stagingRepositories:
+          - target/central-staging
+        maxRetries: 1
