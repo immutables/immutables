@@ -19,7 +19,7 @@
 
   <groupId>org.immutables</groupId>
   <artifactId>immutables</artifactId>
-  <version>2.11.0</version>
+  <version>2.11.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}.${project.artifactId}</name>
@@ -300,6 +300,7 @@
                   <classifier>javadoc</classifier>
                   <classesDirectory>${project.parent.basedir}/.javadoc</classesDirectory>
                   <archive>
+                    <addMavenDescriptor>false</addMavenDescriptor>
                     <manifest>
                       <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                     </manifest>
