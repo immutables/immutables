@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "Cleansing staging from test-only stuff"
+cd target/central-staging/org/immutables
+
+# first just remove fixture (test only) modules
+# disabling these in profile didn't work (even with re-listing all non-removed modules)
+rm -fr generator-fixture
+rm -fr value-fixture
+
+# delete all test jars, no configuration of plugins were effective in removing these from staging
+find . -type f -name '*-tests.jar' -delete
+find . -type f -name '*-tests.jar.*' -delete
+
+

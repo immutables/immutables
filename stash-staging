@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "Cleans and prepares parent and independent POMs"
+
+prepared=target/central-prepared/org/immutables
+staging=target/central-staging/org/immutables
+
+rm -fr $prepared
+mkdir -p $prepared
+
+mv $staging/immutables $prepared/
+mv $staging/criteria $prepared/
+mv $staging/testing $prepared/
+
+
+

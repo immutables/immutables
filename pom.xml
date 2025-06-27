@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   Copyright 2013-2023 Immutables Authors and Contributors
+   Copyright 2013-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
   <groupId>org.immutables</groupId>
   <artifactId>immutables</artifactId>
-  <version>2.11.0-beta4</version>
+  <version>2.11.0</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}.${project.artifactId}</name>
@@ -27,7 +27,8 @@
     Java annotation processing toolkit. Focus is on immutability, type safety, fluent interfaces, high-performance.
   </description>
   <url>http://immutables.org</url>
-
+  <inceptionYear>2013</inceptionYear>
+  <!-- WATCHOUT to synchronize with modules in profile 'sonatype-oss-release' -->
   <modules>
     <module>testing</module>
     <module>generator</module>
@@ -236,19 +237,8 @@
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.1</version>
-          <configuration>
-            <mavenExecutorId>forked-path</mavenExecutorId>
-            <useReleaseProfile>false</useReleaseProfile>
-            <arguments>-Psonatype-oss-release</arguments>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.4.2</version>
-
           <executions>
             <execution>
               <id>default-jar</id>
@@ -266,9 +256,11 @@
             </execution>
             <execution>
               <id>test-jar</id>
-              <goals>
-                <goal>test-jar</goal>
-              </goals>
+              <goals/>
+            </execution>
+            <execution>
+              <id>tests-jar</id>
+              <goals/>
             </execution>
           </executions>
         </plugin>
@@ -280,29 +272,39 @@
     <profile>
       <id>sonatype-oss-release</id>
       <build>
+<!--  <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-jar-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>test-jar</id>
+                  <goals/>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>-->
         <plugins>
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.11.2</version>
-            <configuration>
-              <quiet>true</quiet>
-              <nonavbar>true</nonavbar>
-              <notree>true</notree>
-              <nocomment>true</nocomment>
-              <nohelp>true</nohelp>
-              <minmemory>1G</minmemory>
-              <maxmemory>2G</maxmemory>
-              <doclint>none</doclint>
-              <failOnError>false</failOnError>
-              <failOnWarnings>false</failOnWarnings>
-            </configuration>
+            <artifactId>maven-jar-plugin</artifactId>
             <executions>
               <execution>
-                <id>attach-javadocs</id>
+                <id>dummy-javadoc-jar</id>
+                <phase>package</phase>
                 <goals>
                   <goal>jar</goal>
                 </goals>
+                <configuration>
+                  <classifier>javadoc</classifier>
+                  <classesDirectory>${project.parent.basedir}/.javadoc</classesDirectory>
+                  <archive>
+                    <manifest>
+                      <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                    </manifest>
+                  </archive>
+                </configuration>
               </execution>
             </executions>
           </plugin>
@@ -325,7 +327,7 @@
             <version>0.8.0</version>
             <extensions>true</extensions>
             <configuration>
-              <publishingServerId>central2</publishingServerId>
+              <publishingServerId>central</publishingServerId>
               <autoPublish>false</autoPublish>
               <skipPublishing>true</skipPublishing>
             </configuration>

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Clears current staging area and shift next module from stash for step by step release
+# before running the first time, we need first to run
+echo "Clears current staging area and shift next module"
+
+prepared=target/central-prepared/org/immutables
+staging=target/central-staging/org/immutables
+
+rm -fr $prepared
+mkdir -p $prepared
+
+next=$(ls -A $staging | head -n 1)
+
+mv $staging/$next $prepared/
+

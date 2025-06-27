@@ -1,15 +1,15 @@
 project:
   name: immutables
-  version: 2.11.0-beta4
+  version: 2.11.0-beta5
   languages:
     java:
       groupId: org.immutables
 
-signing:
-  active: ALWAYS
-  armored: true
-  verify: true
-  mode: FILE
+#signing:
+#  active: ALWAYS
+#  armored: true
+#  verify: true
+#  mode: FILE
 
 deploy:
   maven:
@@ -17,8 +17,10 @@ deploy:
       sonatype:
         active: ALWAYS
         namespace: org.immutables
-        sign: true
+        sign: false
         url: https://central.sonatype.com/api/v1/publisher
+        stage: UPLOAD
+        verifyPom: false
         stagingRepositories:
-          - target/central-staging
+          - target/central-prepared
         maxRetries: 1
