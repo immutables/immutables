@@ -1069,6 +1069,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   private int parameterOrder = Integer.MIN_VALUE;
 
   private AttributeTypeKind typeKind;
+  private AttributeTypeKind originalTypeKind;
   public boolean jacksonAnyGetter;
   public boolean jacksonValue;
   public boolean hasTypeVariables;
@@ -1272,6 +1273,14 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
     initAttributeBuilder();
     maybeInitJavaBean();
+
+    checkSuppressedOptional();
+  }
+
+  private void checkSuppressedOptional() {
+    if (originalTypeKind.isOptionalKind() && !typeKind.isOptionalKind()) {
+      isSuppressedOptional = true;
+    }
   }
 
   private Set<String> thrownCheckedExceptions = ImmutableSet.of();
@@ -1497,10 +1506,9 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       }
     }
 
+    originalTypeKind = typeKind;
+
     if (!typeKind.isRegular() && !supportBuiltinContainerTypes()) {
-      if (typeKind.isOptionalKind()) {
-        isSuppressedOptional = true;
-      }
       applyMaybeEnumContainedType = false;
       typeKind = AttributeTypeKind.REGULAR;
     }
@@ -1518,14 +1526,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       if (applyMaybeEnumContainedType) {
         typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumContainedElementType());
       }
-    }
-
-    // this is another attempt to establish isSuppressedOptional in case it was somehow
-    // skipped the logic above
-    if (!isSuppressedOptional
-        //&& typeKind == AttributeTypeKind.REGULAR
-        && AttributeTypeKind.forRawType(rawTypeName).isOptionalKind()) {
-      isSuppressedOptional = true;
     }
   }
 

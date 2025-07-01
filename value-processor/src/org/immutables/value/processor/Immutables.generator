@@ -2734,7 +2734,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 [if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
   [collectionUtility type]
 [/if]
-[if type.detectAttributeBuilders][--???? TODO kill it? ]
+[if type.detectAttributeBuilders]
   [attributeBuilderTransformUtilities type]
 [/if]
 }
