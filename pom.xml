@@ -45,6 +45,7 @@
     <module>mongo</module>
     <module>func</module>
     <module>data</module>
+    <module>datatype</module>
     <module>value-processor</module>
     <module>processor-testlib</module>
     <module>value-annotations</module>
