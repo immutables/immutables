@@ -1877,7 +1877,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isDataInline() {
-    return DataInlineMirror.isPresent(element);
+    return DataInlineMirror.isPresent(element) || DDataInlineMirror.isPresent(element);
   }
 
   @Override

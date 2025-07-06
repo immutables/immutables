@@ -93,7 +93,10 @@ public final class Processor extends AbstractGenerator {
       invoke(new Generator_Encodings().generate());
     }
     if (round.environment().hasDatatypesModule()) {
-      invoke(new Generator_Datatypes().usingValues(values).generate());
+      invoke(new Generator_DataOld().usingValues(values).generate());
+    }
+    if (round.environment().hasDatatypes2Module()) {
+      invoke(new Generator_Datatype().usingValues(values).generate());
     }
   }
 

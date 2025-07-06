@@ -28,4 +28,13 @@ public final class DatatypeMirrors {
   
   @Mirror.Annotation("org.immutables.data.Data.Inline")
   public @interface DataInline {}
+
+  @Mirror.Annotation("org.immutables.datatype.Data")
+  public @interface DData {}
+
+  @Mirror.Annotation("org.immutables.datatype.Data.Ignore")
+  public @interface DDataIgnore {}
+
+  @Mirror.Annotation("org.immutables.datatype.Data.Inline")
+  public @interface DDataInline {}
 }

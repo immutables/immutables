@@ -520,7 +520,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public boolean isDataIgnore() {
-    return DataIgnoreMirror.isPresent(element);
+    return DataIgnoreMirror.isPresent(element) || DDataIgnoreMirror.isPresent(element);
   }
 
   public List<String> typeParameters() {

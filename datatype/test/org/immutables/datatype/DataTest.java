@@ -1,17 +1,21 @@
-package org.immutables.data;
+package org.immutables.datatype;
 
 import java.util.List;
 import java.util.Optional;
-import com.google.common.reflect.TypeToken;
-import org.immutables.data.Datatype.Builder;
-import org.immutables.data.Datatype.Feature;
-import org.immutables.data.Datatype.Violation;
-import org.immutables.data.Datatypes_Dtt.Dtt_;
-import org.immutables.data.Datatypes_Maybe.Maybe_;
+import java.util.Set;
+import org.immutables.datatype.Datatype.Builder;
+import org.immutables.datatype.Datatype.Feature;
+import org.immutables.datatype.Datatype.Violation;
+import org.immutables.datatype.Datatypes_Dtt.Dtt_;
+import org.immutables.datatype.Datatypes_Maybe.Maybe_;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
-import static org.immutables.data.Datatypes_Dtt.*;
-import static org.immutables.data.Datatypes_Maybe._Maybe;
+import static org.immutables.datatype.Datatypes_Dtt._Dtt;
+import static org.immutables.datatype.Datatypes_Dtt._Ign;
+import static org.immutables.datatype.Datatypes_Dtt._Inl;
+import static org.immutables.datatype.Datatypes_Dtt._Really;
+import static org.immutables.datatype.Datatypes_Dtt._Sin;
+import static org.immutables.datatype.Datatypes_Maybe._Maybe;
 
 public class DataTest {
   @Test
@@ -62,12 +66,12 @@ public class DataTest {
     check(vs.get(1).rule()).is("cast");
     check(vs.get(1).feature()).is(Optional.of(dtt.b_));
   }
-  
+
   @Test
   public void isInline() {
     check(_Inl().isInline());
   }
-  
+
   @Test
   public void isIgnorable() {
     check(_Ign().g_.ignorableOnOutput());
@@ -75,10 +79,23 @@ public class DataTest {
   }
 
   @Test
-  public void optGenerated() {
+  public void maybeGenerated() {
     // check only generated fact and structure here
-    Maybe_<String> may = _Maybe(TypeToken.of(String.class));
+    Maybe_<String> may = _Maybe(String.class);
+
     check(!may.isInstantiable());
     check(may.cases()).hasSize(2);
+  }
+
+  @Test public void reallyComplexGenerics() {
+    Datatypes_Dtt.Really_<Double, Short> r = _Really(Double.class, Short.class);
+    check(r.a_.type()).is(Types.newParameterized(Optional.class, Double.class));
+    check(r.b_.type()).is(String.class);
+    check(r.i_.type()).is(int.class);
+    check(r.v_.type()).is(String.class);
+    check(r.y_.type()).is(Short.class);
+    check(r.d_.type()).is(Types.newParameterized(List.class, String.class));
+    check(r.z_.type()).is(Types.newParameterized(Set.class, String.class));
+    check(r.u_.type()).is(Types.newParameterized(List.class, Void.class));
   }
 }

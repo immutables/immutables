@@ -1,15 +1,10 @@
-package org.immutables.data;
+package org.immutables.datatype;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * @deprecated as of 2.11.1 we recommend to use new `org.immutables.datatype` module. While still
- * experimental, it has API which free from dependency on Guava (via `Type` token and immutable collections).
- */
-@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Data {
@@ -19,7 +14,7 @@ public @interface Data {
    */
   @Retention(RetentionPolicy.RUNTIME)
   @Target(ElementType.METHOD)
-  public @interface Ignore {}
+  @interface Ignore {}
 
   /**
    * Marks that the type is strongly typed alias (newtype) for the other type it wraps.
@@ -30,5 +25,5 @@ public @interface Data {
    */
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  public @interface Inline {}
+  @interface Inline {}
 }

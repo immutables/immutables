@@ -382,6 +382,11 @@ public class Proto {
     }
 
     @Value.Lazy
+    public boolean hasDatatypes2Module() {
+      return hasElement(DDataMirror.qualifiedName());
+    }
+
+    @Value.Lazy
     public boolean hasJacksonLib() {
       return hasElement(Proto.JACKSON_DESERIALIZE);
     }
@@ -736,6 +741,20 @@ public class Proto {
       }
 
       return Optional.absent();
+    }
+
+    @Value.Lazy
+    public boolean datatype2Enabled() {
+      if (DDataMirror.isPresent(element())) {
+        return true;
+      }
+
+      for (MetaAnnotated m : metaAnnotated()) {
+        Optional<DataMirror> d = m.datatypeEnabled();
+        if (d.isPresent()) return true;
+      }
+
+      return false;
     }
 
     @Value.Lazy
@@ -1560,6 +1579,12 @@ public class Proto {
     }
 
     @Value.Lazy
+    public boolean datatype2Marker() {
+      Optional<AbstractDeclaring> provider = datatypeProvider();
+      return provider.isPresent() && provider.get().datatype2Enabled();
+    }
+
+    @Value.Lazy
     public Optional<AbstractDeclaring> datatypeProvider() {
       Optional<DeclaringType> typeDefining =
           declaringType().isPresent()
@@ -1587,6 +1612,32 @@ public class Proto {
       return typeDefined.isPresent()
           ? Optional.<AbstractDeclaring>of(typeDefining.get())
           : Optional.<AbstractDeclaring>absent();
+    }
+
+    @Value.Lazy
+    public Optional<AbstractDeclaring> datatype2Provider() {
+      Optional<DeclaringType> typeDefining =
+          declaringType().isPresent()
+              ? Optional.of(declaringType().get().associatedTopLevel())
+              : Optional.<DeclaringType>absent();
+
+      boolean typeDefined = typeDefining.isPresent()
+          && typeDefining.get().datatype2Enabled();
+
+      if (packageOf().datatype2Enabled()) {
+        if (typeDefined) {
+          report()
+              .withElement(typeDefining.get().element())
+              .annotationNamed(DDataMirror.simpleName())
+              .warning("@%s is also used on the package, this type level annotation is ignored",
+                  DDataMirror.simpleName());
+        }
+        return Optional.<AbstractDeclaring>of(packageOf());
+      }
+
+      return typeDefined
+          ? Optional.of(typeDefining.get())
+          : Optional.absent();
     }
 
     /**

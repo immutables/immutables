@@ -1009,7 +1009,12 @@ public @interface Value {
      * for {@code passAnnotations} attribute. However, there are some special annotations which are
      * copied using special logic, such as {@code Nullable} annotations (and Jackson annotations)
      * <p>
-     * This style parameter is experimental and may change in the future.
+     * This has a number of limitations, including that it's not suited for {@link ElementType#TYPE_USE}
+     * annotations (annotations attached to types), only for method annotation. In many cases type-use
+     * annotation would be replicated automatically in derived signatures, but in case of type-use
+     * nullable annotations it's the best to specify the nullable annotation of choice using
+     * {@link #fallbackNullableAnnotation()} so it will be used in generated code in all places where
+     * original annotations would not propagate automatically.
      * @return types of annotations to pass to an immutable implementation class and its
      *         attributes.
      */

@@ -1,0 +1,331 @@
+[--
+   Copyright 2025 Immutables Authors and Contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+--]
+[template public generate]
+  [for datatypes in allDefinitions,
+      packageName = datatypes.packageGenerated,
+      simpleName = datatypes.definedBy.simpleName,
+      String capitalizedSimpleName = toUpper simpleName,
+      String typeDatatypeName = ('Datatypes_' capitalizedSimpleName)]
+
+[setCurrent datatypes]
+[output.java packageName typeDatatypeName datatypes.definedBy.element]
+[for d = datatypes.definedBy,
+     s in d.style if s.headerComments,
+     t in d.asType]
+[t.associatedTopLevel.headerComments]
+[/for]
+[generateDatatype packageName simpleName typeDatatypeName]
+[/output.java]
+  [/for]
+[/template]
+
+[template generateDatatype
+    String packageName
+    String simpleName
+    String typeDatatypeName]
+[for Type... allValues = current.types]
+[if packageName]
+package [packageName];
+[/if]
+
+import java.lang.String;
+[for t in allValues]
+  [for starImport in t.requiredSourceStarImports]
+import [starImport];
+  [/for]
+[/for]
+
+/**
+ * Metamodel definitions for introspection of immutable datatypes.
+ [for v in allValues]
+ * @see [v.typeValue.relativeRaw]
+ [/for]
+ */
+@SuppressWarnings("all")
+[for v in allValues][if for.first][-- this is only needed to get to first available value's style --]
+[if v allowsClasspathAnnotation '[jaxarta].annotation.ParametersAreNonnullByDefault']
+@[jaxarta].annotation.ParametersAreNonnullByDefault
+[/if]
+[if v allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+@javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
+[else if v allowsClasspathAnnotation '[jaxarta].annotation.Generated']
+@[jaxarta].annotation.Generated("org.immutables.processor.ProxyProcessor")
+[/if]
+[if v allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[packageName]", generator = "Datatypes")
+[/if]
+[/if][/for]
+public final class [typeDatatypeName] {
+  @SuppressWarnings({"unchecked", "raw"})
+  public static <T> [dtt].Datatype<T> constuct([refl].Type type) {
+    Class<?> raw = [dtt].Types.toRawType(type);
+    [for v in allValues]
+    if (raw == [v.typeAbstract.relativeRaw].class || raw == [v.typeImmutable.relativeRaw].class) {
+      [if v.generics.empty]
+      return ([dtt].Datatype<T>) [v.name]_.INSTANCE;
+      [else]
+      return ([dtt].Datatype<T>) new [v.name]_(type);
+      [/if]
+    }
+    [/for]
+    throw new java.lang.IllegalArgumentException(type.toString());
+  }
+  [for v in allValues]
+    [if v.generics.empty]
+
+  public static[v.generics.def] [v.name]_ _[v.name]() {
+    return [v.name]_.INSTANCE;
+  }
+    [else]
+
+  public static[v.generics.def] [v.name]_[v.generics] _[v.name]([for g in v.generics][if not for.first], [/if][refl].Type [toLower g]Arg[/for]) {
+    return new [v.name]_[v.generics.diamond]([dtt].Types.newParameterized([v.typeAbstract.relativeRaw].class[for g in v.generics], [toLower g]Arg[/for]));
+  }
+    [/if]
+  [/for]
+  [for v in allValues]
+  [generateDatatypeClass v]
+  [/for]
+}
+[/for]
+[/template]
+
+[template generateDatatypeClass Type v]
+[setCurrentType v]
+[for all = v.allAccessibleAttributes,
+    cases = v.casesContextual,
+    Type... subtypes = cases.knownSubtypes v]
+[let tT][v.typeAbstract.relative][/let]
+[let tR][v.typeAbstract.relativeRaw][/let]
+
+@SuppressWarnings({"unchecked", "raw"})
+public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> {
+[if v.generics.empty]
+  private static final [v.name]_ INSTANCE = new [v.name]_([tR].class);
+[else]
+  [for g in v.generics]
+  private static final [refl].Type [g]_TYPE_PARAM;
+  [/for]
+  static { try {
+    [refl].TypeVariable<?>['[]'] vars = [tR].class.getTypeParameters();
+    [for g in v.generics]
+    [g]_TYPE_PARAM = vars['['][for.index][']'];
+    [/for]
+  } catch (java.lang.Exception e) { throw new java.lang.AssertionError(e); }}
+[/if]
+  public static final String NAME = [literal.string v.name];
+[for a in all]
+  public static final String [toConstant a.name]_ = [literal.string a.name];
+[/for]
+[for a in all if a.hasTypeVariables or (a.genericArgs or a.wholeTypeVariable.is)]
+  private static final [refl].Type [toConstant a.name]_T;
+  static {
+    [toConstant a.name]_T = [dtt].Types.getGenericAccessorType([v.typeAbstract.relativeRaw].class, [literal a.names.get]);
+  }
+[/for]
+  private final [refl].Type type;
+[for g in v.generics]
+  private final [refl].Type [g]_typeArg;
+[/for]
+[for a in all]
+  public final [dtt].Datatype.Feature<[tT], [a.wrapperType]> [a.name]_;
+[/for]
+  private final java.util.List<[dtt].Datatype.Feature<[tT], ?>> features;
+[if subtypes]
+  private final java.util.Set<[dtt].Datatype<?>> cases;
+[/if]
+
+  private [v.name]_([refl].Type type) {
+    this.type = type;
+    java.util.Map<[refl].TypeVariable<?>, [refl].Type> arguments = [dtt].Types.mapArguments([tR].class, type);
+    [for g in v.generics]
+    this.[g]_typeArg = arguments.get([g]_TYPE_PARAM);
+    [/for]
+    [for a in all]
+    this.[a.name]_ = [dtt].Datatype.Feature.of([for.index], NAME, [toConstant a.name]_, [constructType a], [a.nullable], [a.gettable], [a.settable], [a.omittable], [a.ignorable]);
+    [/for]
+    [if all]
+    this.features = java.util.Collections.unmodifiableList(java.util.Arrays.asList([for a in all][if not for.first], [/if][a.name]_[/for]));
+    [else]
+    this.features = java.util.Collections.emptyList();
+    [/if]
+    [if subtypes]
+    java.util.Set<[dtt].Datatype<?>> cases = new java.util.LinkedHashSet<>();
+       [for s in subtypes]
+    cases.add(_[s.name]([for g in s.generics][if not for.first], [/if][g]_typeArg[/for]));
+       [/for]
+    this.cases = java.util.Collections.unmodifiableSet(cases);
+    [/if]
+  }
+
+  @Override public <FEATURE_T_> FEATURE_T_ get([dtt].Datatype.Feature<[tT], FEATURE_T_> feature, [tT] instance) {
+    int i = feature.index();
+    if (i >= features.size() || features.get(i) != feature) {
+      throw new java.lang.IllegalArgumentException("Alien feature " + feature);
+    }
+    switch (i) {
+  [for a in all]
+  [if a.gettable]
+    case [for.index]: return (FEATURE_T_) [if a.primitive](java.lang.Object) [/if]instance.[a.names.get]();
+  [/if]
+  [/for]
+    default: throw new java.lang.IllegalArgumentException("Non-readable feature " + feature);
+    }
+  }
+
+  @Override public String name() { return NAME; }
+  @Override public java.lang.reflect.Type type() { return type; }
+  @Override public java.util.List<[dtt].Datatype.Feature<[tT], ?>> features() { return features; }
+  @Override public String toString() { return "datatype<" + type + ">"; }
+  @Override public boolean isInline() { return [v.dataInline]; }
+[if not v.kind.value]
+  @Override public boolean isInstantiable() { return false; }
+  @Override public [dtt].Datatype.Builder<[tT]> builder() {
+    throw new UnsupportedOperationException("Not a value, cannot build");
+  }
+[else]
+  @Override public boolean isInstantiable() { return true; }
+  @Override public [dtt].Datatype.Builder<[tT]> builder() {
+    return new [dtt].Datatype.Builder<[tT]>() {
+      [-- the array will be sparse for gettable but not settable values,
+       -- we ignore this to get advantage of using feature.index]
+      private final java.lang.Object['[]'] values = new java.lang.Object['['][size all][']'];
+      private [tT] instance;
+
+      @Override public <FEATURE_T_> void set([dtt].Datatype.Feature<[tT], FEATURE_T_> feature, FEATURE_T_ value) {
+        int i = feature.index();
+        if (i >= features.size() || features.get(i) != feature) {
+          throw new java.lang.IllegalArgumentException("Alien feature " + feature);
+        }
+        if (!feature.supportsInput()) {
+          throw new java.lang.IllegalArgumentException("Non-writable feature " + feature);
+        }
+        values['[']i[']'] = value;
+      }
+
+      @Override public java.util.List<[dtt].Datatype.Violation> verify() {
+        java.util.List<[dtt].Datatype.Violation> violations = java.util.Collections.emptyList();
+      [for a in all]
+      [if a.settable]
+        [let vv]values['['][for.index][']'][/let]
+        [if a.mandatory andnot a.nullable]
+        if ([vv] == null) {
+          if (violations.isEmpty()) violations = new java.util.ArrayList<>(1);
+          violations.add([dtt].Datatype.Violation.of("required", "Missing value", features.get([for.index])));
+        } else [/if]try {
+          [vv] = ([a.wrapperType]) [vv];
+        } catch (java.lang.RuntimeException e) {
+          if (violations.isEmpty()) violations = new java.util.ArrayList<>(1);
+          String kind = e instanceof java.lang.NullPointerException ? "null"
+              : e instanceof java.lang.ClassCastException ? "cast" : "wrong";
+          violations.add([dtt].Datatype.Violation.of(kind, e.getMessage(), features.get([for.index])));
+        }
+      [/if]
+      [/for]
+        if (violations.isEmpty()) {
+          try {
+            instance = buildInstance();
+          } catch (java.lang.Exception e) {
+            if (violations.isEmpty()) violations = new java.util.ArrayList<>(1);
+            violations.add([dtt].Datatype.Violation.of("check", e.getMessage()));
+          }
+        }
+        return violations.isEmpty() ? violations : java.util.Collections.unmodifiableList(violations);
+      }
+
+      @Override public [tT] build() {
+        if (instance == null) return buildInstance();
+        [tT] i = instance;
+        instance = null;
+        return i;
+      }
+
+      @Override public String toString() {
+        java.lang.StringBuilder sb = new java.lang.StringBuilder().append([v.name]_.this).append(".builder(");
+      [for a in all]
+      [if a.settable]
+        [let vv]values['['][for.index][']'][/let]
+        [if a.nullable][else if not a.mandatory]if ([vv] != null) [/if]sb.append([toConstant a.name]_).append('=').append([vv]).append(";");
+      [/if]
+      [/for]
+        return sb.append(")").toString();
+      }
+      [buildInstance tT v]
+    };
+  }
+[/if]
+[if subtypes]
+
+  @Override
+  public java.util.Set<[dtt].Datatype<? extends [tT]>> cases() {
+    return (java.util.Set<[dtt].Datatype<? extends [tT]>>) (java.lang.Object) cases;
+  }
+[/if]
+}
+[/for]
+[/template]
+
+
+[template buildInstance String tT Type type]
+[for all = type.allAccessibleAttributes]
+
+private [tT] buildInstance() {
+[let cast][if type.constitution.returnsAbstractValueType or type.innerBuilder.isExtending]([type.typeImmutable.relative]) [/if][/let]
+[-- Follows corresponding fragment in Immutables.generator --]
+[if type.useBuilder]
+  [type.typeBuilder.relative] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]([for v in type.builderParameters][if not for.first], [/if]([v.type]) values['['][attributeIndex v][']'][/for])[/castBuildStagedBuilder];
+      [for v in all if not v.isBuilderParameter]
+      [let valueI]values['['][attributeIndex v][']'][/let]
+      [if v.settable]
+        [if v.encoding]
+  [if not v.mandatory]if ([valueI] != null) [/if]builder.[rr.builderCopyFrom v](([v.type]) [valueI]);
+        [else if v.nullable]
+  builder.[v.names.init](([v.type]) [valueI]);
+        [else if v.collectionType]
+  if ([valueI] != null) builder.[v.names.addAll](([v.type]) [valueI]);
+        [else if v.mapType]
+  if ([valueI] != null) builder.[v.names.putAll](([v.type]) [valueI]);
+        [else]
+  if ([valueI] != null) builder.[v.names.init](([v.type]) [valueI]);
+        [/if]
+      [/if]
+      [/for]
+  return builder.[type.names.build]();
+[else if type.useSingletonOnly]
+  return [type.factoryInstance.relative]();
+[else]
+  return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]([v.type]) values['['][attributeIndex v][']'][/for])[for
+      o in type.withSettableAfterConstruction]
+      .[o.names.with](([o.type]) values['['][attributeIndex o][']'])[/for];
+[/if]
+}
+[/for]
+[/template]
+
+[template constructType Attribute a][output.trim]
+[if a.hasTypeVariables or (a.genericArgs or a.wholeTypeVariable.is)]
+  [dtt].Types.resolveArguments([toConstant a.name]_T, arguments)
+[else]
+  [-- Use .rawType rather than .type to prevent including annotations in Type.class literals. ]
+  [a.rawType].class
+[/if]
+[/output.trim][/template]
+
+[template refl]java.lang.reflect[/template]
+[template dtt]org.immutables.datatype[/template]
+
+[-- Copy-paste from Immutables.generator]
+[template castBuildStagedBuilder Type type String expression][for tb = type.telescopicBuild][if tb andnot type.innerBuilder.isExtending](([type.typeBuilderImpl.relative]) [expression])[else][expression][/if][/for][/template]

@@ -1,14 +1,17 @@
-package org.immutables.data;
+package org.immutables.datatype;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.Set;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Enclosing;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Parameter;
+import org.immutables.value.processor.meta.Generics;
 
 @Data
 @Immutable
@@ -16,7 +19,7 @@ import org.immutables.value.Value.Parameter;
 public interface Dtt {
   int a();
 
-  @CustomNullableAnnotation
+  @Nully
   String b();
 
   @Value.Default
@@ -32,7 +35,7 @@ public interface Dtt {
   class Builder extends ImmutableDtt.Builder {}
 
   @Immutable
-  public interface Vgg<D> {
+  interface Vgg<D> {
     boolean c();
 
     D d();
@@ -41,17 +44,17 @@ public interface Dtt {
   }
 
   @Immutable
-  public interface Hjj<H> {
+  interface Hjj<H> {
     Map<String, H> ef();
 
-    @CustomNullableAnnotation
+    @Nully
     H h();
 
     class Builder<H> extends ImmutableDtt.Hjj.Builder<H> {}
   }
 
   @Immutable(builder = false)
-  public interface Uio {
+  interface Uio {
     @Parameter
     int u();
 
@@ -60,27 +63,50 @@ public interface Dtt {
   }
 
   @Immutable(builder = false, singleton = true)
-  public interface Sin {}
-  
+  interface Sin {}
+
   @Immutable
-  public interface Opt<O> {
+  interface Opt<O> {
     Optional<O> o();
     OptionalInt i();
     OptionalLong l();
     OptionalDouble d();
     class Builder<O> extends ImmutableDtt.Opt.Builder<O> {}
   }
-  
+
   @Data.Inline
   @Immutable
-  public interface Inl {
+  interface Inl {
     @Parameter
     int value();
   }
-  
+
   @Immutable
-  public interface Ign {
+  interface Ign {
     @Data.Ignore OptionalInt g();
     class Builder extends ImmutableDtt.Ign.Builder {}
+  }
+
+  @Immutable
+  abstract class Really<T, Y> extends Complicated<T, String> implements Comparable<T> {
+    abstract int i();
+    abstract Y y();
+
+    @Override public int compareTo(T o) {return 0;}
+  }
+
+  interface Ditto {
+    List<String> d();
+  }
+
+  interface Generics<V, Z, U> {
+    @Nully V v();
+    Set<Z> z();
+    List<U> u();
+  }
+
+  abstract class Complicated<A, B> implements Generics<B, B, Void>, Ditto {
+    abstract Optional<A> a();
+    abstract B b();
   }
 }
