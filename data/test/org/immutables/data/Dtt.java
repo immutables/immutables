@@ -17,6 +17,7 @@ import org.immutables.value.Value.Parameter;
 public interface Dtt {
   int a();
 
+  @CustomNullableAnnotation
   String b();
 
   @Value.Default
@@ -44,7 +45,7 @@ public interface Dtt {
   public interface Hjj<H> {
     Map<String, H> ef();
 
-    @Nullable
+    @CustomNullableAnnotation
     H h();
 
     class Builder<H> extends ImmutableDtt.Hjj.Builder<H> {}

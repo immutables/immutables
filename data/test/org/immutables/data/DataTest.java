@@ -33,7 +33,7 @@ public class DataTest {
   public void verifyAndBuild() {
     Dtt_ dtt = _Dtt();
     Builder<Dtt> b = dtt.builder();
-    check(b.verify()).hasSize(2);
+    check(b.verify()).hasSize(1);
 
     try {
       b.build();
