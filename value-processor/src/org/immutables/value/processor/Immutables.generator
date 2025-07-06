@@ -1032,11 +1032,11 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
 
     [if v.arrayType]
 [varargsSafety v]
-public [type.typeAbstract.relative] [v.names.with]([v.elementType]... elements) { throw new UnsupportedOperationException(); }
+public final [type.typeAbstract.relative] [v.names.with]([v.elementType]... elements) { throw new UnsupportedOperationException(); }
     [else if v.collectionType]
 @Override
 [varargsSafety v]
-public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements) { throw new UnsupportedOperationException(); }
+public final [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements) { throw new UnsupportedOperationException(); }
 @Override
 public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements) { throw new UnsupportedOperationException(); }
     [else if v.optionalType]
