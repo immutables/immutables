@@ -319,7 +319,8 @@ private [tT] buildInstance() {
 [else if a.genericArgs or a.wholeTypeVariable.is]
   new [grefl].TypeToken<[a.type]>() {}
 [else]
-  [grefl].TypeToken.of([a.type].class)
+  [-- Use .rawType rather than .type to prevent including annotations in Type.class literals. ]
+  [grefl].TypeToken.of([a.rawType].class)
 [/if]
 [/output.trim][/template]
 
