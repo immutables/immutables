@@ -767,6 +767,7 @@ public class ImportRewriter {
   private void consumeCharLiteral() {
     assert source.charAt(at) == '\'';
     int begin = at;
+    at++;
     while (at < len) {
       if (source.charAt(at) == '\'' && source.charAt(at - 1) != '\\') {
         at++;
