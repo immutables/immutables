@@ -30,6 +30,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
@@ -211,6 +212,19 @@ class TypeStringProvider {
   private StringBuilder typeAnnotationsToBuffer(List<? extends AnnotationMirror> annotations, boolean nestedTypeUse) {
     StringBuilder annotationBuffer = new StringBuilder(100);
     for (AnnotationMirror annotationMirror : annotations) {
+      if (!nestedTypeUse) {
+        try {
+          if (annotationMirror.getAnnotationType()
+              .asElement()
+              .getSimpleName()
+              .contentEquals(EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
+            this.nullElements = NullElements.ALLOW;
+          }
+        } catch (Throwable justInCaseAnyCompilerBug) {
+          continue;
+        }
+      }
+
       boolean canBeAppliedToMethodAsWell = !nestedTypeUse // just to short circuit computation early
           && Annotations.annotationMatchesTarget(annotationMirror.getAnnotationType().asElement(), ElementType.METHOD);
       if (canBeAppliedToMethodAsWell) {
@@ -300,79 +314,79 @@ class TypeStringProvider {
       return;
     }
     switch (type.getKind()) {
-    case ERROR:
-      unresolvedTypeHasOccured = true;
-      //$FALL-THROUGH$
-    case DECLARED:
-      DeclaredType declaredType = (DeclaredType) type;
-      appendResolved(declaredType);
-      appendTypeArguments(type, declaredType);
-      break;
-    case ARRAY:
-      TypeMirror componentType = ((ArrayType) type).getComponentType();
-      int mark = buffer.length();
-      caseType(componentType);
-      cutTypeArgument(type, mark);
-      buffer.append('[').append(']');
-      break;
-    case WILDCARD:
-      WildcardType wildcard = (WildcardType) type;
-      @Nullable TypeMirror extendsBound = wildcard.getExtendsBound();
-      @Nullable TypeMirror superBound = wildcard.getSuperBound();
-      if (extendsBound != null) {
-        buffer.append("? extends ");
-        caseType(extendsBound);
-      } else if (superBound != null) {
-        buffer.append("? super ");
-        caseType(superBound);
-      } else {
-        buffer.append('?');
-      }
-      break;
-    case TYPEVAR:
-      if (allowedTypevars.length != 0) {
-        TypeVariable typeVariable = (TypeVariable) type;
-        String var = typeVariable.asElement().getSimpleName().toString();
-        int indexOfVar = Arrays.asList(allowedTypevars).indexOf(var);
-        if (indexOfVar >= 0) {
-          if (typevarArguments != null) {
-            buffer.append(typevarArguments[indexOfVar]);
-          } else {
-            hasTypeVariables = true;
-            buffer.append(var);
+      case ERROR:
+        unresolvedTypeHasOccured = true;
+        //$FALL-THROUGH$
+      case DECLARED:
+        DeclaredType declaredType = (DeclaredType) type;
+        appendResolved(declaredType);
+        appendTypeArguments(type, declaredType);
+        break;
+      case ARRAY:
+        TypeMirror componentType = ((ArrayType) type).getComponentType();
+        int mark = buffer.length();
+        caseType(componentType);
+        cutTypeArgument(type, mark);
+        buffer.append('[').append(']');
+        break;
+      case WILDCARD:
+        WildcardType wildcard = (WildcardType) type;
+        @Nullable TypeMirror extendsBound = wildcard.getExtendsBound();
+        @Nullable TypeMirror superBound = wildcard.getSuperBound();
+        if (extendsBound != null) {
+          buffer.append("? extends ");
+          caseType(extendsBound);
+        } else if (superBound != null) {
+          buffer.append("? super ");
+          caseType(superBound);
+        } else {
+          buffer.append('?');
+        }
+        break;
+      case TYPEVAR:
+        if (allowedTypevars.length != 0) {
+          TypeVariable typeVariable = (TypeVariable) type;
+          String var = typeVariable.asElement().getSimpleName().toString();
+          int indexOfVar = Arrays.asList(allowedTypevars).indexOf(var);
+          if (indexOfVar >= 0) {
+            if (typevarArguments != null) {
+              buffer.append(typevarArguments[indexOfVar]);
+            } else {
+              hasTypeVariables = true;
+              buffer.append(var);
+            }
+            break;
           }
+          // If we don't have such parameter we consider this is the quirk
+          // that was witnessed in Eclipse, we let the code below deal with it.
+        }
+
+        // this workaround breaks this recursive flow, so we set up
+        // ended flag
+        if (tryToUseSourceAsAWorkaround()) {
+          ended = true;
           break;
         }
-        // If we don't have such parameter we consider this is the quirk
-        // that was witnessed in Eclipse, we let the code below deal with it.
-      }
 
-      // this workaround breaks this recursive flow, so we set up
-      // ended flag
-      if (tryToUseSourceAsAWorkaround()) {
-        ended = true;
+        reporter.withElement(element)
+            .error("It is a compiler/annotation processing bug to receive type variable '%s' here."
+                    + " To avoid it — do not use not yet generated types in %s attribute",
+                type,
+                element.getSimpleName());
+
+        // just append as toString whatever we have
+        buffer.append(type);
         break;
-      }
-
-      reporter.withElement(element)
-          .error("It is a compiler/annotation processing bug to receive type variable '%s' here."
-              + " To avoid it — do not use not yet generated types in %s attribute",
-              type,
-              element.getSimpleName());
-
-      // just append as toString whatever we have
-      buffer.append(type);
-      break;
-    case BOOLEAN:
-    case CHAR:
-    case INT:
-    case DOUBLE:
-    case FLOAT:
-    case SHORT:
-    case LONG:
-    case BYTE:
-      String typeName = Ascii.toLowerCase(type.getKind().name());
-      buffer.append(typeName);
+      case BOOLEAN:
+      case CHAR:
+      case INT:
+      case DOUBLE:
+      case FLOAT:
+      case SHORT:
+      case LONG:
+      case BYTE:
+        String typeName = Ascii.toLowerCase(type.getKind().name());
+        buffer.append(typeName);
       /* Just skip type annotations with primitives (for now?) too many problems/breakages
       List<? extends AnnotationMirror> annotations = null;
       if (processNestedTypeUseAnnotations
@@ -382,9 +396,9 @@ class TypeStringProvider {
       } else {
         buffer.append(typeName);
       }*/
-      break;
-    default:
-      buffer.append(type);
+        break;
+      default:
+        buffer.append(type);
     }
     // workaround for Javac problem
     if (unresolvedTypeHasOccured && buffer.toString().contains("<any>")) {

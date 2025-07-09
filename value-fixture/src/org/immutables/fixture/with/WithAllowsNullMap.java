@@ -2,7 +2,7 @@ package org.immutables.fixture.with;
 
 import java.util.List;
 import java.util.Map;
-import org.immutables.fixture.modifiable.AllowNulls;
+import org.immutables.fixture.nullable.AllowNulls;
 import org.immutables.value.Value;
 
 @Value.Immutable
