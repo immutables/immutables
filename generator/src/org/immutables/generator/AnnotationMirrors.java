@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.sun.tools.javac.code.Attribute;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,36 +37,6 @@ import javax.lang.model.util.Types;
 
 public final class AnnotationMirrors {
   private AnnotationMirrors() {}
-
-  // safe unchecked: known return type list or empty immutable list
-  @SuppressWarnings("unchecked")
-  public static List<? extends AnnotationMirror> from(TypeMirror type) {
-    return (List<? extends AnnotationMirror>) GetTypeAnnotations.get(type);
-  }
-
-  private enum GetTypeAnnotations {
-    ;
-    @Nullable
-    private static final Method METHOD;
-    static {
-      @Nullable Method method = null;
-      try {
-        method = TypeMirror.class.getMethod("getAnnotationMirrors");
-      } catch (Exception ex) {
-      }
-      METHOD = method;
-    }
-
-    static Object get(Object input) {
-      if (METHOD != null) {
-        try {
-          return METHOD.invoke(input);
-        } catch (Exception ex) {
-        }
-      }
-      return ImmutableList.of();
-    }
-  }
 
   public static StringBuilder append(StringBuilder builder, AnnotationMirror value) {
     PrintVisitor printer = new PrintVisitor(builder);

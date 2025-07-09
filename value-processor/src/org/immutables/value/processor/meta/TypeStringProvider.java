@@ -134,7 +134,7 @@ class TypeStringProvider {
       String typeName = Ascii.toLowerCase(startType.getKind().name());
       this.rawTypeName = typeName;
       this.returnTypeName = typeName;
-      List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(startType);
+      List<? extends AnnotationMirror> annotations = startType.getAnnotationMirrors();
       if (!annotations.isEmpty()) {
         returnTypeName = typeAnnotationsToBuffer(annotations, false).append(typeName).toString();
       }
@@ -200,7 +200,7 @@ class TypeStringProvider {
   }
 
   private void insertTypeAnnotationsIfPresent(TypeMirror type, int typeStart, int typeEnd) {
-    List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
+    List<? extends AnnotationMirror> annotations = type.getAnnotationMirrors();
     if (!annotations.isEmpty()) {
       StringBuilder annotationBuffer = typeAnnotationsToBuffer(annotations, false);
       int insertionIndex = typeStart + buffer.substring(typeStart, typeEnd).lastIndexOf('.') + 1;
@@ -417,7 +417,7 @@ class TypeStringProvider {
     if (!processNestedTypeUseAnnotations) {
       return;
     }
-    List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(argument);
+    List<? extends AnnotationMirror> annotations = argument.getAnnotationMirrors();
     if (!annotations.isEmpty()) {
       String typeAnnotations = typeAnnotationsToBuffer(annotations, true).toString();
       assignElementNullness(typeAnnotations);
