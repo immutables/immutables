@@ -1592,7 +1592,12 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
         && !isUseStrictBuilder()
         && !isGenerateBuildOrThrow()
         && !isGenerateBuilderToString()
+        && !isGenerateBuilderIsSet()
         && !getThrowForInvalidImmutableState().isCustom;
+  }
+
+  public boolean isGenerateBuilderIsSet() {
+    return style().isSetOnBuilder();
   }
 
   public boolean isDeprecated() {

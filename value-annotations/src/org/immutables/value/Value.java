@@ -555,9 +555,9 @@ public @interface Value {
 
     /**
      * Modify-by-copy "with" method.
+     * @return naming template
      * @see #init()
      * @see #set()
-     * @return naming template
      */
     String with() default "with*";
 
@@ -569,7 +569,8 @@ public @interface Value {
      * or {@code "transform*"} – the choice is yours.
      * Can even be {@code "with*"} or {@code "*"} in hope there will be no overload  collisions.
      * <p>
-     * Unary operator transforms values, optional values and collection elements. (currently JDK Optional only, use Encodings for custom optional and containers).
+     * Unary operator transforms values, optional values and collection elements. (currently JDK Optional only, use
+     * Encodings for custom optional and containers).
      * @return naming template. By default, it is empty and feature is disabled.
      */
     String withUnaryOperator() default "";
@@ -626,9 +627,9 @@ public @interface Value {
      * Builder creator method. This naming allow special keyword "new" value.
      * This will customize builder to be created using constructor rather than
      * factory method.
+     * @return naming template
      * @see #newBuilder()
      * @see #build()
-     * @return naming template
      */
     String builder() default "builder";
 
@@ -638,8 +639,8 @@ public @interface Value {
      * factories. This naming allow special keyword "new" value, which is the default.
      * "new" will customize builder to be created using constructor rather than
      * factory method.
-     * @see #build()
      * @return naming template
+     * @see #build()
      */
     String newBuilder() default "new";
 
@@ -690,12 +691,14 @@ public @interface Value {
     /**
      * Naming template for the {@code toBuilder} method on a immutable instance that returns new builder on which
      * merge method is already called on this instance {@code builder.from(this)}. By default, this naming template
-     * is empty, and this method is not generated. To enable generation of this method, you must specify naming template,
+     * is empty, and this method is not generated. To enable generation of this method, you must specify naming
+     * template,
      * {@code (toBuilder="toBuilder")}. Naming template can insert type name for an asterisk, but in most cases you
      * would just use method name verbatim.
      * <p>
      * <em>Note: This attribute-style is experimental and may be changed in near releases.
-     * This is not compatible with strict builders and will not be generated if {@link #strictBuilder()} is {@code true}.
+     * This is not compatible with strict builders and will not be generated if {@link #strictBuilder()} is
+     * {@code true}.
      * Also, when enabled, this will not be considered an attribute if defined as {@code abstract Builder toBuilder()}
      * in abstract value type.
      * </em>
@@ -727,7 +730,9 @@ public @interface Value {
     String underrideToString() default "";
 
     /**
-     * Delegates {@code toString} implementation completely to a fully qualified path to a method name, example {@code delegateToString="com.whatever.packg.ToStringer.stringify"}. The path will be used literally in generated code, and a single parameter will be passed to it, {@code this} immutable object instance.
+     * Delegates {@code toString} implementation completely to a fully qualified path to a method name, example
+     * {@code delegateToString="com.whatever.packg.ToStringer.stringify"}. The path will be used literally in generated
+     * code, and a single parameter will be passed to it, {@code this} immutable object instance.
      * <p><em>Note: If specified, it will take precedence over any other {@code toString} customization mechanism</em>
      * @return fully qualified static method name, if empty (by default) will not be used
      */
@@ -747,7 +752,8 @@ public @interface Value {
      *   includeHashCode = "[[type]].class.hashCode()"
      *   includeHashCode = "(\"[[type]]\".length() + 1)"
      * </pre>
-     * <p><em>Note: this will be ignored if `hashCode` will be manually written in the abstract value class or {@link #underrideHashCode()} will be used for the same purpose</em>
+     * <p><em>Note: this will be ignored if `hashCode` will be manually written in the abstract value class or
+     * {@link #underrideHashCode()} will be used for the same purpose</em>
      * @return interpolated code snippet, by default empty and have no effect
      */
     String includeHashCode() default "";
@@ -760,7 +766,9 @@ public @interface Value {
     String isInitialized() default "isInitialized";
 
     /**
-     * Method to determine if attribute is set
+     * Naming template for a method to determine if attribute is set. These are used on Modifiables and, internally, on builders.
+     * In order to expose it on builders (make it {@code public}, or package-private if attribute itself
+     * is package-private), use {@link #isSetOnBuilder()} style flag.
      * @return naming template
      */
     String isSet() default "*IsSet";
@@ -836,9 +844,9 @@ public @interface Value {
 
     /**
      * Immutable class name when generated under umbrella class using {@link Enclosing} annotation.
+     * @return naming template
      * @see #typeImmutable()
      * @see #typeImmutableEnclosing()
-     * @return naming template
      */
     String typeImmutableNested() default "*";
 
@@ -934,7 +942,8 @@ public @interface Value {
     /**
      * Strict modifiable will refuse any accessor value (by throwing {@link IllegalStateException})
      * which is mandatory. Enabled by default. Set it to {@code false} and it will allow to get
-     * current field value even if not initialized ({@code null} for references, {@code 0}, {@code false} &mdash; for primitives).
+     * current field value even if not initialized ({@code null} for references, {@code 0}, {@code false} &mdash; for
+     * primitives).
      * @return default is {@code true}, enabling strict modifiable
      */
     boolean strictModifiable() default true;
@@ -974,7 +983,6 @@ public @interface Value {
      *
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
-     *
      * @return if all attributes will be considered parameters
      */
     boolean allParameters() default false;
@@ -1016,7 +1024,7 @@ public @interface Value {
      * {@link #fallbackNullableAnnotation()} so it will be used in generated code in all places where
      * original annotations would not propagate automatically.
      * @return types of annotations to pass to an immutable implementation class and its
-     *         attributes.
+     *     attributes.
      */
     Class<? extends Annotation>[] passAnnotations() default {};
 
@@ -1076,7 +1084,7 @@ public @interface Value {
      * {@code true}. This property will be ignored if {@link Immutable#singleton()} returns
      * <code>true</code>.
      * @return {@code true} if will generate a no argument constructor with protected visibility,
-     *         disabled by default.
+     *     disabled by default.
      */
     boolean protectedNoargConstructor() default false;
 
@@ -1107,7 +1115,7 @@ public @interface Value {
      * initializers as otherwise result will be undefined as order of initialization is not
      * guaranteed.
      * @return {@code true} if old unsafe (but potentially with less overhead) generation should be
-     *         used.
+     *     used.
      */
     boolean unsafeDefaultAndDerived() default false;
 
@@ -1119,10 +1127,20 @@ public @interface Value {
      * previously allocated one.
      * <p>
      * <em>Note: this functionality is experimental and may be changed in further versions</em>
-     * @see #clear()
      * @return {@code true} if clean method would be generated.
+     * @see #clear()
      */
     boolean clearBuilder() default false;
+
+    /**
+     * When enabled, builder will have isSet methods generated for each attribute, like {@code aIsSet()},
+     * {@code bIsSet()}. These are telling if attribute was initialized on a builder.
+     * The actual naming template is configured by {@link #isSet()} style attribute.
+     * @return {@code true} if isSet methods for each attribute will be exposed on builders.
+     * @see #isSet()
+     * @see #clearBuilder()
+     */
+    boolean isSetOnBuilder() default false;
 
     /**
      * When this optimisation in enabled then the processor tries to defer allocation of
@@ -1216,7 +1234,7 @@ public @interface Value {
      * <p>
      * <em>Note: not all generators or generation modes might honor this attribute</em>
      * @return {@code true} if methods of generated builders and other classes should return
-     *         abstract type, rather than work with immutable implementation class.
+     *     abstract type, rather than work with immutable implementation class.
      */
     boolean overshadowImplementation() default false;
 
@@ -1226,7 +1244,7 @@ public @interface Value {
      * nested inside builder, which will be top level class. In case if {@link #visibility()} is set
      * to {@link ImplementationVisibility#PRIVATE} this feature is turned on automatically.
      * @return {@code true} if builder should be generated as top level class and implementation
-     *         will become static inner class inside builder.
+     *     will become static inner class inside builder.
      */
     boolean implementationNestedInBuilder() default false;
 
@@ -1236,7 +1254,7 @@ public @interface Value {
      * you use naming strategies. Also make sure you recognize both "get*" and "is*" as attribute
      * name patterns as Jackson infers default names using JavaBean convention.
      * @return {@code true} if force jackson property names. default it {@code true}, set
-     *         {@code false} to disable
+     *     {@code false} to disable
      */
     boolean forceJacksonPropertyNames() default true;
 
@@ -1266,7 +1284,7 @@ public @interface Value {
      * {@code JsonSerialize/JsonDeserialize} annotations on the value types without redundant
      * support code being generated.
      * @return {@code true} if generate special Jackson code when encountered
-     *         {@code JsonSerialize/JsonDeserialize}. Default is {@code true}.
+     *     {@code JsonSerialize/JsonDeserialize}. Default is {@code true}.
      */
     boolean jacksonIntegration() default true;
 
@@ -1275,7 +1293,7 @@ public @interface Value {
      * {@literal @}{@code Value.Immutable(intern=true)} weak (see {@link WeakReference})
      * interning will be used.
      * @return {@code true} if enable weak interning for {@code intern=true} values,
-     *         defaults to {@code false}
+     *     defaults to {@code false}
      */
     boolean weakInterning() default false;
 
@@ -1356,7 +1374,7 @@ public @interface Value {
      *    depluralize = true, // enable feature
      *    depluralizeDictionary = {"person:people", "foot:feet"}) // specifying dictionary of exceptions
      * </pre>
-     *
+     * <p>
      * When given the dictionary defined as {@code "person:people", "foot:feet"} then
      * depluralization examples for collection {@code add*} method in builder would be:
      * <ul>
@@ -1369,8 +1387,8 @@ public @interface Value {
      * The default value is a {@code false}: feature is disabled, compatible with previous
      * versions.
      * <p>
-     * @see Depluralize
      * @return {@code true} if depluralization enabled.
+     * @see Depluralize
      */
     boolean depluralize() default false;
 
@@ -1386,9 +1404,9 @@ public @interface Value {
      * This attribute is semi-deprecated in favor of using {@link Depluralize#dictionary()}
      * annotation which may be placed on a package, type or as meta-annotation. Full dictionary will
      * be merged across all applicable definitions.
+     * @return array of "singular:plural" pairs.
      * @see #depluralize()
      * @see Depluralize#dictionary()
-     * @return array of "singular:plural" pairs.
      */
     String[] depluralizeDictionary() default {};
 
@@ -1405,8 +1423,8 @@ public @interface Value {
      * </em>
      * </p>
      * @return classes, for which static imports like {@code import static ..Type.immutableCopyOf;}
-     *         will be generated along with corresponding invocations of {@code immutableCopyOf}
-     *         method when accepting parameters.
+     *     will be generated along with corresponding invocations of {@code immutableCopyOf}
+     *     method when accepting parameters.
      */
     Class<?>[] immutableCopyOfRoutines() default {};
 
@@ -1434,7 +1452,7 @@ public @interface Value {
      * attribute types, but not kind of attributes such as those specified by {@code Value.Default}
      * or {@code Nullable} annotations.
      * @return {@code true} if builtin container attributes should be supported. {@code true} is the
-     *         default
+     *     default
      */
     boolean builtinContainerAttributes() default true;
 
@@ -1446,7 +1464,7 @@ public @interface Value {
      * be used/configured to be partially compatible with some of the conventions.</em>
      * </p>
      * @return {@code true} for void setters and minor tweaks to make modifiables more
-     *         bean-friendly. {@code false} is the default
+     *     bean-friendly. {@code false} is the default
      */
     boolean beanFriendlyModifiables() default false;
 
@@ -1457,7 +1475,7 @@ public @interface Value {
      * <em>This parameter conflicts with {@link #allParameters()} and is ignored when
      * {@code allParameters} is enabled</em>
      * @return {@code true} to turn mandatory attributes into parameters. {@code false} is the
-     *         default
+     *     default
      */
     boolean allMandatoryParameters() default false;
 
@@ -1619,7 +1637,7 @@ public @interface Value {
      * <pre>
      * Style(allowedClasspathAnnotations = {java.lang.Override.class})
      * </pre>
-     *
+     * <p>
      * The array will no longer be empty as by default so only specified entries will be applied.
      * Please note that standard {@code java.lang} annotations like {@link java.lang.Override},
      * {@link java.lang.Deprecated}, {@link java.lang.SuppressWarnings} will always be applied where
@@ -1638,8 +1656,8 @@ public @interface Value {
      * as the lines to the {@code META-INF/extensions/org.immutables.inhibit-classpath} resource
      * file available in classpath.
      * @return a non-empty array of only allowed auto-discovered annotations. Empty by
-     *         default, which allows any auto-discovered annotation support for backward
-     *         compatibility.
+     *     default, which allows any auto-discovered annotation support for backward
+     *     compatibility.
      */
     Class<? extends Annotation>[] allowedClasspathAnnotations() default {};
 
@@ -1656,7 +1674,7 @@ public @interface Value {
      * in all places where we ought to insert nullable annotation without the link to any "original" nullable
      * annotation in the handwritten code.
      * @return fallback nullable annotation to use. Default values is unspecified encoded as {@code Inherited.class}
-     * so that {@code javax.annotation.Nullable} annotation will be used if found on classpath.
+     *     so that {@code javax.annotation.Nullable} annotation will be used if found on classpath.
      */
     Class<? extends Annotation> fallbackNullableAnnotation() default Inherited.class;
 
@@ -1791,8 +1809,8 @@ public @interface Value {
     @interface Depluralize {
       /**
        * Depluralization dictionary.
-       * @see Style#depluralizeDictionary()
        * @return array of "singular:plural" pairs.
+       * @see Style#depluralizeDictionary()
        */
       String[] dictionary() default {};
     }

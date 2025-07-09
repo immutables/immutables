@@ -257,6 +257,8 @@ public final class ValueMirrors {
 
     boolean clearBuilder() default false;
 
+    boolean isSetOnBuilder() default false;
+
     boolean deferCollectionAllocation() default false;
 
     boolean deepImmutablesDetection() default false;
@@ -335,7 +337,7 @@ public final class ValueMirrors {
 
     boolean builderToString() default false;
 
-    public enum ImplementationVisibility {
+    enum ImplementationVisibility {
       PUBLIC,
       SAME,
       SAME_NON_RETURNED,
@@ -343,13 +345,13 @@ public final class ValueMirrors {
       PRIVATE
     }
 
-    public enum BuilderVisibility {
+    enum BuilderVisibility {
       PUBLIC,
       SAME,
       PACKAGE
     }
 
-    public enum ValidationMethod {
+    enum ValidationMethod {
       NONE,
       MANDATORY_ONLY,
       SIMPLE,

@@ -888,6 +888,7 @@ public class ImportRewriter {
         "  public final p1.p3.Nop lock(int a, String b) { return null; }",
         "  public /*!typeuse @Nully */ p1.p3.Nop nock(int a, String b) { return null; }",
         "  public /*!typeuse @stl.Nully @Other(\"ABV\")*/ Nop lock(int a, String b) {",
+        "    char c = '\"';",
         "    int[] x = acc.some.Be.EMPTY;",
         "    java.util.List.<String>of();",
         "    java.util.Collections.emptySet();",

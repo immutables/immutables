@@ -102,4 +102,19 @@ public class RecordTest {
     check(plm.rc().rec().bb()).is(3);
     check(plm.ub().aa()).is("BB");
   }
+
+  @Test public void defaultsInExtendingBuilder() {
+    var bbb = new ExtBilly.Builder()
+        .b("BBB");
+
+    check(!bbb.isASet());
+    check(bbb.isBSet());
+    check(bbb.isCSet());
+
+    // `a` is set inside overridden build
+    var billy = bbb.build();
+    check(billy.a()).is(14);
+    check(billy.b()).is("BBB");
+    check(!billy.c());
+  }
 }

@@ -273,6 +273,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean isSetOnBuilder();
+
+  @Value.Parameter
+  @Override
   public abstract boolean deferCollectionAllocation();
 
   @Override
@@ -538,6 +542,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.attributelessSingleton(),
         input.unsafeDefaultAndDerived(),
         input.clearBuilder(),
+        input.isSetOnBuilder(),
         input.deferCollectionAllocation(),
         input.deepImmutablesDetection(),
         input.overshadowImplementation(),

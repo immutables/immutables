@@ -2651,14 +2651,14 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/if]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
-  private boolean [p.names.isSet]() {
+  [if type.generateBuilderIsSet][builderInitAccess p][else]private[/if] boolean [p.names.isSet]() {
     return ([disambiguateField type 'optBits'][emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
 [if not type.useCompactBuilder]
   [for m in mandatories, BitPosition pos = positions m]
 
-  private boolean [m.names.isSet]() {
+  [if type.generateBuilderIsSet][builderInitAccess m][else]private[/if] boolean [m.names.isSet]() {
     return ([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) == 0;
   }
   [/for]
