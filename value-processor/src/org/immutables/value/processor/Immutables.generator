@@ -3354,36 +3354,36 @@ static final [output.linesShortable]class Json[type.generics]
 [for v in type.settableAttributes if not v.jacksonAnyGetter]
   [if v.encoding]
     [if v.instantiation.supportsDefaultValue]
-  [forceJsonIgnore][v.type] [v.name] = [rr.defaultValue v];
+  [forceJsonIgnore][v.type] _[v.name] = [rr.defaultValue v];
     [else]
-  [forceJsonIgnore][atNullable v][v.type] [v.name];
+  [forceJsonIgnore][atNullable v][v.type] _[v.name];
     [/if]
   [else if v.optionalType]
-  [forceJsonIgnore][atNullable v][v.type] [v.name] = [optionalEmpty v];
+  [forceJsonIgnore][atNullable v][v.type] _[v.name] = [optionalEmpty v];
   [else if v.collectionType or v.mapType]
-  [forceJsonIgnore][atNullable v][v.type] [v.name] = [emptyImmutableInstance v ''];
+  [forceJsonIgnore][atNullable v][v.type] _[v.name] = [emptyImmutableInstance v ''];
   [else if v.primitive]
-  [forceJsonIgnore][v.type] [v.name];
+  [forceJsonIgnore][v.type] _[v.name];
   [else]
-  [forceJsonIgnore][atNullable v][v.type] [v.name];
+  [forceJsonIgnore][atNullable v][v.type] _[v.name];
   [/if]
   [if v.primitive or (v.requiresTrackIsSet andnot v.jacksonAnyGetter)]
-  [forceJsonIgnore]boolean [disambiguateField type (v.name 'IsSet')];
+  [forceJsonIgnore]boolean [v.name]IsSet;
   [/if]
 [/for]
 [for v in type.settableAttributes if v.jacksonAnyGetter]
-  [forceJsonIgnore]final [v.type] [v.name] = new java.util.HashMap[v.genericArgs]();
+  [forceJsonIgnore]final [v.type] _[v.name] = new java.util.HashMap[v.genericArgs]();
 [/for]
 [for v in type.settableAttributes if not v.jacksonAnyGetter]
 
   [eachLine v.annotations]
   [eachLine v.initializerInjectedAnnotations]
   public void [v.names.beanSet]([v.atNullability][v.type] [v.name]) {
-    this.[v.name] = [v.name];
+    this._[v.name] = [v.name];
     [if v.primitive]
-    this.[disambiguateField type (v.name 'IsSet')] = true;
+    this.[v.name]IsSet = true;
     [else if v.requiresTrackIsSet andnot v.jacksonAnyGetter]
-    this.[disambiguateField type (v.name 'IsSet')] = [if v.nullable]true[else]null != [v.name][/if];
+    this.[v.name]IsSet = [if v.nullable]true[else]null != [v.name][/if];
     [/if]
   }
 [/for]
@@ -3391,7 +3391,7 @@ static final [output.linesShortable]class Json[type.generics]
 
   @[jackson].annotation.JsonAnySetter
   public void set[toUpper v.name]([v.wrappedFirstElementType] key, [v.wrappedSecondaryElementType] value) {
-    this.[v.name].put(key, value);
+    this._[v.name].put(key, value);
   }
 [/for]
 [for signature in type.nonAttributeAbstractMethodSignatures]
@@ -3428,18 +3428,18 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
   [type.typeBuilder.relative] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder];
   [for v in type.settableAttributes]
     [if v.requiresTrackIsSet or v.primitive]
-  if (json.[disambiguateField type (v.name 'IsSet')]) {
+  if (json.[v.name]IsSet) {
     [else]
-  if (json.[v.name] != null) {
+  if (json._[v.name] != null) {
     [/if]
     [if v.encoding]
-    builder.[rr.builderCopyFrom v](json.[v.name]);
+    builder.[rr.builderCopyFrom v](json._[v.name]);
     [else if v.collectionType]
-    builder.[v.names.addAll](json.[v.name]);
+    builder.[v.names.addAll](json._[v.name]);
     [else if v.mapType]
-    builder.[v.names.putAll](json.[v.name]);
+    builder.[v.names.putAll](json._[v.name]);
     [else]
-    builder.[v.names.init](json.[v.name]);
+    builder.[v.names.init](json._[v.name]);
     [/if]
   }
   [/for]
@@ -3449,7 +3449,7 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
 [else]
   [let varDecl][if type.withSettableAfterConstruction][atVar type][/if][type.typeImmutable.relative] instance[/let]
     [if type.useConstructor]
-  [varDecl] = [cast][type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]json.[v.name][/for]);
+  [varDecl] = [cast][type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]json._[v.name][/for]);
     [else if type.useSingleton]
   [varDecl] = [cast][type.factoryInstance.relative]();
     [else]
@@ -3457,11 +3457,11 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
     [/if]
   [for v in type.withSettableAfterConstruction]
     [if v.requiresTrackIsSet or v.primitive]
-  if (json.[disambiguateField type (v.name 'IsSet')]) {
+  if (json.[v.name]IsSet) {
     [else]
-  if (json.[v.name] != null) {
+  if (json._[v.name] != null) {
     [/if]
-    instance = instance.[v.names.with](json.[v.name]);
+    instance = instance.[v.names.with](json._[v.name]);
   }
   [/for]
   return instance;
