@@ -3417,7 +3417,7 @@ static final [output.linesShortable]class Json[type.generics]
  * @deprecated Do not use this method directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
-[if classpath.available (jackson 'annotation.JsonCreator.Mode')]
+[if classpath.available (jackson '.annotation.JsonCreator.Mode')]
 @[jackson].annotation.JsonCreator(mode = [jackson].annotation.JsonCreator.Mode.DELEGATING)
 [else]
 @[jackson].annotation.JsonCreator
