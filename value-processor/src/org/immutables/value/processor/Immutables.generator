@@ -5115,7 +5115,7 @@ private static final long serialVersionUID = [literal serialVersion];
 [/for]
 [/template]
 
-[-- Usefull for annotations etc --]
+[-- Useful for annotations etc --]
 [template eachLine Object... lines][for l in lines]
 [l]
 [/for][/template]
