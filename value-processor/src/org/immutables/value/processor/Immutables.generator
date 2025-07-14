@@ -1432,6 +1432,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param element A [v.name] element
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.add]([v.unwrappedElementType] element);
 
@@ -1440,6 +1441,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param elements An array of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.addv]([tuNullParam v][v.unwrappedElementType]... elements);
 
@@ -1448,6 +1450,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param elements An iterable of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.addAll](Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements);
 [else if v.optionalType]
@@ -1457,6 +1460,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param [v.name] The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return {@code this} builder for chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.init]([unwrappedOptionalType v] [v.name]);
 
@@ -1465,6 +1469,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param [v.name] The value for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] [v.name]);
 [else if v.mapType]
@@ -1478,6 +1483,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.putv]([uK] key, [uV]... values);
 
@@ -1487,6 +1493,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.putAll]([uK] key, Iterable<? extends [wV]> values);
     [/if]
@@ -1497,6 +1504,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param value The associated value in the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.put]([uK] key, [uV] value);
 
@@ -1505,6 +1513,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param entry The key and value entry
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry);
 
@@ -1513,6 +1522,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param entries The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries);
   [/for]
@@ -1526,6 +1536,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param elements The elements for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.init]([v.elementType]... elements);
 [else]
@@ -1538,6 +1549,7 @@ public interface [tb.nameBuildFinal][type.generics] {
    * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue type]
   [deprecation v]
   [tb.nameBuildFinal][type.generics.args] [v.names.init]([v.atNullability][v.type] [v.name]);
 [/if]
@@ -5115,7 +5127,7 @@ private static final long serialVersionUID = [literal serialVersion];
 [/for]
 [/template]
 
-[-- Usefull for annotations etc --]
+[-- Useful for annotations etc --]
 [template eachLine Object... lines][for l in lines]
 [l]
 [/for][/template]
