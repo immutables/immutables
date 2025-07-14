@@ -77,6 +77,12 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
+      <artifactId>datatype</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
       <artifactId>gson</artifactId>
       <version>${project.version}</version>
     </dependency>

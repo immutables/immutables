@@ -191,7 +191,7 @@ public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> 
   @Override public java.util.List<[dtt].Datatype.Feature<[tT], ?>> features() { return features; }
   @Override public String toString() { return "datatype<" + type + ">"; }
   @Override public boolean isInline() { return [v.dataInline]; }
-[if not v.kind.value]
+[if not (v.kind.value or v.kind.record)]
   @Override public boolean isInstantiable() { return false; }
   @Override public [dtt].Datatype.Builder<[tT]> builder() {
     throw new UnsupportedOperationException("Not a value, cannot build");

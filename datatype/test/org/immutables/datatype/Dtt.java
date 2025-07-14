@@ -11,7 +11,6 @@ import org.immutables.value.Value;
 import org.immutables.value.Value.Enclosing;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Parameter;
-import org.immutables.value.processor.meta.Generics;
 
 @Data
 @Immutable

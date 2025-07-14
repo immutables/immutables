@@ -6,8 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @deprecated as of 2.11.1 we recommend to use new `org.immutables.datatype` module. While still
- * experimental, it has API which free from dependency on Guava (via `Type` token and immutable collections).
+ * @deprecated as of 2.11.1 we recommend to use new {@code org.immutables:datatype} module. While still
+ * experimental, it has API which free from dependency on Guava (via TypeToken and immutable collections).
  */
 @Deprecated
 @Retention(RetentionPolicy.RUNTIME)

@@ -7,6 +7,11 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * @deprecated as of 2.11.1 we recommend to use new {@code org.immutables:datatype} module. While still
+ * experimental, it has API which free from dependency on Guava (via TypeToken and immutable collections).
+ */
+@Deprecated
 public interface Datatype<T> {
   String name();
 

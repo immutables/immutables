@@ -73,7 +73,7 @@ abstract class Datatype extends ValuesTemplate {
     Multimap<AbstractDeclaring, ValueType> byDeclaring = ArrayListMultimap.create();
     for (ValueType value : values.values()) {
       Protoclass protoclass = value.constitution.protoclass();
-      if (protoclass.kind().isValue() || protoclass.kind().isEnclosing()) {
+      if (protoclass.kind().isValue() || protoclass.kind().isRecord() || protoclass.kind().isEnclosing()) {
         Optional<AbstractDeclaring> datatypeProvider = protoclass.datatype2Provider();
         if (datatypeProvider.isPresent()) {
           byDeclaring.put(datatypeProvider.get(), value);

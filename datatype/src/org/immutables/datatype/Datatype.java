@@ -7,6 +7,10 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Metamodel descriptor for a datatype. Put {@link Data} annotation on abstract data type.
+ * @param <T> actual type being described
+ */
 public interface Datatype<T> {
   String name();
 
