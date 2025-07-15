@@ -70,7 +70,7 @@ import [starImport];
 [/if][/for]
 public final class [typeDatatypeName] {
   @SuppressWarnings({"unchecked", "raw"})
-  public static <T> [dtt].Datatype<T> constuct([refl].Type type) {
+  public static <T> [dtt].Datatype<T> construct([refl].Type type) {
     Class<?> raw = [dtt].Types.toRawType(type);
     [for v in allValues]
       [if v.kind.isRecord]
