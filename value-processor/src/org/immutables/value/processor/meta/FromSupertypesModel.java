@@ -229,14 +229,14 @@ public final class FromSupertypesModel {
     } catch (Exception typeParseException) {
       if (typeParseExceptionReported.compareAndSet(false, true)) {
         reporter.warning("Type parsing problem in FromSupertypesModel: %s", typeParseException + "\n\tat " + typeParseException.getStackTrace()[0]);
-        //Throwables.getStackTraceAsString(typeParseException)
       }
     }
 
     reporter.warning(About.FROM,
         "Generated builder '.from' method will not copy from attribute '%s'"
-        + " because it has different return type in supertype"
-        + " (And we cannot handle generic specialization or covariant overrides yet)."
+        + " because it has some not-yet-generated type,"
+        + " or different return type in supertype "
+        + " (we cannot handle generic specialization or covariant overrides yet)."
         + " Sometimes it is possible to avoid this by providing abstract override method in this value object",
         attr.name());
     return false;
