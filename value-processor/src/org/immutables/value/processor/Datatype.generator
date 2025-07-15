@@ -73,7 +73,11 @@ public final class [typeDatatypeName] {
   public static <T> [dtt].Datatype<T> constuct([refl].Type type) {
     Class<?> raw = [dtt].Types.toRawType(type);
     [for v in allValues]
+      [if v.kind.isRecord]
+    if (raw == [v.typeImmutable.relativeRaw].class) {
+      [else]
     if (raw == [v.typeAbstract.relativeRaw].class || raw == [v.typeImmutable.relativeRaw].class) {
+      [/if]
       [if v.generics.empty]
       return ([dtt].Datatype<T>) [v.name]_.INSTANCE;
       [else]
