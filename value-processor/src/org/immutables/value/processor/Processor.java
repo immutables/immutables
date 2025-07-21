@@ -102,7 +102,7 @@ public final class Processor extends AbstractGenerator {
 
   private void prepareOptions() {
     UnshadeGuava.overridePrefix(processing().getOptions().get(GUAVA_PREFIX));
-    UnshadeGuava.overridePrefix(processing().getOptions().get(JACKSON_PREFIX));
+    UnshadeJackson.overridePrefix(processing().getOptions().get(JACKSON_PREFIX));
   }
 
   @Override
