@@ -79,6 +79,10 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
       return longPositions.values();
     }
 
+    public boolean hasMultipleLongs() {
+      return longPositions.size() > 1;
+    }
+
     @Nullable
     @Override
     public BitPosition apply(Object input) {

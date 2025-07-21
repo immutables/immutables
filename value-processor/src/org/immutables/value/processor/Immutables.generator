@@ -1792,29 +1792,71 @@ public interface [tb.nameBuildFinal][type.generics] {
 [/if]
   private void mergeInternal(Object object) {
     [dynamicFromModifiableCheck type 'object' 'return;']
-    [for l in bs.positions.longs]
-    [atVar type]long bits[emptyIfZero l.index] = 0;
-    [/for]
-  [for s in bs.supertypes if s.attributes]
+    [if bs.positions.hasMultipleLongs]
+    [atVar type]long['[]'] bits = new long['['][bs.positions.longs.size][']'];
+    [for s in bs.supertypes if s.attributes]
     if (object instanceof [s.wildcard]) {
-      [s.type] instance = ([s.type]) object;
-      [for v in s.attributes, BitPosition pos = bs.positions v.name]
-      [if pos]
-      if ((bits[emptyIfZero pos.index] & [literal.hex pos.mask]) == 0) {
-        [if v.nullableInSupertype]
-        [buildFromAttributeNullableSupertype v]
-        [else]
-        [buildFromAttribute v]
-        [/if]
-        bits[emptyIfZero pos.index] |= [literal.hex pos.mask];
-      }
+      mergeFrom[toSafeIdentifier s.simpleName](bits, ([s.type]) object);
+    }
+    [/for]
+    [else]
+    [atVar type]long bits = 0;
+    [for s in bs.supertypes if s.attributes]
+    if (object instanceof [s.wildcard]) {
+      bits = mergeFrom[toSafeIdentifier s.simpleName](bits, ([s.type]) object);
+    }
+    [/for]
+    [/if]
+  }
+
+[-- Generate specialized merge methods per subtype --]
+[for s in bs.supertypes if s.attributes]
+[if bs.positions.hasMultipleLongs]
+  private void mergeFrom[toSafeIdentifier s.simpleName](long['[]'] bits, [s.type] instance) {
+    [-- Read array values into named variables --]
+    [for l in bs.positions.longs]
+    long bitMask[emptyIfZero l.index] = bits['['][l.index][']'];
+    [/for]
+    [for v in s.attributes, BitPosition pos = bs.positions v.name]
+    [if pos]
+    if ((bitMask[emptyIfZero pos.index] & [literal.hex pos.mask]) == 0) {
+      [if v.nullableInSupertype]
+      [buildFromAttributeNullableSupertype v]
       [else]
       [buildFromAttribute v]
       [/if]
-      [/for]
+      bitMask[emptyIfZero pos.index] |= [literal.hex pos.mask];
     }
-  [/for]
+    [else]
+    [buildFromAttribute v]
+    [/if]
+    [/for]
+    [-- Write named variables back to array --]
+    [for l in bs.positions.longs]
+    bits['['][l.index][']'] = bitMask[emptyIfZero l.index];
+    [/for]
   }
+[else]
+  private long mergeFrom[toSafeIdentifier s.simpleName](long bits, [s.type] instance) {
+    [for v in s.attributes, BitPosition pos = bs.positions v.name]
+    [if pos]
+    if ((bits & [literal.hex pos.mask]) == 0) {
+      [if v.nullableInSupertype]
+      [buildFromAttributeNullableSupertype v]
+      [else]
+      [buildFromAttribute v]
+      [/if]
+      bits |= [literal.hex pos.mask];
+    }
+    [else]
+    [buildFromAttribute v]
+    [/if]
+    [/for]
+    return bits;
+  }
+[/if]
+
+[/for]
 [/for]
     [else]
 
