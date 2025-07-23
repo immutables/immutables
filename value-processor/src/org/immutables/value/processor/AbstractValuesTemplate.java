@@ -1,6 +1,5 @@
 package org.immutables.value.processor;
 
-import java.lang.annotation.Inherited;
 import java.util.HashSet;
 import javax.annotation.Nullable;
 import com.google.common.base.Function;

@@ -1,4 +1,4 @@
-package nonimmutables.huge;
+package org.immutables.fixture.builder.huge;
 
 import org.immutables.value.Value;
 

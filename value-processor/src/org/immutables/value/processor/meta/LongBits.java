@@ -35,11 +35,11 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
   private static final int BITS_IN_LONG = Longs.BYTES * Byte.SIZE;
 
   @Override
-  public LongPositions apply(Iterable<? extends Object> input) {
+  public LongPositions apply(Iterable<?> input) {
     return forIterable(input, BITS_IN_LONG);
   }
 
-  public LongPositions forIterable(Iterable<? extends Object> input, int bitPerLong) {
+  public LongPositions forIterable(Iterable<?> input, int bitPerLong) {
     return new LongPositions(input, bitPerLong);
   }
 
@@ -48,7 +48,7 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
     private final ImmutableList<Object> elements;
     private final ImmutableMap<Integer, LongSet> longPositions;
 
-    LongPositions(Iterable<? extends Object> elements, final int bitPerLong) {
+    LongPositions(Iterable<?> elements, final int bitPerLong) {
       this.elements = ImmutableList.copyOf(elements);
       checkArgument(bitPerLong <= BITS_IN_LONG, bitPerLong);
 
@@ -63,12 +63,7 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
       this.longPositions = ImmutableSortedMap.copyOf(
           Maps.transformEntries(
               Multimaps.index(positions.values(), ToLongIndex.FUNCTION).asMap(),
-              new Maps.EntryTransformer<Integer, Collection<BitPosition>, LongSet>() {
-                @Override
-                public LongSet transformEntry(Integer key, Collection<BitPosition> position) {
-                  return new LongSet(key, position);
-                }
-              }));
+              LongSet::new));
     }
 
     public Set<Integer> longsIndeces() {
@@ -77,6 +72,10 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
 
     public Collection<LongSet> longs() {
       return longPositions.values();
+    }
+
+    public boolean isCompact() {
+      return elements.size() <= 16;
     }
 
     public boolean hasMultipleLongs() {
@@ -112,6 +111,7 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
 
   enum ToLongIndex implements Function<BitPosition, Integer> {
     FUNCTION;
+
     @Override
     public Integer apply(BitPosition input) {
       return input.index;
