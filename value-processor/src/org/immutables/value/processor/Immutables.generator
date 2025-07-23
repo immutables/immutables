@@ -1755,8 +1755,12 @@ public interface [tb.nameBuildFinal][type.generics] {
   [atCanIgnoreReturnValue type]
   public final [builderReturnType type] [type.names.from]([type.typeImmutable.relative] instance) {
     [requireNonNull type](instance, "instance");
+      [if type.dynamicBuildFromTypes]
     mergeInternal(instance);
     return [builderReturnThis type];
+      [else]
+    return [type.names.from](([type.typeAbstract.relative]) instance);
+      [/if]
   }
 
   /**
@@ -1767,7 +1771,13 @@ public interface [tb.nameBuildFinal][type.generics] {
   [atCanIgnoreReturnValue type]
   public final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
+      [if type.dynamicBuildFromTypes]
     mergeInternal(instance);
+      [else]
+        [for v in setters]
+    [buildFromAttribute v]
+        [/for]
+      [/if]
     return [builderReturnThis type];
   }
   [else]
@@ -1780,13 +1790,24 @@ public interface [tb.nameBuildFinal][type.generics] {
   [atCanIgnoreReturnValue type]
   public final [builderReturnType type] [type.names.from]([s.type] instance) {
     [requireNonNull type](instance, "instance");
+      [if type.dynamicBuildFromTypes]
     mergeInternal(instance);
+      [else]
+        [for v in s.attributes]
+          [if v.nullableInSupertype]
+    [buildFromAttributeNullableSupertype v]
+          [else]
+    [buildFromAttribute v]
+          [/if]
+        [/for]
+      [/if]
     return [builderReturnThis type];
   }
   [/if]
       [/for]
-
+[if type.dynamicBuildFromTypes]
 [for bs = type.buildFromTypes]
+
 [if bs.hasWildcards andnot type.suppressesUncheckedWarning]
   @SuppressWarnings("unchecked")
 [/if]
@@ -1882,6 +1903,7 @@ public interface [tb.nameBuildFinal][type.generics] {
   [/for]
 [/if]
 [/for]
+[/if][--dynamic--]
     [else]
 
   /**

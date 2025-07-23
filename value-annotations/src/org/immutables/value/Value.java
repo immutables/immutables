@@ -1717,6 +1717,27 @@ public @interface Value {
     boolean builderToString() default false;
 
     /**
+     * Builder has {@link #from()} method generated which initializes builder values from an instance.
+     * When abstract value type has some supertypes, an abstract class and or interfaces, from method can populate
+     * values, even partially from an instances of such supertypes. Some release ago, we've started
+     * to use runtime {@code instanceof} check when choosing which supertypes are implemented by a given instance
+     * and some, arguably, complicated machinery with bit masks to initialize  attributes not more than once.
+     * This change was motivated by the style of working when once would want to initialize values fully
+     * from instances, regardless of "segregated" interfaces. In the cases where generics are used in supertype
+     * attributes, and when instances happen to implement same interfaces but with different type arguments,
+     * this dynamic approach can result in {@link ClassCastException} or heap pollution.
+     *
+     * <p>The other way is to just have copy logic in
+     * statically resolved, i.e. at compile time overload, and copy/initialize only those properties which
+     * are strictly defined by a supertype. When this {@code mergeFromSupertypesDynamically} style flag is
+     * set to {@code false}, the generated code will switch to using simpler copy logic in compile-time resolved
+     * overloads. The default is {@code true} to use {@code instanceof} checks and bit masks under the hood
+     * to extract all attributes using all implemented supertypes.
+     * @return {@code false} to disable. The default is {@code true}
+     */
+    boolean mergeFromSupertypesDynamically() default true;
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * construction methods. Builder visibility will follow.

@@ -480,6 +480,11 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract boolean builderToString();
 
+  @Value.Parameter
+  @Override
+  public abstract boolean mergeFromSupertypesDynamically();
+
+
   static StyleInfo infoFrom(StyleMirror input) {
     return ImmutableStyleInfo.of(
         input.get(),
@@ -581,6 +586,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.limitStringLengthInToString(),
         input.jakarta(),
         input.legacyAccessorOrdering(),
-        input.builderToString());
+        input.builderToString(),
+        input.mergeFromSupertypesDynamically());
   }
 }

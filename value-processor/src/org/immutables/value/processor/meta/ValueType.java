@@ -1497,6 +1497,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return buildFromTypes;
   }
 
+  public boolean isDynamicBuildFromTypes() {
+    return style().mergeFromSupertypesDynamically();
+  }
+
   public Serialization serial = Serialization.NONE;
 
   public ImmutableList<String> throwing = ImmutableList.of();

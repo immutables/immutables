@@ -337,6 +337,8 @@ public final class ValueMirrors {
 
     boolean builderToString() default false;
 
+    boolean mergeFromSupertypesDynamically() default true;
+
     enum ImplementationVisibility {
       PUBLIC,
       SAME,
