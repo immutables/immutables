@@ -20,12 +20,6 @@ final class Objects {
     return instance;
   }
 
-  /**
-   * @param <T> type
-   * @param instance instance
-   * @param message string
-   * @return instance
-   */
   static <T> T requireNonNull(T instance, String message) {
     return requireNonNull(instance);
   }

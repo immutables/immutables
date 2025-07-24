@@ -39,8 +39,9 @@ public class ImportRewriter {
   private final CharSequence source;
 
   static final ImmutableList<GeneratedImportsModifier> importsModifiers =
-      ImmutableList.copyOf(ServiceLoader.load(GeneratedImportsModifier.class,
-          PostprocessingMachine.class.getClassLoader()));
+      ImmutableList.copyOf(ServiceLoader.load(
+          GeneratedImportsModifier.class,
+          ImportRewriter.class.getClassLoader()));
 
   private final int len;
   private int at;
@@ -182,7 +183,7 @@ public class ImportRewriter {
     // Insert new imports
     if (!newImports.isEmpty()) {
       int insertAt = Math.max(beforeImportPosition, afterPackagePosition);
-      // append all header before insert position
+      // append all header and package declaration before insert position
       result.append(source, sourceAt, insertAt);
       sourceAt = insertAt;
 
@@ -200,11 +201,10 @@ public class ImportRewriter {
     // getting to the last of existing imports and setting position to the last one
     // it's ok to just iterate in this way, extracting the last one if present is more trouble
     for (Import imp : imports) {
-      //result.append("//PARSED ").append(imp).append("\n");
       sourceAt = imp.at + imp.len;
     }
 
-    // Replace rewritten
+    // Replace rewritten occurrences
     for (MaybeQualified q : occurrences) {
       if (q.rewritten) {
         // append what was before rewritten occurrence
@@ -213,7 +213,7 @@ public class ImportRewriter {
         printMaybeQualified(q, result);
       }
     }
-    // append tail remaining since last replace
+    // append the tail remaining since last replace
     result.append(source, sourceAt, source.length());
 
     return result.toString();
