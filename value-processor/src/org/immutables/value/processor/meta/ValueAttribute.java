@@ -435,7 +435,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public List<CharSequence> getJacksonFieldsAnnotations() {
-    return extractAnnotationsForElement(ElementType.FIELD, Collections.<String>emptySet());
+    return extractAnnotationsForElement(ElementType.FIELD, Collections.emptySet());
   }
 
   private CharSequence jacksonPropertyAnnotation() {
@@ -446,7 +446,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       propertyAnnotationFields.put(VALUE_ATTRIBUTE_NAME, StringLiterals.toLiteral(names.raw));
     }
 
-    if (protoclass().styles().style().setJacksonPropertyRequired() && !isNullable()) {
+    if (protoclass().styles().style().setJacksonPropertyRequired() && isMandatory()) {
       propertyAnnotationFields.put("required", "true");
     }
 

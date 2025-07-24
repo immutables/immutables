@@ -1258,6 +1258,10 @@ public @interface Value {
      */
     boolean forceJacksonPropertyNames() default true;
 
+    /**
+     * Generates {@code JsonProperty(required=true)} attribute for mandatory attributes.
+     * @return default is {@code true}, set to {@code false} to disable
+     */
     boolean setJacksonPropertyRequired() default true;
 
     /**
