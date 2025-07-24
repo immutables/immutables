@@ -7,11 +7,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import com.google.common.collect.ImmutableList;
+import org.immutables.extgenerator.GeneratedImportsModifier;
 import static java.lang.Character.isJavaIdentifierPart;
 import static java.lang.Character.isJavaIdentifierStart;
 import static java.lang.Character.isLowerCase;
@@ -34,6 +37,10 @@ import static java.lang.Character.isWhitespace;
 
 public class ImportRewriter {
   private final CharSequence source;
+
+  static final ImmutableList<GeneratedImportsModifier> importsModifiers =
+      ImmutableList.copyOf(ServiceLoader.load(GeneratedImportsModifier.class,
+          PostprocessingMachine.class.getClassLoader()));
 
   private final int len;
   private int at;
@@ -82,15 +89,16 @@ public class ImportRewriter {
     final LinkedList<String> classSegments = new LinkedList<>();
     final StringBuilder name = new StringBuilder();
     boolean isStatic;
+    boolean isStar;
 
     @Override
     public String toString() {
-      return (packageSegments.isEmpty() ? "" : ("[" + String.join(".", packageSegments) + "]"))
-          + String.join(".", classSegments);
+      return (isStatic ? "static " : "") + asKey() + (isStar ? ".*" : "");
     }
 
     String asKey() {
-      return (packageSegments.isEmpty() ? "" : (String.join(".", packageSegments) + '.'))
+      return (packageSegments.isEmpty()
+          ? "" : (String.join(".", packageSegments) + (classSegments.isEmpty() ? "" : ".")))
           + String.join(".", classSegments);
     }
 
@@ -155,6 +163,22 @@ public class ImportRewriter {
     // these blocks were kept inline to better see overall work done
     // and preserve context/state of result content and sourceAt pointer
 
+    // append useful (non-skipped) imports to the end of our newImports set
+    for (Import imp : imports) {
+      if (imp.isStatic
+          || imp.isStar
+          || imp.classSegments.size() != 1
+          || !imp.packageSegments.equals(JAVA_LANG)) {
+
+        newImports.add(imp.toString());
+      }
+    }
+
+    // Run import modifiers if present on the classpath
+    for (GeneratedImportsModifier modifier : importsModifiers) {
+      modifier.modify(thisPackage, newImports);
+    }
+
     // Insert new imports
     if (!newImports.isEmpty()) {
       int insertAt = Math.max(beforeImportPosition, afterPackagePosition);
@@ -173,15 +197,11 @@ public class ImportRewriter {
       result.append("\n");
     }
 
+    // getting to the last of existing imports and setting position to the last one
+    // it's ok to just iterate in this way, extracting the last one if present is more trouble
     for (Import imp : imports) {
-      if (!imp.isStatic
-          && imp.classSegments.size() == 1
-          && imp.packageSegments.equals(JAVA_LANG)) {
-        // append everything since last position
-        result.append(source, sourceAt, imp.at);
-        // and skipping this import
-        sourceAt = imp.at + imp.len;
-      }
+      //result.append("//PARSED ").append(imp).append("\n");
+      sourceAt = imp.at + imp.len;
     }
 
     // Replace rewritten
@@ -660,6 +680,24 @@ public class ImportRewriter {
 
         imp.range(begin, at - begin);
         addImport(imp);
+      } else if (consume('.')) {
+        // FIXME This case currently not working as consumeQualifiedName would go past the dot
+        consumeWhitespace();
+        if (consume('*')) {
+          consumeWhitespace();
+          if (consume(';')) {
+            imp.isStar = true;
+            imp.range(begin, at - begin);
+            addImport(imp);
+          }
+        }
+      } else if (consume('*')) {
+        consumeWhitespace();
+        if (consume(';')) {
+          imp.isStar = true;
+          imp.range(begin, at - begin);
+          addImport(imp);
+        }
       }
       // if we've not added import, we still recognized it to some degree, so return true
       // and not backtracking to begin
@@ -671,8 +709,10 @@ public class ImportRewriter {
 
   private void addImport(Import imp) {
     imports.add(imp);
-    usages.put(imp.local(), imp.asKey());
-    //System.err.println("IMPORT " + (imp.isStatic ? "STATIC " : "") + imp);
+    // we can use condition !imp.isStar, but we use more general check
+    if (!imp.classSegments.isEmpty()) {
+      usages.put(imp.local(), imp.asKey());
+    }
   }
 
   private boolean processRecord() {

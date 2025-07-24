@@ -32,10 +32,15 @@ public interface GeneratedImportsModifier {
   /**
    * Modify imports set after import processing/extraction but before writing generated files.
    * Important to note that there are no way to change classnames as other parts of source file
-   * refers to class by simple name. However package-name part of imports may be rewritten.
+   * refers to class by simple name. However, package-name part of imports may be rewritten.
+   * <p>
+   * <em>Note: Before fully qualified class name there may be {@code static} keyword for static
+   * imports. Also import might contain {@code .*} suffix, while not typical, some templates
+   * might have these. But all automatic imports extracted by import rewriting tool will be
+   * just plain, non-static class imports and their import lines will be just fully qualified class names</em>
    * @param packageOfGeneratedFile informative package name of the generated file, may be used to
    *          employ different strategies for different packages.
-   * @param imports modifiables set of imports
+   * @param imports modifiable set of imports
    */
   void modify(String packageOfGeneratedFile, Set<String> imports);
 }

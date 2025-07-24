@@ -43,9 +43,7 @@ public final class PostprocessingMachine {
 
   private static final Joiner JOINER = Joiner.on("");
 
-  private static final ImmutableList<GeneratedImportsModifier> importsModifiers =
-      ImmutableList.copyOf(ServiceLoader.load(GeneratedImportsModifier.class,
-          PostprocessingMachine.class.getClassLoader()));
+  private static final ImmutableList<GeneratedImportsModifier> importsModifiers = ImportRewriter.importsModifiers;
 
   private PostprocessingMachine() {}
 
