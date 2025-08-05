@@ -161,6 +161,12 @@ public class ImportRewriter {
 
     StringBuilder result = new StringBuilder(len); // the size should be roughly the same
 
+    // Ad-hoc for omitting strange single newline in the beginning,
+    // maybe coming from templates, but it's not intended to
+    if (source.charAt(sourceAt) == '\n') {
+      sourceAt++;
+    }
+
     // these blocks were kept inline to better see overall work done
     // and preserve context/state of result content and sourceAt pointer
 
@@ -198,10 +204,15 @@ public class ImportRewriter {
       result.append("\n");
     }
 
-    // getting to the last of existing imports and setting position to the last one
-    // it's ok to just iterate in this way, extracting the last one if present is more trouble
-    for (Import imp : imports) {
-      sourceAt = imp.at + imp.len;
+    // if we have any imports originally, regardless if we had new imports already written
+    // we have to check that we've writing the head before imports, and then we
+    // set the source pointer to the end of imports;
+    if (!imports.isEmpty()) {
+      Import first = imports.get(0);
+      Import last = imports.get(imports.size() - 1);
+
+      result.append(source, sourceAt, first.at);
+      sourceAt = last.at + last.len;
     }
 
     // Replace rewritten occurrences
