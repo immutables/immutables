@@ -2599,6 +2599,25 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [mandatorySetInBuilder v]
     return [builderReturnThis type];
   }
+
+  [if v.optionalWithDefault]
+    /**
+    * Initializes the optional value [sourceDocRef v] to [v.name].
+    * <p><em>If not set, this attribute will have a default value as returned by the initializer of [sourceDocRef v].</em>
+    * @param [v.name] The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+    * @return {@code this} builder for chained invocation
+    */
+    [eachLine v.elementInitializerInjectedAnnotations]
+    [atCanIgnoreReturnValue type]
+    [deprecation v]
+    [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.unwrappedElementType] [v.name]) {
+      [checkNotIsSet v]
+      this.[v.name] = [optionalOf v]([maybeCopyOf v][v.name][/maybeCopyOf]);
+      [nondefaultSetInBuilder v]
+      return [builderReturnThis type];
+    }
+  [/if]
+
   [if v.isAttributeBuilder]
 
   /**
