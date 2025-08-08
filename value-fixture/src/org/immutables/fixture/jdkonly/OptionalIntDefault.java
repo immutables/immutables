@@ -20,7 +20,7 @@ import java.util.OptionalInt;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface OptionalIntDefault {
+public interface OptionalIntDefault extends WithOptionalIntDefault {
   @Value.Default
   default OptionalInt magic() {
     return OptionalInt.of(42);

@@ -20,7 +20,7 @@ import java.util.OptionalDouble;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface OptionalDoubleDefault {
+public interface OptionalDoubleDefault extends WithOptionalDoubleDefault {
   @Value.Default
   default OptionalDouble magic() {
     return OptionalDouble.of(42);

@@ -31,7 +31,11 @@ public class JdkOptionalDefaultTest {
     check(ImmutableOptionalDefault.builder().build().text()).is(Optional.of("foo"));
     check(ImmutableOptionalDefault.builder().text(Optional.empty()).build().text()).is(Optional.empty());
     check(ImmutableOptionalDefault.builder().text(Optional.of("bar")).build().text()).is(Optional.of("bar"));
-    check(ImmutableOptionalDefault.builder().text("bar").build().text()).is(Optional.of("bar"));
+    ImmutableOptionalDefault value = ImmutableOptionalDefault.builder().text("bar").build();
+    check(value.text()).is(Optional.of("bar"));
+    check(value.withText("blah").text()).is(Optional.of("blah"));
+    check(value.withText(Optional.of("blah")).text()).is(Optional.of("blah"));
+    check(value.withText(Optional.empty()).text()).is(Optional.empty());
   }
 
   @Test
@@ -39,7 +43,11 @@ public class JdkOptionalDefaultTest {
     check(ImmutableOptionalIntDefault.builder().build().magic()).is(OptionalInt.of(42));
     check(ImmutableOptionalIntDefault.builder().magic(OptionalInt.empty()).build().magic()).is(OptionalInt.empty());
     check(ImmutableOptionalIntDefault.builder().magic(OptionalInt.of(17)).build().magic()).is(OptionalInt.of(17));
-    check(ImmutableOptionalIntDefault.builder().magic(17).build().magic()).is(OptionalInt.of(17));
+    ImmutableOptionalIntDefault value = ImmutableOptionalIntDefault.builder().magic(17).build();
+    check(value.magic()).is(OptionalInt.of(17));
+    check(value.withMagic(99).magic()).is(OptionalInt.of(99));
+    check(value.withMagic(OptionalInt.of(99)).magic()).is(OptionalInt.of(99));
+    check(value.withMagic(OptionalInt.empty()).magic()).is(OptionalInt.empty());
   }
 
   @Test
@@ -47,7 +55,11 @@ public class JdkOptionalDefaultTest {
     check(ImmutableOptionalLongDefault.builder().build().magic()).is(OptionalLong.of(42));
     check(ImmutableOptionalLongDefault.builder().magic(OptionalLong.empty()).build().magic()).is(OptionalLong.empty());
     check(ImmutableOptionalLongDefault.builder().magic(OptionalLong.of(17)).build().magic()).is(OptionalLong.of(17));
-    check(ImmutableOptionalLongDefault.builder().magic(17).build().magic()).is(OptionalLong.of(17));
+    ImmutableOptionalLongDefault value = ImmutableOptionalLongDefault.builder().magic(17).build();
+    check(value.magic()).is(OptionalLong.of(17));
+    check(value.withMagic(99).magic()).is(OptionalLong.of(99));
+    check(value.withMagic(OptionalLong.of(99)).magic()).is(OptionalLong.of(99));
+    check(value.withMagic(OptionalLong.empty()).magic()).is(OptionalLong.empty());
   }
 
   @Test
@@ -55,6 +67,10 @@ public class JdkOptionalDefaultTest {
     check(ImmutableOptionalDoubleDefault.builder().build().magic()).is(OptionalDouble.of(42));
     check(ImmutableOptionalDoubleDefault.builder().magic(OptionalDouble.empty()).build().magic()).is(OptionalDouble.empty());
     check(ImmutableOptionalDoubleDefault.builder().magic(OptionalDouble.of(17)).build().magic()).is(OptionalDouble.of(17));
-    check(ImmutableOptionalDoubleDefault.builder().magic(17).build().magic()).is(OptionalDouble.of(17));
+    ImmutableOptionalDoubleDefault value = ImmutableOptionalDoubleDefault.builder().magic(17).build();
+    check(value.magic()).is(OptionalDouble.of(17));
+    check(value.withMagic(99).magic()).is(OptionalDouble.of(99));
+    check(value.withMagic(OptionalDouble.of(99)).magic()).is(OptionalDouble.of(99));
+    check(value.withMagic(OptionalDouble.empty()).magic()).is(OptionalDouble.empty());
   }
 }

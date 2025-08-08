@@ -20,7 +20,7 @@ import java.util.OptionalLong;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface OptionalLongDefault {
+public interface OptionalLongDefault extends WithOptionalLongDefault {
   @Value.Default
   default OptionalLong magic() {
     return OptionalLong.of(42);

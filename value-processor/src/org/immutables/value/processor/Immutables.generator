@@ -995,6 +995,15 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
   [type.typeAbstract.relative] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries);
       [/for]
       [else]
+      [if v.optionalWithDefault]
+  /**
+   * Copy the current immutable object by setting a <i>present</i> value for the optional [sourceDocRef v] attribute.
+   * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.with]([v.unwrappedElementType] value);
+      [/if]
 
   /**
    * Copy the current immutable object by setting a value for the [sourceDocRef v] attribute.
@@ -4341,6 +4350,25 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v
 }
     [/for]
     [else]
+      [if v.optionalWithDefault]
+/**
+ * Copy the current immutable object by setting a <em>present</em> value for the optional [sourceDocRef v] attribute.
+ * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+ * @return A modified copy or {@code this} if not changed
+ */
+[deprecation v]
+public final [type.typeImmutable.relative] [v.names.with]([v.unwrappedElementType] value) {
+  [immutableImplementationType v] newValue = [optionalOf v]([maybeCopyOf v]value[/maybeCopyOf]);
+  [if v.forceEqualsInWithers]
+  if ([objectsEqual type](this.[v.name], newValue)) return this;
+  [else if v.hasSimpleScalarElementType andnot v.enumType]
+  if ([objectsEqual type](this.[v.name], newValue)) return this;
+  [else]
+  if (this.[v.name] == newValue) return this;
+  [/if]
+  [generateReturnCopyContextual type v]
+}
+      [/if]
 
 /**
  * Copy the current immutable object by setting a value for the [sourceDocRef v] attribute.

@@ -20,7 +20,7 @@ import java.util.Optional;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface OptionalDefault {
+public interface OptionalDefault extends WithOptionalDefault {
   @Value.Default
   default Optional<String> text() {
     return Optional.of("foo");
