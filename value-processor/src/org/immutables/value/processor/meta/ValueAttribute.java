@@ -82,6 +82,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public AttributeNames names;
   public boolean isGenerateDefault;
+  public boolean isOptionalWithDefault;
   public @Nullable Object constantDefault;
   public boolean isGenerateDerived;
   public boolean isGenerateAbstract;
@@ -688,7 +689,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public String getUnwrappedElementType() {
-    return isContainerType() && nullElements.ban()
+    return (isContainerType() && nullElements.ban()) || isOptionalWithDefault
         ? unwrapType(firstTypeParameter())
         : getElementType();
   }
@@ -1628,9 +1629,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
     if (isGenerateDefault && isOptionalType()) {
       typeKind = AttributeTypeKind.REGULAR;
-      report()
-          .annotationNamed(DefaultMirror.simpleName())
-          .warning(About.UNTYPE, "@Value.Default on a optional attribute make it lose its special treatment");
+      isOptionalWithDefault = true;
     }
 
     if (isContainerType() && containingType.isUseStrictBuilder()) {
