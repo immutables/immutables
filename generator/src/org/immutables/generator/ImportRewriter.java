@@ -3,6 +3,7 @@ package org.immutables.generator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +89,6 @@ public class ImportRewriter {
   private static final class Import extends Occurrence {
     final LinkedList<String> packageSegments = new LinkedList<>();
     final LinkedList<String> classSegments = new LinkedList<>();
-    final StringBuilder name = new StringBuilder();
     boolean isStatic;
     boolean isStar;
 
@@ -170,30 +170,34 @@ public class ImportRewriter {
     // these blocks were kept inline to better see overall work done
     // and preserve context/state of result content and sourceAt pointer
 
-    // append useful (non-skipped) imports to the end of our newImports set
+    // copy all generated imports preserving their sorted ordering
+    // this new set will maintain insertion order
+    Set<String> rewrittenImports = new LinkedHashSet<>(newImports);
+
+    // append useful (non-skipped) imports to the end of our rewrittenImports set
     for (Import imp : imports) {
       if (imp.isStatic
           || imp.isStar
           || imp.classSegments.size() != 1
           || !imp.packageSegments.equals(JAVA_LANG)) {
 
-        newImports.add(imp.toString());
+        rewrittenImports.add(imp.toString());
       }
     }
 
     // Run import modifiers if present on the classpath
     for (GeneratedImportsModifier modifier : importsModifiers) {
-      modifier.modify(thisPackage, newImports);
+      modifier.modify(thisPackage, rewrittenImports);
     }
 
-    // Insert new imports
-    if (!newImports.isEmpty()) {
+    // Insert rewritten imports
+    if (!rewrittenImports.isEmpty()) {
       int insertAt = Math.max(beforeImportPosition, afterPackagePosition);
       // append all header and package declaration before insert position
       result.append(source, sourceAt, insertAt);
       sourceAt = insertAt;
 
-      for (String n : newImports) {
+      for (String n : rewrittenImports) {
         result.append("import ").append(n).append(";\n");
       }
 
