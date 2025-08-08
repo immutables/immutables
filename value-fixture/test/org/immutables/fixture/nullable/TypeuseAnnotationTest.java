@@ -1,5 +1,6 @@
 package org.immutables.fixture.nullable;
 
+import java.util.Map;
 import org.immutables.fixture.nullable.typeuse.CusNull;
 import org.immutables.fixture.nullable.typeuse.ImmutableFirstChild;
 import org.immutables.fixture.nullable.typeuse.ImmutableLetsTryJSpecify;
@@ -31,6 +32,31 @@ public class TypeuseAnnotationTest {
 
     check(ImmutableTryCustomNullann.class.getDeclaredMethod("lst")
         .getAnnotatedReturnType().getAnnotation(CusNull.class)).notNull();
+
+    check(ImmutableTryCustomNullann.class.getDeclaredMethod("withLst", Iterable.class)
+        .getParameters()[0]
+        .getAnnotatedType()
+        .getAnnotation(CusNull.class)).notNull();
+
+    check(ImmutableTryCustomNullann.Builder.class.getDeclaredMethod("lst", Iterable.class)
+        .getParameters()[0]
+        .getAnnotatedType()
+        .getAnnotation(CusNull.class)).notNull();
+
+    check(ImmutableTryCustomNullann.class.getDeclaredMethod("withMap", Map.class)
+        .getParameters()[0]
+        .getAnnotatedType()
+        .getAnnotation(CusNull.class)).notNull();
+
+    check(ImmutableTryCustomNullann.class.getDeclaredMethod("withMap", Map.class)
+        .getParameters()[0]
+        .getAnnotatedType()
+        .getAnnotation(CusNull.class)).notNull();
+
+    check(ImmutableTryCustomNullann.Builder.class.getDeclaredMethod("map", Map.class)
+        .getParameters()[0]
+        .getAnnotatedType()
+        .getAnnotation(CusNull.class)).notNull();
   }
 
   @Test void typeuseInheritance() throws Exception {

@@ -799,7 +799,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of the record or {@code this} if not changed
    */
   [deprecation v]
-  default [type.typeAbstract.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  default [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [recordSelf type]
     [if v.forceEqualsInWithers]
     if ([objectsEqual type](self.[v.name](), entries)) return self;
@@ -992,7 +992,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of {@code this} object
    */
   [deprecation v]
-  [type.typeAbstract.relative] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries);
+  [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries);
       [/for]
       [else]
 
@@ -1048,7 +1048,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpeci
       [let gE][qExtends v][tuNullParam v][v.wrappedElementType][/let][let wV][tuNullParam v][v.wrappedSecondaryElementType][/let]
       [for uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType]
 @Override
-public [type.typeAbstract.relative] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) { throw new UnsupportedOperationException(); }
+public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) { throw new UnsupportedOperationException(); }
       [/for]
     [else]
 @Override
@@ -2483,7 +2483,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [eachLine v.builderAttributeAnnotation]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][tuNullable v][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if v.nullable]
     if (entries == null) {
       [defineOrResetBuildingFieldAlt v false true]
@@ -4311,7 +4311,7 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
  * @return A modified copy or {@code this} if not changed
  */
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNullable v][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
   [if v.forceEqualsInWithers]
   if ([objectsEqual type](this.[v.name], entries)) return this;
   [else]
