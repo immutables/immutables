@@ -188,8 +188,17 @@ public @interface Value {
 
   /**
    * Annotates accessor that should be turned in set-able generated attribute. However, it is
-   * non-mandatory to set it via builder. Default value will be assigned to attribute if none
-   * supplied, this value will be obtained by calling method annotated this annotation.
+   * non-mandatory to set it via builder. If the attribute is not assigned any value using builder,
+   * then the default value will be computed by calling the non-abstract (or default method
+   * in the case of interface) accessor method annotated with {@code @Default} annotation.
+   * <p>
+   * The expression in the method can use literal/constant values as well as calling other
+   * attributes, including other {@code @Default} and {@code @Derived} values as long as those
+   * computations do not form cycles (i.e. unresolvable recursion would occur).
+   * Such cycle will be detected and a runtime exception will be thrown.
+   * <p>Default value can be also computed for optional values (only JDK optional values,
+   * but not for third-party optional types), this can be used to give it the default which differs
+   * from {@code empty()} and can be even dependent on values of other attributes as mentioned above.
    */
   @Documented
   @Target(ElementType.METHOD)

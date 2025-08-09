@@ -82,7 +82,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public AttributeNames names;
   public boolean isGenerateDefault;
-  public boolean isOptionalWithDefault;
   public @Nullable Object constantDefault;
   public boolean isGenerateDerived;
   public boolean isGenerateAbstract;
@@ -689,7 +688,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public String getUnwrappedElementType() {
-    return (isContainerType() && nullElements.ban()) || isOptionalWithDefault
+    return (isContainerType() && nullElements.ban())
         ? unwrapType(firstTypeParameter())
         : getElementType();
   }
@@ -1628,8 +1627,12 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     }
 
     if (isGenerateDefault && isOptionalType()) {
-      typeKind = AttributeTypeKind.REGULAR;
-      isOptionalWithDefault = true;
+      if (!isJdkOptional()) {
+        typeKind = AttributeTypeKind.REGULAR;
+        report()
+            .annotationNamed(DefaultMirror.simpleName())
+            .warning(About.UNTYPE, "@Value.Default on a optional (non JDK) attribute make it lose its special treatment");
+      }
     }
 
     if (isContainerType() && containingType.isUseStrictBuilder()) {
@@ -1847,6 +1850,9 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     }
     if (isGenerateDefault && (isNullable() || isValidationCustomized())) {
       // nullable arrays should be able to distinguish null from default
+      return true;
+    }
+    if (isGenerateDefault && isJdkOptional()) {
       return true;
     }
     if (typeKind.isCollectionOrMapping() && isGenerateDefault) {
