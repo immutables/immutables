@@ -89,12 +89,14 @@ public class ImportRewriter {
   private static final class Import extends Occurrence {
     final LinkedList<String> packageSegments = new LinkedList<>();
     final LinkedList<String> classSegments = new LinkedList<>();
+    @Nullable String more;
     boolean isStatic;
     boolean isStar;
 
     @Override
     public String toString() {
-      return (isStatic ? "static " : "") + asKey() + (isStar ? ".*" : "");
+      return (isStatic ? "static " : "") + asKey()
+          + (more != null ? "." + more : "") + (isStar ? ".*" : "");
     }
 
     String asKey() {
@@ -252,7 +254,6 @@ public class ImportRewriter {
   }
 
   private void maybeRewrite(MaybeQualified q) {
-    //try {
     mergeNonConflictingMarkerTypeuseAnnotation(q);
 
     maybeRewriteQualifiedName(q);
@@ -261,9 +262,6 @@ public class ImportRewriter {
       maybeRewriteQualifiedName(a.name);
       q.rewritten |= a.name.rewritten;
     }
-    // } catch (Exception e) {
-    //   throw new RuntimeException(q.toString(), e);
-    // }
   }
 
   private void maybeRewriteQualifiedName(MaybeQualified q) {
@@ -495,8 +493,6 @@ public class ImportRewriter {
       consumeQualifiedName(packageSegments::add, a -> {});
       thisPackage = String.join(".", packageSegments);
       thisPackagePrefix = thisPackage + ".";
-      //System.err.println("PACKAGE " + thisPackage);
-      consumeWhitespace();
       consume(';');
       consumeWhitespace();
       afterPackagePosition = at;
@@ -520,13 +516,20 @@ public class ImportRewriter {
     char c = source.charAt(at);
     if (!isJavaIdentifierStart(c)) return false;
 
+    int beforeDot = at;
+    boolean endsWithDot = false;
+
     while (at < len && isJavaIdentifierStart(c = source.charAt(at)) && isLowerCase(c)) {
       segmentBuffer.setLength(0);
       consumeIdentifierSegment(segmentBuffer);
       packageSegments.accept(segmentBuffer.toString());
 
+      endsWithDot = false;
+      beforeDot = at;
+
       consumeWhitespace();
       if (consume('.')) {
+        endsWithDot = true;
         consumeWhitespace();
       } else break;
     }
@@ -536,13 +539,21 @@ public class ImportRewriter {
       consumeIdentifierSegment(segmentBuffer);
       classSegments.accept(segmentBuffer.toString());
 
+      endsWithDot = false;
+      beforeDot = at;
+
       consumeWhitespace();
       if (consume('.')) {
+        endsWithDot = true;
         consumeWhitespace();
       } else break;
     }
 
-    consumeWhitespace();
+    if (endsWithDot) {
+      at = beforeDot;
+      consumeWhitespace();
+    }
+
     return true;
   }
 
@@ -688,31 +699,57 @@ public class ImportRewriter {
       imp.isStatic = consumeKeyword('s', 't', 'a', 't', 'i', 'c');
 
       consumeQualifiedName(imp.packageSegments::add, imp.classSegments::add);
+
       if (consume(';')) {
         consumeWhitespace();
         // if we have semicolon here, we don't have any lowercase field or method imports
         // uppercase constants we can still add as import and actually ignore
 
         imp.range(begin, at - begin);
+
         addImport(imp);
       } else if (consume('.')) {
-        // FIXME This case currently not working as consumeQualifiedName would go past the dot
         consumeWhitespace();
         if (consume('*')) {
           consumeWhitespace();
           if (consume(';')) {
             imp.isStar = true;
             imp.range(begin, at - begin);
+
             addImport(imp);
           }
+        } else {
+          int moreAt = at;
+          consumeUntilOnSameLine(';');
+          // the 'more' part excludes closing ';',
+          // but the range includes it, hence `at - 1` for 'more',
+          // and `at - begin` for the range length
+          imp.more = source.subSequence(moreAt, at - 1).toString();
+          imp.range(begin, at - begin);
+
+          addImport(imp);
         }
       } else if (consume('*')) {
+        // after recent changes in how  consumeQualifiedName works,
+        // this case will not be called ever, because the star will
+        // go after the dot
         consumeWhitespace();
         if (consume(';')) {
           imp.isStar = true;
           imp.range(begin, at - begin);
+
           addImport(imp);
         }
+      } else {
+        // just in case we have something else, not handled in the cases before,
+        // not sure we would handle block comments here,
+        // but at least line comments could work
+        int moreAt = at;
+        consumeUntilOnSameLine(';');
+        imp.more = source.subSequence(moreAt, at - 1).toString();
+        imp.range(begin, at - begin);
+
+        addImport(imp);
       }
       // if we've not added import, we still recognized it to some degree, so return true
       // and not backtracking to begin
@@ -720,6 +757,11 @@ public class ImportRewriter {
     }
     at = begin;
     return false;
+  }
+
+  private void consumeUntilOnSameLine(char c1) {
+    char c;
+    while ((c = source.charAt(at++)) != c1 && c != '\n') ;
   }
 
   private void addImport(Import imp) {
@@ -801,8 +843,6 @@ public class ImportRewriter {
     }
 
     occurrences.add(qualified);
-
-    //System.err.println("?QUALIFIED " + qualified);
   }
 
   private void consumeStringLiteral() {
@@ -816,7 +856,6 @@ public class ImportRewriter {
       }
       at++;
     }
-    //result.append(source, begin, at);
   }
 
   private void consumeCharLiteral() {
@@ -830,7 +869,6 @@ public class ImportRewriter {
       }
       at++;
     }
-    //result.append(source, begin, at);
   }
 
   private boolean consumeWhitespace() {
@@ -839,7 +877,6 @@ public class ImportRewriter {
       while (at < len && isWhitespace(source.charAt(at))) {
         at++;
       }
-      //into.append(source, begin, at);
       return true;
     }
     return false;
@@ -850,7 +887,6 @@ public class ImportRewriter {
       int begin = at;
       at += 2;
       advanceUntilCommentEnd();
-      //into.append(source, begin, at);
       return true;
     }
     return false;
@@ -877,7 +913,6 @@ public class ImportRewriter {
         }
         at++;
       }
-      //into.append(source, begin, at);
       return true;
     }
     return false;
@@ -897,7 +932,6 @@ public class ImportRewriter {
         && at + chars.length < len
         && isWhitespace(source.charAt(at + chars.length))) {
       at += chars.length;
-      //into.append(source, begin, at);
       return consumeWhitespace();
     }
     return false;
@@ -928,6 +962,8 @@ public class ImportRewriter {
         "import java.lang.Integer;",
         "import static java.lang.Long.MIN_VALUE;",
         "import static java.util.Map.Entry;",
+        "import static java.util.Map.*;",
+        "import static java.util.Map.entry;",
         "import java.lang.Object; // something",
         "import java.lang.String; // another",
         "  ",
@@ -941,6 +977,7 @@ public class ImportRewriter {
         "  public final p1.p2.@Empty @els.bor.Or(value = {true, false}) Epty goes2() { return null; }",
         "  public final p1.p3.Yaz vock(int a) { return null; }",
         "  public final p1.p3.Nop lock(int a, String b) { return null; }",
+        "  public /*!typeuse @hoppy.Jully */ java.lang.@hoppy.Jully String ask;",
         "  public /*!typeuse @Nully */ p1.p3.Nop nock(int a, String b) { return null; }",
         "  public /*!typeuse @stl.Nully @Other(\"ABV\")*/ Nop lock(int a, String b) {",
         "    char c = '\"';",
@@ -957,7 +994,11 @@ public class ImportRewriter {
         "}",
     };
 
-    CharSequence result = rewrite(String.join("\n", source));
+    String[] source2 = {
+       "/*!typeuse @hoppy.Jully */ java.lang.@hoppy.Jully String ask;"
+    };
+
+    CharSequence result = rewrite(String.join("\n", source2));
 
     System.out.println(result);
   }
