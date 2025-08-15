@@ -26,7 +26,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
-import com.sun.org.apache.bcel.internal.classfile.SourceFile;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
