@@ -157,6 +157,11 @@ class TypeStringProvider {
         insertTypeAnnotationsIfPresent(startType, 0, rawTypeName.length());
       }
 
+      // A quirk for unnamed/unknown package ?
+      if (buffer.length() > 0 && buffer.charAt(0) == '.') {
+        buffer.deleteCharAt(0);
+      }
+
       this.returnTypeName = buffer.toString();
     }
   }
@@ -192,6 +197,11 @@ class TypeStringProvider {
           typeName = guessedName;
         }
       }
+    }
+
+    // quirk for unnamed/missing package?
+    if (typeName.startsWith(".")) {
+      typeName = typeName.substring(1);
     }
 
     buffer.append(typeName);
@@ -271,7 +281,7 @@ class TypeStringProvider {
     Entry<String, List<String>> extractedTypes = SourceTypes.extract(returnTypeString);
 
     // forces source imports based resolution,
-    // we should not rely that types would be fully qualified
+    // we should not rely on that types would be fully qualified
     Entry<String, List<String>> resolvedTypes = resolveTypes(extractedTypes);
 
     this.rawTypeName = resolvedTypes.getKey();

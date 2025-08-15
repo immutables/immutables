@@ -11,7 +11,6 @@ record Usbld(String aa, int bb) {}
 record RecUseRecBld(int cc, Usbld rec) {
 }
 
-@Value.Style(attributeBuilderDetection = true)
 @Value.Immutable
 interface Useit {
   String aa();
