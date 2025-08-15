@@ -406,8 +406,10 @@ public final class Accessors extends Introspection {
       if (value == null) {
         try {
           value = load(key);
+        } catch (RuntimeException ex) {
+          throw ex;
         } catch (Exception ex) {
-          throw Throwables.propagate(ex);
+          throw new RuntimeException(ex);
         }
         map.put(key, value);
       }

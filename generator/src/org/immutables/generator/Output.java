@@ -26,8 +26,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
+import com.sun.org.apache.bcel.internal.classfile.SourceFile;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,6 +48,7 @@ import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+import org.checkerframework.checker.units.qual.K;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -334,7 +337,7 @@ public final class Output {
                   ex));
         }
       } catch (IOException ex) {
-        throw Throwables.propagate(ex);
+        throw new UncheckedIOException(ex);
       } finally {
         key.originatingElement = null; //attempt to not drag any round elements
       }
@@ -418,8 +421,10 @@ public final class Output {
       if (value == null) {
         try {
           value = load(key);
+        } catch (RuntimeException ex) {
+          throw ex;
         } catch (Exception ex) {
-          throw Throwables.propagate(ex);
+          throw new RuntimeException(ex);
         }
         map.put(key, value);
       }

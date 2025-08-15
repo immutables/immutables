@@ -155,8 +155,9 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
   protected void after() {
     try {
       close();
+    } catch (RuntimeException | Error e) {
+      throw e;
     } catch (Exception e) {
-      Throwables.propagateIfPossible(e);
       throw new RuntimeException(e);
     }
   }

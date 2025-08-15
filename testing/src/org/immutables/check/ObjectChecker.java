@@ -73,18 +73,18 @@ public class ObjectChecker<T> {
   static void verifyCheck(String description, boolean assertionState) {
     try {
       MatcherAssert.assertThat(description, assertionState);
-    } catch (Throwable ex) {
+    } catch (RuntimeException | Error ex) {
       ex.setStackTrace(trimStackTrace(ex.getStackTrace()));
-      Throwables.propagate(ex);
+      throw ex;
     }
   }
 
   static <Z> void verifyUsingMatcher(@Nullable Z actualValue, Matcher<? super Z> matcher) {
     try {
       MatcherAssert.assertThat(actualValue, matcher);
-    } catch (Throwable ex) {
+    } catch (RuntimeException | Error ex) {
       ex.setStackTrace(trimStackTrace(ex.getStackTrace()));
-      Throwables.propagate(ex);
+      throw ex;
     }
   }
 

@@ -26,6 +26,7 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.util.ServiceLoader;
 import org.immutables.gson.stream.JsonGeneratorWriter;
 import org.immutables.gson.stream.JsonParserReader;
@@ -51,7 +52,7 @@ public final class Marshaling {
     return GSON;
   }
 
-  @SuppressWarnings({"resource", "unchecked"})
+  @SuppressWarnings({"unchecked"})
   public static String toJson(Object object) {
     TypeAdapter<Object> adapter = GSON.getAdapter((TypeToken<Object>) TypeToken.get(object.getClass()));
     try {
@@ -64,11 +65,11 @@ public final class Marshaling {
       writer.close();
       return stringWriter.toString();
     } catch (IOException ex) {
-      throw Throwables.propagate(ex);
+      throw new UncheckedIOException(ex);
     }
   }
 
-  @SuppressWarnings({"resource", "unchecked"})
+  @SuppressWarnings({"unchecked"})
   public static <T> T fromJson(String string, Class<T> type) {
     TypeAdapter<Object> adapter = GSON.getAdapter((TypeToken<Object>) TypeToken.get(type));
     try {
@@ -78,7 +79,7 @@ public final class Marshaling {
       JsonParserReader reader = new JsonParserReader(JSON_FACTORY.createParser(string));
       return GSON.fromJson(reader, type);
     } catch (IOException ex) {
-      throw Throwables.propagate(ex);
+      throw new UncheckedIOException(ex);
     }
   }
 }
