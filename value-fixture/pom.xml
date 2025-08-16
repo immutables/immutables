@@ -195,6 +195,9 @@
               <version>${project.version}</version>
             </path>
           </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-Aimmutables.annotation=nonimmutables.MyVal</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
     </plugins>
@@ -292,6 +295,7 @@
             <configuration>
               <fork>true</fork>
               <compilerArgs combine.children="override">
+                <arg>-Aimmutables.annotation=nonimmutables.MyVal</arg>
                 <!-- required by javac detection logic in immutables -->
                 <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
               </compilerArgs>
@@ -319,7 +323,6 @@
               <compilerArgs combine.children="append">
                 <arg>-XDcompilePolicy=simple</arg>
                 <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:UnnecessaryCheckNotNull:WARN -Xep:ReturnValueIgnored:WARN</arg>
-
                 <!-- required by errorprone -->
                 <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
                 <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
@@ -402,6 +405,7 @@
             <configuration>
               <compilerId>eclipse</compilerId>
               <compilerArgs combine.children="override">
+                <arg>-Aimmutables.annotation=nonimmutables.MyVal</arg>
                 <arg>-Xlint:unchecked</arg>
               </compilerArgs>
             </configuration>
