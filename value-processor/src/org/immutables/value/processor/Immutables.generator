@@ -722,10 +722,10 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of the record or {@code this} if not changed
    */
   [deprecation v]
-  default [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] [v.name]) {
+  default [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] optional) {
     [let optType][v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if][/let]
     [suppressCovariantCastForOptional v]
-    [optType] newValue = [requireNonNull type](([optType]) [v.name], "[v.name]");
+    [optType] newValue = [requireNonNull type](([optType]) optional, "[v.name] optional");
     [recordSelf type]
     [if v.forceEqualsInWithers]
     if (self.[v.name]().equals(newValue)) return self;
