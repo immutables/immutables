@@ -9,4 +9,5 @@ public record RecordDefaults(
 		@Default.String("ABC") String b,
 		@Default.Long(100) long l,
 		@Default.Long(-100) Long ll,
+    @Default.Double(1.5) double d,
 		String required) {}

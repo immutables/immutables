@@ -3079,12 +3079,14 @@ this.[n] = null;
 [if v.hasVirtualImpl][rr.virtualImpl v][else]this.[n][/if] = [emptyImmutableInstance v ''];
 [/for]
 [for v in attributes if v.generateDefault, n = v.name]
-[if v.hasConstantDefault]
-this.[n] = [literal v.constantDefault];
-[else if type.annotationType]
+[if type.annotationType]
 this.[n] = DEFAULT_VALUE_[toConstant n];
 [else if not type.generateSafeDerived]
+  [if v.hasConstantDefault]
+this.[n] = [literal v.constantDefault];
+  [else]
 this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
+  [/if]
 [/if]
 [/for]
 [/template]
@@ -3167,8 +3169,11 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
     [/if]
   [/if]
 [/for]
+    //--before generateDerivedConstruction
     [generateDerivedConstruction type noAttributes]
+    //--before generateAfterConstruction
     [generateAfterConstruction type true]
+    //--after these
   }
 [/if]
 [if type.useCopyMethods]
@@ -4007,15 +4012,11 @@ public String toString() {
 [template generateDerivedConstruction Type type Attribute... constructorArgs]
 [-- first come things that have to be initialized before any of initShim kicks in]
 [for a in type.implementedAttributes]
-  [if a.generateDefault or a.generateDerived]
-    [if a.generateDerived andnot type.generateSafeDerived]
-      [if a.hasConstantDefault]
-this.[a.name] = [literal a.constantDefault];
-      [else]
+  [if a.generateDerived or a.generateDefault][-- important to include both (Derived OR Default) so `ELSE encoding` works correctly]
+    [if a.generateDerived andnot type.generateSafeDerived][-- handled in generateDerivedConstruction --]
 this.[a.name] = [valueFromValue a][invokeSuper a].[a.names.get]()[/valueFromValue];
-      [/if]
     [/if]
-  [else if a.encoding][-- non derived encodings]
+  [else if a.encoding][-- non derived/or default encodings]
 [rr.derivedAssign a]
   [/if]
 [/for]
@@ -4026,7 +4027,7 @@ this.[a.name] = [valueFromValue a][invokeSuper a].[a.names.get]()[/valueFromValu
   [if a.encoding]
 [rr.shimAssignExtract a shim]
   [else if a notin constructorArgs]
-this.[a.name] = [if a.hasConstantDefault][literal a.constantDefault][else][shim].[a.names.get]()[/if];
+this.[a.name] = [shim].[a.names.get]();
   [/if]
 [/for]
 [/if]

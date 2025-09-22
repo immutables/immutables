@@ -117,4 +117,33 @@ public class RecordTest {
     check(billy.b()).is("BBB");
     check(!billy.c());
   }
+
+  @Test public void constantDefaults() {
+    var r = new RecordDefaultsBuilder()
+        .required("req")
+        .build();
+
+    check(r.a()).is(42);
+    check(r.b()).is("ABC");
+    check(r.d()).is(1.5);
+    check(r.l()).is(100L);
+    check(r.ll()).is(-100L);
+  }
+
+  @Test public void constantDefaultsAllOverridden() {
+    var r = new RecordDefaultsBuilder()
+        .required("req2")
+        .a(13)
+        .b("XYZ")
+        .l(1L)
+        .ll(-1L)
+        .d(1.16)
+        .build();
+
+    check(r.a()).is(13);
+    check(r.b()).is("XYZ");
+    check(r.d()).is(1.16);
+    check(r.l()).is(1L);
+    check(r.ll()).is(-1L);
+  }
 }
