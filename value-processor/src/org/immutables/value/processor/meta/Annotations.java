@@ -20,8 +20,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
@@ -204,13 +206,14 @@ final class Annotations {
     if (includeJacksonAnnotations || !includeAnnotations.isEmpty()) {
       for (AnnotationMirror parentAnnotation : annotationElement.getAnnotationMirrors()) {
         TypeElement parentElement = (TypeElement) parentAnnotation.getAnnotationType().asElement();
+        Set<String> throwawaySeenForParent = new HashSet<>(1);
         // This block of code can include annotation if it's parent annotation is included
         if (annotationTypeMatches(element,
             parentElement,
             includeAnnotations,
             false,
             includeJacksonAnnotations,
-            seenAnnotations,
+            throwawaySeenForParent,
             lines,
             importsResolver,
             elementType,

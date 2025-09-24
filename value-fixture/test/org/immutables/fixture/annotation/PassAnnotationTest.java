@@ -15,11 +15,14 @@
  */
 package org.immutables.fixture.annotation;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import nonimmutables.A1;
 import nonimmutables.A2;
 import nonimmutables.B1;
 import nonimmutables.C1;
+import nonimmutables.ChildAnnotationA;
+import nonimmutables.ChildAnnotationB;
 import nonimmutables.ImmutablePassAnnsTargeting;
 import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
@@ -48,5 +51,13 @@ public class PassAnnotationTest {
   public void constructorPass() throws Exception {
     check(ImmutableValForPass.class.getConstructor(int.class).getAnnotation(B1.class)).notNull();
     check(ImmutableValForPass.class.getConstructor(int.class).getAnnotation(C1.class)).notNull();
+  }
+
+  @Test
+  public void bothChildrenPassAnnotations() throws Exception {
+    Method m = ImmutableExampleModelWithParentPassAnnotation.class.getDeclaredMethod(
+        "attributeWithBothChildAnnotations");
+    check(m.getAnnotation(ChildAnnotationA.class)).notNull();
+    check(m.getAnnotation(ChildAnnotationB.class)).notNull();
   }
 }
