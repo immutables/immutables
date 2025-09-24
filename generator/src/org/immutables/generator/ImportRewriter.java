@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableList;
 import org.immutables.extgenerator.GeneratedImportsModifier;
 import static java.lang.Character.isJavaIdentifierPart;
 import static java.lang.Character.isJavaIdentifierStart;
-import static java.lang.Character.isLowerCase;
 import static java.lang.Character.isUpperCase;
 import static java.lang.Character.isWhitespace;
 
@@ -519,7 +518,9 @@ public class ImportRewriter {
     int beforeDot = at;
     boolean endsWithDot = false;
 
-    while (at < len && isJavaIdentifierStart(c = source.charAt(at)) && isLowerCase(c)) {
+    while (at < len
+        && isJavaIdentifierStart(c = source.charAt(at))
+        && !isUpperCase(c)) {
       segmentBuffer.setLength(0);
       consumeIdentifierSegment(segmentBuffer);
       packageSegments.accept(segmentBuffer.toString());
@@ -618,7 +619,7 @@ public class ImportRewriter {
           // doing some lookahead to see if after type comes be field or method reference
           // we don't consider whitespace here, so it is relying on "normal" formatting/style
           if (isTypeCase && at < len
-              && ((isJavaIdentifierStart(c = source.charAt(at)) && isLowerCase(c))
+              && ((isJavaIdentifierStart(c = source.charAt(at)) && !isUpperCase(c))
               || c == '<'/* this is for Collections.<String>emptySet() */)) {
             qualified.range(begin, beforeWhitespace - begin); // range before consume whitespace
             //into.append(source, begin, at);
