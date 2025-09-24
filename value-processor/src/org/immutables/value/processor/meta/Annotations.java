@@ -226,19 +226,10 @@ final class Annotations {
   static boolean annotationMatchesTarget(Element annotationElement, ElementType elementType) {
     @Nullable Target target = annotationElement.getAnnotation(Target.class);
     if (target != null) {
-      ElementType[] targetTypes = target.value();
-      if (targetTypes.length == 0) {
-        return false;
+      for (ElementType t : target.value()) {
+        if (t == elementType) return true;
       }
-      boolean found = false;
-      for (ElementType t : targetTypes) {
-        if (t == elementType) {
-          found = true;
-        }
-      }
-      if (!found) {
-        return false;
-      }
+      return false;
     }
     return true;
   }
