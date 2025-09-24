@@ -21,14 +21,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
 public class SerialTest {
-  @Test void hasReadReplace() throws NoSuchMethodException {
+  @Test void hasReadReplace() {
     // this checks if AllStructural were applied
-    var writeReplaceMethod = ImmutableStructed.class.getDeclaredMethod("writeReplace");
-    // actually exception will be thrown, this is just to avoid unused variable warning
+    Method writeReplaceMethod = null;
+    try {
+      writeReplaceMethod = ImmutableStructed.class.getDeclaredMethod("writeReplace");
+    } catch (NoSuchMethodException e) {}
     check(writeReplaceMethod).notNull();
   }
 
