@@ -22,11 +22,17 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import org.junit.jupiter.api.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class SerialTest {
-  @Test
-  public void readResolveInterned() throws Exception {
+  @Test void hasReadReplace() throws NoSuchMethodException {
+    // this checks if AllStructural were applied
+    var writeReplaceMethod = ImmutableStructed.class.getDeclaredMethod("writeReplace");
+    // actually exception will be thrown, this is just to avoid unused variable warning
+    check(writeReplaceMethod).notNull();
+  }
+
+  @Test void readResolveInterned() throws Exception {
     ImmutableSomeSer instance0 = ImmutableSomeSer.builder().build();
     ImmutableSomeSer instance1 = ImmutableSomeSer.builder().regular(1).build();
     ImmutableSomeSer instance1_2 = ImmutableSomeSer.builder().regular(1).build();
@@ -40,8 +46,7 @@ public class SerialTest {
     check(deserialize(serialize(ImmutableOthSer.of()))).same(ImmutableOthSer.builder().build());
   }
 
-  @Test
-  public void copySerialVersion() throws Exception {
+  @Test void copySerialVersion() throws Exception {
     for (Field field : ImmutableSomeSer.class.getDeclaredFields()) {
       field.setAccessible(true);
       if (field.getName().equals("serialVersionUID") && field.get(null).equals(1L)) {
@@ -52,15 +57,13 @@ public class SerialTest {
     check(false);
   }
 
-  @Test
-  public void serializeModifiable() throws Exception {
+  @Test void serializeModifiable() throws Exception {
     ModifiableSomeSer instance = ModifiableSomeSer.create().setRegular(1);
     // interning
     check(deserialize(serialize(instance))).is(ModifiableSomeSer.create().setRegular(1));
   }
 
-  @Test
-  public void copySerialVersionModifiable() throws Exception {
+  @Test void copySerialVersionModifiable() throws Exception {
     for (Field field : ModifiableSomeSer.class.getDeclaredFields()) {
       field.setAccessible(true);
       if (field.getName().equals("serialVersionUID") && field.get(null).equals(1L)) {

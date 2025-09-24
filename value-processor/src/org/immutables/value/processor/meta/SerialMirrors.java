@@ -27,4 +27,7 @@ public final class SerialMirrors {
 
   @Mirror.Annotation("org.immutables.serial.Serial.Structural")
   public @interface Structural {}
+  
+  @Mirror.Annotation("org.immutables.serial.Serial.AllStructural")
+  public @interface AllStructural {}
 }

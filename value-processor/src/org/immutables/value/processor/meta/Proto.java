@@ -182,14 +182,14 @@ public class Proto {
       Optional<VersionMirror> version = VersionMirror.find(element());
       return version.isPresent()
           ? Optional.of(version.get().value())
-          : Optional.<Long>absent();
+          : Optional.absent();
     }
 
     @Value.Derived
     @Value.Auxiliary
     public boolean isSerialStructural() {
       return environment().hasSerialModule()
-          && StructuralMirror.isPresent(element());
+          && (StructuralMirror.isPresent(element()) || AllStructuralMirror.isPresent(element()));
     }
 
     @Value.Derived
@@ -771,12 +771,22 @@ public class Proto {
         }
       }
 
-      return Optional.<Long>absent();
+      return Optional.absent();
     }
 
     @Value.Lazy
     public boolean isSerialStructural() {
-      return StructuralMirror.isPresent(element());
+      if (!environment().hasSerialModule()) return false;
+
+      if (StructuralMirror.isPresent(element()) || AllStructuralMirror.isPresent(element())) {
+        return true;
+      }
+
+      for (MetaAnnotated m : metaAnnotated()) {
+        if (m.isSerialStructural()) return true;
+      }
+
+      return false;
     }
 
     @Value.Lazy

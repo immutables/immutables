@@ -40,7 +40,7 @@ public @interface Serial {
    */
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
-  public @interface Version {
+  @interface Version {
     long value();
   }
 
@@ -61,5 +61,15 @@ public @interface Serial {
    */
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
-  public @interface Structural {}
+  @interface Structural {}
+
+  /**
+   * Class-retention variant of {@link Structural}. Used to cover packages and style meta-annotation
+   * across module/jar boundaries where source code is not available. Originally, {@link Structural}
+   * were class retention annotation, but it was changed due to some (former) issues to be
+   * the source retained.
+   */
+  @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.CLASS)
+  @interface AllStructural {}
 }
