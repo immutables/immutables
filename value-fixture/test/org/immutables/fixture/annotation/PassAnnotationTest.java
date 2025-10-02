@@ -60,4 +60,11 @@ public class PassAnnotationTest {
     check(m.getAnnotation(ChildAnnotationA.class)).notNull();
     check(m.getAnnotation(ChildAnnotationB.class)).notNull();
   }
+
+  @Test
+  public void selfApplyingAnnotationWorks() throws Exception {
+    Method m = ImmutableExampleModelWithSelfApplyingAnnotation.class.getDeclaredMethod(
+        "attributeWithSelfApplyingAnnotations");
+    check(m.getAnnotation(SelfApplyingAnnotation.class)).notNull();
+  }
 }
