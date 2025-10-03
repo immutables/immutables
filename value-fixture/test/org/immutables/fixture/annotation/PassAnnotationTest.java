@@ -24,6 +24,7 @@ import nonimmutables.C1;
 import nonimmutables.ChildAnnotationA;
 import nonimmutables.ChildAnnotationB;
 import nonimmutables.ImmutablePassAnnsTargeting;
+import nonimmutables.SelfApplyingAnnotation;
 import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
