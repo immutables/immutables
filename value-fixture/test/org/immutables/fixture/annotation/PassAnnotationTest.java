@@ -24,6 +24,7 @@ import nonimmutables.C1;
 import nonimmutables.ChildAnnotationA;
 import nonimmutables.ChildAnnotationB;
 import nonimmutables.ImmutablePassAnnsTargeting;
+import nonimmutables.SelfApplyingAnnotation;
 import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -59,5 +60,12 @@ public class PassAnnotationTest {
         "attributeWithBothChildAnnotations");
     check(m.getAnnotation(ChildAnnotationA.class)).notNull();
     check(m.getAnnotation(ChildAnnotationB.class)).notNull();
+  }
+
+  @Test
+  public void selfApplyingAnnotationWorks() throws Exception {
+    Method m = ImmutableExampleModelWithSelfApplyingAnnotation.class.getDeclaredMethod(
+        "attributeWithSelfApplyingAnnotations");
+    check(m.getAnnotation(SelfApplyingAnnotation.class)).notNull();
   }
 }

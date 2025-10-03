@@ -204,7 +204,7 @@ final class Annotations {
     if (includeJacksonAnnotations || !includeAnnotations.isEmpty()) {
       for (AnnotationMirror parentAnnotation : annotationElement.getAnnotationMirrors()) {
         TypeElement parentElement = (TypeElement) parentAnnotation.getAnnotationType().asElement();
-        Set<String> throwawaySeenForParent = new HashSet<>(1);
+        Set<String> throwawaySeenForParent = new HashSet<>(seenAnnotations);
         // This block of code can include annotation if it's parent annotation is included
         if (annotationTypeMatches(element,
             parentElement,
