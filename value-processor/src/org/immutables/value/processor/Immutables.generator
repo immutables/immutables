@@ -3169,11 +3169,8 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
     [/if]
   [/if]
 [/for]
-    //--before generateDerivedConstruction
     [generateDerivedConstruction type noAttributes]
-    //--before generateAfterConstruction
     [generateAfterConstruction type true]
-    //--after these
   }
 [/if]
 [if type.useCopyMethods]
@@ -3217,6 +3214,9 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [/for]
 [/if]
     [generateAfterConstruction type false]
+  [if type.factoryOf.new and type.validationMethods]
+    [generateCheckAfterConstruction type]
+  [/if]
   }
 [/if]
 [if type.generateSafeDerived]
@@ -3266,6 +3266,9 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [/for]
 [/if]
     [generateAfterConstruction type false]
+  [if type.factoryOf.new and type.validationMethods]
+    [generateCheckAfterConstruction type]
+  [/if]
   }
 [/template]
 
@@ -4049,6 +4052,14 @@ this.domain = Domain.get();
   [if type.generateSafeDerived]
 this.[disambiguateField type 'initShim'] = null;
   [/if]
+[/template]
+
+[template generateCheckAfterConstruction Type type]
+  [for vm in type.validationMethods]
+    [if not vm.normalize]
+[vm.name]();
+    [/if]
+  [/for]
 [/template]
 
 [template customizedHashCode Type type][output.trim]

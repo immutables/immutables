@@ -169,7 +169,7 @@ public final class ValueTypeComposer {
     }
     if (type.isUseConstructor()
         && protoclass.constitution().factoryOf().isNew()) {
-      if (type.isUseValidation()) {
+      if (type.isUseValidationExceptChecks()) {
         protoclass.report()
             .annotationNamed(ImmutableMirror.simpleName())
             .error(

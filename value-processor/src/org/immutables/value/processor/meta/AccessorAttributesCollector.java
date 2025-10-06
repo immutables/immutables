@@ -135,59 +135,59 @@ final class AccessorAttributesCollector {
         ExecutableElement e = (ExecutableElement) element;
         String simpleName = element.getSimpleName().toString();
         switch (simpleName) {
-        case HASH_CODE_METHOD:
-        case TO_STRING_METHOD:
-        case EQUALS_METHOD:
-          processUtilityCandidateMethod(e, originalType);
-          break;
-        default:
-          if (!e.getTypeParameters().isEmpty()) break;
-          boolean hasDefaultModifier = element.getModifiers().contains(DEFAULT_MODIFIER);
-          boolean hasStaticModifier = element.getModifiers().contains(Modifier.STATIC);
-          boolean hasAbstractModifier = element.getModifiers().contains(Modifier.ABSTRACT);
-          if (hasStaticModifier || hasDefaultModifier || !hasAbstractModifier) {
-            String definedIn = element.getEnclosingElement().toString();
-            if (!styles.style().underrideEquals().isEmpty()
-                && styles.style().underrideEquals().equals(simpleName)) {
-              if (hasStaticModifier) {
-                if (e.getParameters().size() == 2) {
-                  this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, true, definedIn);
-                  this.type.isEqualToDefined = true;
+          case HASH_CODE_METHOD:
+          case TO_STRING_METHOD:
+          case EQUALS_METHOD:
+            processUtilityCandidateMethod(e, originalType);
+            break;
+          default:
+            if (!e.getTypeParameters().isEmpty()) break;
+            boolean hasDefaultModifier = element.getModifiers().contains(DEFAULT_MODIFIER);
+            boolean hasStaticModifier = element.getModifiers().contains(Modifier.STATIC);
+            boolean hasAbstractModifier = element.getModifiers().contains(Modifier.ABSTRACT);
+            if (hasStaticModifier || hasDefaultModifier || !hasAbstractModifier) {
+              String definedIn = element.getEnclosingElement().toString();
+              if (!styles.style().underrideEquals().isEmpty()
+                  && styles.style().underrideEquals().equals(simpleName)) {
+                if (hasStaticModifier) {
+                  if (e.getParameters().size() == 2) {
+                    this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, true, definedIn);
+                    this.type.isEqualToDefined = true;
+                  }
+                } else {
+                  if (e.getParameters().size() == 1) {
+                    this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, false, definedIn);
+                    this.type.isEqualToDefined = true;
+                  }
                 }
-              } else {
-                if (e.getParameters().size() == 1) {
-                  this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, false, definedIn);
-                  this.type.isEqualToDefined = true;
+              } else if (!styles.style().underrideHashCode().isEmpty()
+                  && styles.style().underrideHashCode().equals(simpleName)) {
+                if (hasStaticModifier) {
+                  if (e.getParameters().size() == 1) {
+                    this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, true, definedIn);
+                    this.type.isHashCodeDefined = true;
+                  }
+                } else {
+                  if (e.getParameters().isEmpty()) {
+                    this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, false, definedIn);
+                    this.type.isHashCodeDefined = true;
+                  }
                 }
-              }
-            } else if (!styles.style().underrideHashCode().isEmpty()
-                && styles.style().underrideHashCode().equals(simpleName)) {
-              if (hasStaticModifier) {
-                if (e.getParameters().size() == 1) {
-                  this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, true, definedIn);
-                  this.type.isHashCodeDefined = true;
-                }
-              } else {
-                if (e.getParameters().isEmpty()) {
-                  this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, false, definedIn);
-                  this.type.isHashCodeDefined = true;
-                }
-              }
-            } else if (!styles.style().underrideToString().isEmpty()
-                && styles.style().underrideToString().equals(simpleName)) {
-              if (hasStaticModifier) {
-                if (e.getParameters().size() == 1) {
-                  this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, true, definedIn);
-                  this.type.isToStringDefined = true;
-                }
-              } else {
-                if (e.getParameters().isEmpty()) {
-                  this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, false, definedIn);
-                  this.type.isToStringDefined = true;
+              } else if (!styles.style().underrideToString().isEmpty()
+                  && styles.style().underrideToString().equals(simpleName)) {
+                if (hasStaticModifier) {
+                  if (e.getParameters().size() == 1) {
+                    this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, true, definedIn);
+                    this.type.isToStringDefined = true;
+                  }
+                } else {
+                  if (e.getParameters().isEmpty()) {
+                    this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, false, definedIn);
+                    this.type.isToStringDefined = true;
+                  }
                 }
               }
             }
-          }
         }
       }
     }
@@ -205,10 +205,10 @@ final class AccessorAttributesCollector {
     }
     String simpleName = element.getSimpleName().toString();
     switch (simpleName) {
-    case HASH_CODE_METHOD:
-    case TO_STRING_METHOD:
-      return false;
-    default:
+      case HASH_CODE_METHOD:
+      case TO_STRING_METHOD:
+        return false;
+      default:
     }
     if (!type.style().toBuilder().isEmpty()
         && !type.style().strictBuilder()
@@ -251,8 +251,8 @@ final class AccessorAttributesCollector {
           report(originalType)
               .warning(About.INCOMPAT,
                   "Type inherits overridden 'equals' method but have some non-inherited attributes."
-                  + " Please override 'equals' with abstract method to have it generate. Otherwise override"
-                  + " with calling super implementation to use custom implementation");
+                      + " Please override 'equals' with abstract method to have it generate. Otherwise override"
+                      + " with calling super implementation to use custom implementation");
         }
       }
       return;
@@ -269,8 +269,8 @@ final class AccessorAttributesCollector {
           report(originalType)
               .warning(About.INCOMPAT,
                   "Type inherits non-default 'hashCode' method but have some non-inherited attributes."
-                  + " Please override 'hashCode' with abstract method to have it generated. Otherwise override"
-                  + " with calling super implementation to use custom implementation");
+                      + " Please override 'hashCode' with abstract method to have it generated. Otherwise override"
+                      + " with calling super implementation to use custom implementation");
         }
       }
       return;
@@ -286,8 +286,8 @@ final class AccessorAttributesCollector {
           report(originalType)
               .warning(About.INCOMPAT,
                   "Type inherits non-default 'toString' method but have some non-inherited attributes."
-                  + " Please override 'toString' with abstract method to have generate it. Otherwise override"
-                  + " with calling super implementation to use custom implementation");
+                      + " Please override 'toString' with abstract method to have generate it. Otherwise override"
+                      + " with calling super implementation to use custom implementation");
         }
       }
       return;
@@ -327,7 +327,12 @@ final class AccessorAttributesCollector {
       } else if (attributeMethodCandidate.getReturnType().getKind() == TypeKind.VOID) {
         type.addNormalizeMethod(name.toString(), false);
       } else if (returnsNormalizedAbstractValueType(attributeMethodCandidate)) {
-        type.addNormalizeMethod(name.toString(), true);
+        if (protoclass.constitution().factoryOf().isNew()) {
+          reporter.error("Method '%s' annotated with @%s must be void when using plain constructors. " +
+              "i.e. normalizing instance values is not supported with 'new' constructor configured in style", name, CheckMirror.simpleName());
+        } else {
+          type.addNormalizeMethod(name.toString(), true);
+        }
       } else {
         reporter
             .error("Method '%s' annotated with @%s must return void or normalized instance of abstract value type",
@@ -479,8 +484,8 @@ final class AccessorAttributesCollector {
     if (!isCompatibleReturnType) {
       report(validationMethodCandidate)
           .error("Method '%s' annotated with @%s should have compatible return type to"
-              + " be used as normalization method. It should return abstract value type itself"
-              + " or immutable generated type (i.e. %s or %s)",
+                  + " be used as normalization method. It should return abstract value type itself"
+                  + " or immutable generated type (i.e. %s or %s)",
               validationMethodCandidate.getSimpleName(),
               CheckMirror.simpleName(),
               protoclass.constitution().typeAbstract(),
@@ -493,28 +498,28 @@ final class AccessorAttributesCollector {
   private AttributeNames deriveNames(String accessorName) {
     AttributeNames names = styles.forAccessor(accessorName);
     switch (names.raw) {
-    case HASH_CODE_METHOD: //$FALL-THROUGH$
-    case TO_STRING_METHOD:
-      // name could equal reserved method name if template is used
-      // like "getToString" accessor -> "toString" attribute
-      // then we force literal accessor name as raw name
-      return styles.forAccessorWithRaw(accessorName, accessorName);
-    case ORDINAL_ORDINAL_ATTRIBUTE_NAME: //$FALL-THROUGH$
-    case ORDINAL_DOMAIN_ATTRIBUTE_NAME:
-      if (type.isOrdinalValue()) {
+      case HASH_CODE_METHOD: //$FALL-THROUGH$
+      case TO_STRING_METHOD:
         // name could equal reserved method name if template is used
-        // like "getOrdinal" accessor -> "ordinal" attribute
-        // then we force literal accessor name as raw name.
-        // Here we have assumption that actual "ordinal" and "domain" accessors
-        // defined in OrdinalValue interface were filtered out beforehand
+        // like "getToString" accessor -> "toString" attribute
+        // then we force literal accessor name as raw name
         return styles.forAccessorWithRaw(accessorName, accessorName);
-      }
-      break;
-    case PARCELABLE_DESCRIBE_CONTENTS_METHOD:
-      if (type.isParcelable()) {
-        return styles.forAccessorWithRaw(accessorName, accessorName);
-      }
-      break;
+      case ORDINAL_ORDINAL_ATTRIBUTE_NAME: //$FALL-THROUGH$
+      case ORDINAL_DOMAIN_ATTRIBUTE_NAME:
+        if (type.isOrdinalValue()) {
+          // name could equal reserved method name if template is used
+          // like "getOrdinal" accessor -> "ordinal" attribute
+          // then we force literal accessor name as raw name.
+          // Here we have assumption that actual "ordinal" and "domain" accessors
+          // defined in OrdinalValue interface were filtered out beforehand
+          return styles.forAccessorWithRaw(accessorName, accessorName);
+        }
+        break;
+      case PARCELABLE_DESCRIBE_CONTENTS_METHOD:
+        if (type.isParcelable()) {
+          return styles.forAccessorWithRaw(accessorName, accessorName);
+        }
+        break;
     }
     return names;
   }
@@ -572,8 +577,8 @@ final class AccessorAttributesCollector {
     return attributeMethodCandidate.getParameters().isEmpty()
         && attributeMethodCandidate.getReturnType().getKind() != TypeKind.VOID
         && (isAbstract(attributeMethodCandidate)
-            || hasGenerateAnnotation(attributeMethodCandidate)
-            || isDefaultAsDefault);
+        || hasGenerateAnnotation(attributeMethodCandidate)
+        || isDefaultAsDefault);
   }
 
   private static boolean hasGenerateAnnotation(ExecutableElement attributeMethodCandidate) {

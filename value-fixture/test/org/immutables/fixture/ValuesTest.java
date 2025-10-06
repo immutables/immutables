@@ -363,7 +363,7 @@ public class ValuesTest {
         .arg1(1)
         .arg2(2)
         .build())
-            .same(ImmutableSillyInterned.of(1, 2));
+        .same(ImmutableSillyInterned.of(1, 2));
 
     check(ImmutableSillyInterned.of(1, 2).hashCode()).is(ImmutableSillyInterned.of(1, 2).hashCode());
     check(ImmutableSillyInterned.of(1, 2).hashCode()).not(ImmutableSillyInterned.of(2, 2).hashCode());
@@ -373,10 +373,10 @@ public class ValuesTest {
   @Test
   public void cannotBuildWrongInvariants() {
     assertThrows(IllegalStateException.class, () ->
-    ImmutableSillyValidatedBuiltValue.builder()
-        .value(10)
-        .negativeOnly(true)
-        .build());
+        ImmutableSillyValidatedBuiltValue.builder()
+            .value(10)
+            .negativeOnly(true)
+            .build());
   }
 
   @Test
@@ -549,6 +549,16 @@ public class ValuesTest {
   @Test
   public void multipleCheck1() {
     assertThrows(IllegalStateException.class, () -> ImmutableMultipleChecks.C.builder().a(0).b(1).build());
+  }
+
+  @SuppressWarnings({"CheckReturnValue", "unused"})
+  @Test
+  public void checkWithPlainConstructor() {
+    // constructs fine
+    CheckWithPlainConstructor instance = new ImmutableCheckWithPlainConstructor(1);
+    // a cannot be 0
+    assertThrows(IllegalStateException.class, () -> new ImmutableCheckWithPlainConstructor(0),
+        "a == 0 when b is whatever");
   }
 
   @SuppressWarnings("CheckReturnValue")

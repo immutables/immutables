@@ -380,8 +380,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return null;
   }
 
-  public boolean isUseValidation() {
-    if (isGenerateOrdinalValue() || !validationMethods.isEmpty() || isUseJavaValidationApi()) {
+  public boolean isUseValidationExceptChecks() {
+    if (isGenerateOrdinalValue() || isUseJavaValidationApi()) {
       return true;
     }
     if (isUseSingletonOnly()) {
@@ -394,6 +394,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
           || !useAttributelessSingleton();
     }
     return isUseInterned();
+  }
+
+  public boolean isUseValidation() {
+    return !validationMethods.isEmpty() || isUseValidationExceptChecks();
   }
 
   public boolean isGenerateJacksonMapped() {
