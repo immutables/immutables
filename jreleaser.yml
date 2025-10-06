@@ -1,6 +1,8 @@
+# This file is just an example in the current process
+# it is not being invoked from here
 project:
   name: immutables
-  version: 2.11.0
+  version: 2.11.5
   languages:
     java:
       groupId: org.immutables
@@ -16,5 +18,5 @@ deploy:
         stage: UPLOAD
         verifyPom: false
         stagingRepositories:
-          - target/central-prepared
+          - staging
         maxRetries: 1
