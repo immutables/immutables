@@ -767,6 +767,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean requiresAlternativeStrictConstructor() {
+    if (!style().additionalStrictContainerConstructor()) return false;
+
     for (ValueAttribute constructor : getConstructorArguments()) {
       if (constructor.requiresAlternativeStrictConstructor()) {
         return true;

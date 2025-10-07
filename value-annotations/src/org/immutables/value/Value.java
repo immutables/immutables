@@ -1751,6 +1751,22 @@ public @interface Value {
     boolean mergeFromSupertypesDynamically() default true;
 
     /**
+     * Constructors or factory methods ({@link #of()}) can have alternative overloaded versions
+     * having more strict parameter types which are the same as abstract attributes. For example,
+     * if we have constructor parameter attribute (see {@link Parameter}, {@link #allParameters()}, or {@link #allMandatoryParameters()}) of type {@code List<T>}, then 2 constructor methods would be
+     * generated, one having {@code List<T>} as parameter ("strict" constructor) and the other
+     * with {@code Iterable<T>} parameter, which can accept any iterable and will convert it to
+     * an immutable list (if not one already). Setting this to {@code false} will disable generation
+     * of a strict overload as redundant/unnecessary. The default is {@code true} for backward compatibility.
+     * When there are no such container parameters present, no additional overloaded version will
+     * be generated regardless.
+     * 
+     * @return {@code false} to disable. The default is {@code true}, additional strict constructor
+     *    will be generated for container parameters.
+     */
+    boolean additionalStrictContainerConstructor() default true;
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * construction methods. Builder visibility will follow.
