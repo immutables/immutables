@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 Immutables Authors and Contributors
+   Copyright 2016-2025 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,7 +26,12 @@ public final class TelescopicBuild {
   private final ValueType type;
   public final List<TelescopicStage> stages;
   public final List<ValueAttribute> finals;
+
   public final String nameBuildFinal;
+  public final String nameBuildFinalSimple;
+
+  public final String nameBuildStart;
+  public final String nameBuildStartSimple;
 
   private TelescopicBuild(ValueType type,
       List<TelescopicStage> initializers,
@@ -34,7 +39,10 @@ public final class TelescopicBuild {
     this.type = type;
     this.stages = initializers;
     this.finals = nonMandatory;
-    this.nameBuildFinal = (type.constitution.isOutsideBuilder() ? toUpper(type.name()) : "") + "BuildFinal";
+    this.nameBuildFinal = toNameOfStage(type, "BuildFinal");
+    this.nameBuildFinalSimple = nameBuildFinal.substring(nameBuildFinal.indexOf('.') + 1); // ok
+    this.nameBuildStart = toNameOfStage(type, "BuildStart");
+    this.nameBuildStartSimple = nameBuildStart.substring(nameBuildStart.indexOf('.') + 1); // ok
   }
 
   public TelescopicStage firstStage() {
@@ -72,18 +80,24 @@ public final class TelescopicBuild {
     public final ValueAttribute attribute;
     public final @Nullable TelescopicStage next;
     public final String nameBuildStage;
+    public final String nameBuildStageSimple;
 
     TelescopicStage(ValueType type, ValueAttribute attribute, @Nullable TelescopicStage next) {
       this.attribute = attribute;
       this.next = next;
-      String name = toUpper(attribute.name());
-      this.nameBuildStage = (type.constitution.isOutsideBuilder()
-          ? toUpper(type.name()) + name
-          : name) + "BuildStage";
+      this.nameBuildStage = toNameOfStage(type, toUpper(attribute.name()) + "BuildStage");
+      this.nameBuildStageSimple = nameBuildStage.substring(nameBuildStage.indexOf('.') + 1); // ok
     }
   }
 
   private static String toUpper(String n) {
     return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, n);
+  }
+
+  private static String toNameOfStage(ValueType type, String suffix) {
+    if (type.constitution.hasTopLevelBuilder()) {
+      return type.typeBuilderImpl().simple() + "Stages." + suffix;
+    }
+    return (type.constitution.isOutsideBuilder() ? toUpper(type.name()) : "") + suffix;
   }
 }

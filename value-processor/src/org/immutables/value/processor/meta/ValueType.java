@@ -1076,17 +1076,17 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   private @Nullable TelescopicBuild telescopicBuild;
+  private boolean telescopicBuildIsSet;
 
   public @Nullable TelescopicBuild getTelescopicBuild() {
-    if (telescopicBuild == null) {
-      if (style().stagedBuilder()
-          && !getMandatoryAttributes().isEmpty()
-          && (constitution.isNestedFactoryOrConstructor() || !constitution.isOutsideBuilder())) {
+    if (!telescopicBuildIsSet) {
+      if (isUseBuilder() && style().stagedBuilder() && !getMandatoryAttributes().isEmpty()) {
         TelescopicBuild tb = TelescopicBuild.from(this, getSettableAttributes());
         if (!tb.stages.isEmpty()) {
           telescopicBuild = tb;
         }
       }
+      telescopicBuildIsSet = true;
     }
     return telescopicBuild;
   }

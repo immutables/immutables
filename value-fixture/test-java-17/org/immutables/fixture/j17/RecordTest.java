@@ -146,4 +146,30 @@ public class RecordTest {
     check(r.l()).is(1L);
     check(r.ll()).is(-1L);
   }
+
+  @Test public void stagedBuilder() {
+    var rec = RecordStaged.builder()
+        .a(1)
+        .b("B")
+        .c("C")
+        .build();
+
+    check(rec).hasToString("RecordStaged[a=1, b=B, c=C]");
+  }
+
+  @Test public void enclosedStagedBuilder() {
+    var rec1 = ImmutableEnclosedStaged.rec1Builder()
+        .a(1)
+        .b("B")
+        .c("C")
+        .build();
+
+    check(rec1).hasToString("Rec1[a=1, b=B, c=C]");
+
+    var rec2 = ImmutableEnclosedStaged.rec2Builder()
+        .aa(11)
+        .build();
+
+    check(rec2).hasToString("Rec2[aa=11]");
+  }
 }
