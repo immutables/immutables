@@ -159,6 +159,12 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
+    public Optional<DDataMirror> datatype2Enabled() {
+      return DDataMirror.find(element());
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
     public Optional<StyleInfo> style() {
       return StyleMirror.find(element()).transform(ToStyleInfo.FUNCTION);
     }
@@ -745,12 +751,14 @@ public class Proto {
 
     @Value.Lazy
     public boolean datatype2Enabled() {
+      if (!environment().hasDatatypes2Module()) return false;
+
       if (DDataMirror.isPresent(element())) {
         return true;
       }
 
       for (MetaAnnotated m : metaAnnotated()) {
-        Optional<DataMirror> d = m.datatypeEnabled();
+        Optional<DDataMirror> d = m.datatype2Enabled();
         if (d.isPresent()) return true;
       }
 
