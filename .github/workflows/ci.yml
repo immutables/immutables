@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ '8', '11', '17', '21'  ]
+        java: [ '8', '11', '17', '21', '25'  ]
         compiler: [ 'javac', 'ecj' ]
         extra: [ 'none', 'errorprone' ]
     steps:
@@ -28,4 +28,4 @@ jobs:
     - name: print Java version
       run: java -version
     - name: Run tests
-      run: mvn --batch-mode --no-transfer-progress clean test -P${{ matrix.compiler }} -Dextra=${{ matrix.extra }}
+      run: ./mvnw --batch-mode --no-transfer-progress clean test -P${{ matrix.compiler }} -Dextra=${{ matrix.extra }}
