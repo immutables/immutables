@@ -1446,7 +1446,7 @@ public interface [tb.nameBuildStartSimple][type.generics] {
 }
 
 [atGenerated type]
-public interface [nt.nameBuildStageSimple][type.generics] extends [tb.nameBuildStartSimple][type.generics] {}
+public interface [nt.nameBuildStageSimple][type.generics] extends [tb.nameBuildStartSimple][type.generics.args] {}
   [else]
 [atGenerated type]
 public interface [nt.nameBuildStageSimple][type.generics] {
