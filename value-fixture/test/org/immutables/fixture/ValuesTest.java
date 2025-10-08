@@ -656,4 +656,12 @@ public class ValuesTest {
     }
     check(!returned); // this is just for compiler error prone so that we read d() and also use it
   }
+
+  @Test
+  public void noParametersConstructor() {
+    NoParametersConstructor c = ImmutableNoParametersConstructor.of();
+    NoParametersConstructor b = ImmutableNoParametersConstructor.builder().build();
+    check(c).not().same(b);
+    check(c).is(b);
+  }
 }

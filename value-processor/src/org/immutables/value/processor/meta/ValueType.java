@@ -761,7 +761,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public boolean isUseConstructor() {
     return !getConstructorArguments().isEmpty()
         || (getSettableAttributes().isEmpty()
-        && !isUseBuilder()
+        && (!isUseBuilder() || style().allParameters() || style().allMandatoryParameters())
         && !immutableFeatures.singleton()
         && !style().attributelessSingleton());  // don't use !isUseSingleton() to avoid unresolvable recursion
   }
