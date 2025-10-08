@@ -397,7 +397,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isUseValidation() {
-    return !validationMethods.isEmpty() || isUseValidationExceptChecks();
+    return (!validationMethods.isEmpty() && !factoryOf().isNew())
+        || isUseValidationExceptChecks();
   }
 
   public boolean isGenerateJacksonMapped() {

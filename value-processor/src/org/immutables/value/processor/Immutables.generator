@@ -1235,6 +1235,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
       throw new [jaxarta].validation.ConstraintViolationException(constraintViolations);
     }
 [/if]
+[if not type.factoryOf.new][-- would be generated at the end of constructor using 'generateCheckAfterConstruction' --]
 [for vm in type.validationMethods]
   [if vm.normalize]
     instance = ([type.typeImmutable.relative]) instance.[vm.name]();
@@ -1242,6 +1243,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
     instance.[vm.name]();
   [/if]
 [/for]
+[/if]
 [if type.useSingletonOnly]
     return INSTANCE != null ? INSTANCE : instance;[-- may be null during initialization --]
 [else if type.generateOrdinalValue]
@@ -3209,6 +3211,9 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
 [/for]
     [generateDerivedConstruction type noAttributes]
     [generateAfterConstruction type true]
+  [if type.factoryOf.new and type.validationMethods]
+    [generateCheckAfterConstruction type]
+  [/if]
   }
 [/if]
 [if type.useCopyMethods]
