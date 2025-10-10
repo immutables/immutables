@@ -1,18 +1,3 @@
-/*
-   Copyright 2014 Immutables Authors and Contributors
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
 package org.immutables.generator;
 
 import com.google.common.base.Ascii;
@@ -31,18 +16,18 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Converter-like function to apply or extract naming, derived from input.
  */
 public abstract class Naming implements Function<String, String> {
-  private Naming() {}
+  protected Naming() {}
 
-  private static final String NOT_DETECTED = "";
-  private static final String NAME_PLACEHOLDER = "*";
-  private static final Splitter TEMPLATE_SPLITTER = Splitter.on(NAME_PLACEHOLDER);
-  private static final CharMatcher TEMPLATE_CHAR_MATCHER =
-      CharMatcher.is('_')
-          .or(CharMatcher.is(NAME_PLACEHOLDER.charAt(0)))
-          .or(CharMatcher.inRange('a', 'z'))
-          .or(CharMatcher.inRange('A', 'Z'))
-          .or(CharMatcher.inRange('0', '9'))
-          .precomputed();
+  protected static final String NOT_DETECTED = "";
+  protected static final String NAME_PLACEHOLDER = "*";
+  protected static final Splitter TEMPLATE_SPLITTER = Splitter.on(NAME_PLACEHOLDER);
+  protected static final CharMatcher TEMPLATE_CHAR_MATCHER =
+          CharMatcher.is('_')
+                  .or(CharMatcher.is(NAME_PLACEHOLDER.charAt(0)))
+                  .or(CharMatcher.inRange('a', 'z'))
+                  .or(CharMatcher.inRange('A', 'Z'))
+                  .or(CharMatcher.inRange('0', '9'))
+                  .precomputed();
 
   /**
    * Applies naming to input identifier, converting it to desired naming.
@@ -139,17 +124,17 @@ public abstract class Naming implements Function<String, String> {
       return IDENTITY_NAMING;
     }
     checkArgument(TEMPLATE_CHAR_MATCHER.matchesAllOf(template),
-        "Naming template [%s] contains unsupported characters, only java identifier chars and '*' placeholder are allowed (ASCII only)",
-        template);
+            "Naming template [%s] contains unsupported characters, only java identifier chars and '*' placeholder are allowed (ASCII only)",
+            template);
 
     List<String> parts = TEMPLATE_SPLITTER.splitToList(template);
     checkArgument(parts.size() <= 2,
-        "Naming template [%s] contains more than one '*' placeholder, which is unsupported",
-        template);
+            "Naming template [%s] contains more than one '*' placeholder, which is unsupported",
+            template);
 
     return parts.size() == 1
-        ? new ConstantNaming(template)
-        : new PrefixSuffixNaming(parts.get(0), parts.get(1));
+            ? new ConstantNaming(template)
+            : new PrefixSuffixNaming(parts.get(0), parts.get(1));
   }
 
   public static Naming[] fromAll(String... templates) {
@@ -196,175 +181,4 @@ public abstract class Naming implements Function<String, String> {
       return NAME_PLACEHOLDER;
     }
   };
-
-  private static class ConstantNaming extends Naming {
-    final String name;
-
-    ConstantNaming(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String apply(String input) {
-      return name;
-    }
-
-    @Override
-    public String detect(String identifier) {
-      return identifier.equals(name) ? name : NOT_DETECTED;
-    }
-
-    @Override
-    public boolean isIdentity() {
-      return false;
-    }
-
-    @Override
-    public boolean isConstant() {
-      return true;
-    }
-
-    @Override
-    public Naming requireNonConstant(Preference preference) {
-      switch (preference) {
-      case SUFFIX:
-        return new PrefixSuffixNaming("", Usage.CAPITALIZED.apply(name));
-      case PREFIX:
-      default:
-        return new PrefixSuffixNaming(name, "");
-      }
-    }
-
-    @Override
-    public Naming requireJavaBeanConvention() {
-      return new JavaBeanNaming(name);
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
-
-  private static class JavaBeanNaming extends Naming {
-
-    private final String prefix;
-
-    JavaBeanNaming(String prefix) {
-      this.prefix = Objects.requireNonNull(prefix, "prefix");
-    }
-
-    @Override
-    public String apply(String input) {
-      return prefix + Usage.CAPITALIZED.apply(input);
-    }
-
-    @Override
-    public String detect(String identifier) {
-      if (!identifier.startsWith(prefix)) {
-        return NOT_DETECTED;
-      }
-
-      String name = identifier.substring(prefix.length());
-
-      if (name.length() > 1 && Character.isUpperCase(name.charAt(0)) && Character.isUpperCase(name.charAt(1))) {
-        // leave name as is
-        // URL -> URL
-        return name;
-      }
-
-      return Usage.LOWERIZED.apply(name);
-    }
-
-    @Override
-    public boolean isIdentity() {
-      return false;
-    }
-
-    @Override
-    public boolean isConstant() {
-      return false;
-    }
-
-    @Override
-    public Naming requireNonConstant(Preference preference) {
-      if (preference != Preference.PREFIX) {
-        throw new IllegalArgumentException(String.format("Preference %s not supported by %s", preference, getClass().getSimpleName()));
-      }
-      return this;
-    }
-
-    @Override
-    public Naming requireJavaBeanConvention() {
-      return this;
-    }
-  }
-
-  private static class PrefixSuffixNaming extends Naming {
-    final String prefix;
-    final String suffix;
-    final int lengthsOfPrefixAndSuffix;
-
-    PrefixSuffixNaming(String prefix, String suffix) {
-      this.prefix = prefix;
-      this.suffix = suffix;
-      this.lengthsOfPrefixAndSuffix = suffix.length() + prefix.length();
-      Preconditions.checkArgument(lengthsOfPrefixAndSuffix > 0);
-    }
-
-    @Override
-    public String apply(String input) {
-      Usage resultFormat = prefix.isEmpty()
-          ? Usage.INDIFFERENT
-          : Usage.CAPITALIZED;
-
-      return prefix + resultFormat.apply(input) + suffix;
-    }
-
-    @Override
-    public String detect(String identifier) {
-      if (identifier.length() <= lengthsOfPrefixAndSuffix) {
-        return NOT_DETECTED;
-      }
-
-      boolean prefixMatches = prefix.isEmpty() ||
-          (identifier.startsWith(prefix) && Ascii.isUpperCase(identifier.charAt(prefix.length())));
-
-      boolean suffixMatches = suffix.isEmpty() || identifier.endsWith(suffix);
-
-      if (prefixMatches && suffixMatches) {
-        String detected = identifier.substring(prefix.length(), identifier.length() - suffix.length());
-        return prefix.isEmpty()
-            ? detected
-            : CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, detected);
-      }
-
-      return NOT_DETECTED;
-    }
-
-    @Override
-    public boolean isIdentity() {
-      return false;
-    }
-
-    @Override
-    public boolean isConstant() {
-      return false;
-    }
-
-    @Override
-    public Naming requireNonConstant(Preference preference) {
-      return this;
-    }
-
-    @Override
-    public Naming requireJavaBeanConvention() {
-      return new JavaBeanNaming(prefix);
-    }
-
-    @Override
-    public String toString() {
-      return prefix + NAME_PLACEHOLDER + suffix;
-    }
-  }
 }
