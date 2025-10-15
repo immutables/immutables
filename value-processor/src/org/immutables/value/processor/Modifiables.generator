@@ -196,7 +196,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    */
   [atCanIgnoreReturnValue type]
   public final [thisSetterReturnType type] [unset p]() {
-    [disambiguateField type 'optBits'][emptyIfZero pos.index] |= 0;
+    [disambiguateField type 'optBits'][emptyIfZero pos.index] &= ~OPT_BIT_[toConstant p.name];
     [clearField p true]
     [thisSetterReturn type]
   }
