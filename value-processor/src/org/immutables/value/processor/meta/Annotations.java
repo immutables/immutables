@@ -180,7 +180,8 @@ final class Annotations {
 
     if (includeJacksonAnnotations) {
       if (element.getKind() != ElementKind.METHOD) {
-        if (qualifiedName.equals(Proto.JACKSON_DESERIALIZE) || qualifiedName.equals(Proto.JACKSON_SERIALIZE)) {
+        if (qualifiedName.equals(Proto.JACKSON_DESERIALIZE) || qualifiedName.equals(Proto.JACKSON_SERIALIZE) ||
+          qualifiedName.equals(Proto.JACKSON3_DESERIALIZE) || qualifiedName.equals(Proto.JACKSON3_SERIALIZE)) {
           return false;
         }
       }

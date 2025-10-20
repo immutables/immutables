@@ -3498,6 +3498,7 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson([jval.type] jso
 itself immutable. Since it's private, that's benign. --]
 [hiddenMutableState type]
 [overrideJsonDeserialize type]
+[overrideJson3Deserialize type]
 [overrideJsonTypeInfo type]
 static final [output.linesShortable]class Json[type.generics]
     [extendsImplements type][/output.linesShortable]
@@ -5352,6 +5353,8 @@ private static final long serialVersionUID = [literal serialVersion];
 [template functionClass][if classpath.isJava8]java.util.function.Function[else][guava].base.Function[/if][/template]
 
 [template overrideJsonDeserialize Type type][if type.jacksonDeserialized]@[jackson].databind.annotation.JsonDeserialize[/if][/template]
+
+[template overrideJson3Deserialize Type type][if type.jackson3Deserialized]@[jackson3].databind.annotation.JsonDeserialize[/if][/template]
 
 [template overrideJsonTypeInfo Type type][if type.jacksonJsonTypeInfo]@[jackson].annotation.JsonTypeInfo(use=[jackson].annotation.JsonTypeInfo.Id.NONE)[/if][/template]
 

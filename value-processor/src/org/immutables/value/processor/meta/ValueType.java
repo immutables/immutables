@@ -418,6 +418,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return constitution.protoclass().isJacksonDeserialized();
   }
 
+  public boolean isJackson3Deserialized() {
+    return constitution.protoclass().isJackson3Deserialized();
+  }
+
   public boolean isJacksonJsonTypeInfo() {
     if (constitution.protoclass().isJacksonJsonTypeInfo()) {
       return true;
