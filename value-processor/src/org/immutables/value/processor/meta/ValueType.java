@@ -402,7 +402,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isGenerateJacksonMapped() {
-    return constitution.protoclass().isJacksonSerialized();
+    return constitution.protoclass().isJacksonSerialized() || constitution.protoclass().isJackson3Serialized();
   }
 
   public boolean isGenerateJacksonProperties() {

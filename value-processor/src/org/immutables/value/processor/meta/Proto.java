@@ -1812,6 +1812,25 @@ public class Proto {
     }
 
     @Value.Lazy
+    public boolean isJackson3Serialized() {
+      if (!styles().style().jacksonIntegration()) {
+        return false;
+      }
+      if (declaringType().isPresent()) {
+        DeclaringType t = declaringType().get();
+        if (t.isJackson3Serialized()) {
+          return true;
+        }
+        if (t.enclosingTopLevel().isPresent()) {
+          if (t.enclosingTopLevel().get().isJackson3Serialized()) {
+            return true;
+          }
+        }
+      }
+      return packageOf().isJackson3Serialized();
+    }
+
+    @Value.Lazy
     public boolean isJacksonDeserialized() {
       if (!styles().style().jacksonIntegration()) {
         return false;
