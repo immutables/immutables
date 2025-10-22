@@ -114,6 +114,32 @@ public class ModifiablesTest {
     check(!c1.integerIsSet());
     check(!c1.arrayIntsIsSet());
     check(!c1.stringIsSet());
+
+    ModifiableStandalone c2 = ModifiableStandalone.create();
+    check(!c2.defIsSet());
+    check(!c2.def2IsSet());
+    check(c2.def()).is(1);
+    check(c2.def2()).is(0);
+
+    c2.setDef(2);
+    check(c2.defIsSet());
+    check(!c2.def2IsSet());
+    check(c2.def()).is(2);
+
+    c2.setDef2(3);
+    check(c2.defIsSet());
+    check(c2.def2IsSet());
+    check(c2.def2()).is(3);
+
+    c2.unsetDef();
+    check(!c2.defIsSet());
+    check(c2.def2IsSet());
+    check(c2.def()).is(1);
+
+    c2.unsetDef2();
+    check(!c2.defIsSet());
+    check(!c2.def2IsSet());
+    check(c2.def2()).is(0);
   }
 
   @Test
