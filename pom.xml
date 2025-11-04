@@ -98,7 +98,6 @@
     <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.compiler.release>8</maven.compiler.release>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <!-- Shared versions -->
     <retro.version>2.7.5</retro.version>
