@@ -1095,8 +1095,11 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isGenerateNoargConstructor() {
-    return style().privateNoargConstructor()
-        || style().protectedNoargConstructor();
+    return (style().privateNoargConstructor()
+        || style().protectedNoargConstructor())
+        // this special case is when we have just empty constructor we don't want to
+        // collide with
+        && !(isUseConstructor() && getConstructorArguments().isEmpty());
   }
 
   private @Nullable ThrowForInvalidImmutableState throwForInvalidImmutableState;
@@ -1364,7 +1367,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isGenerateBuilderConstructor() {
     return isUseBuilder()
-        && !(isUseSingleton() && settableAttributes.isEmpty())
+        && !(isUseSingleton() && getSettableAttributes().isEmpty())
+        && !(isUseConstructor() && getConstructorArguments().isEmpty())
         && !isGenerateBuilderUseCopyConstructor();
   }
 

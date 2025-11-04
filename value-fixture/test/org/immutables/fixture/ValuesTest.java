@@ -15,19 +15,11 @@
  */
 package org.immutables.fixture;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import nonimmutables.GetterAnnotation;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
-import org.immutables.fixture.style.ImmutableOptionalWithNullable;
-import org.immutables.fixture.style.ImmutableOptionalWithoutNullable;
-import org.junit.jupiter.api.Test;
-
-import javax.ws.rs.POST;
 import java.io.IOException;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -35,7 +27,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import javax.ws.rs.POST;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
+import org.immutables.fixture.style.ImmutableOptionalWithNullable;
+import org.immutables.fixture.style.ImmutableOptionalWithoutNullable;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -663,5 +662,38 @@ public class ValuesTest {
     NoParametersConstructor b = ImmutableNoParametersConstructor.builder().build();
     check(c).not().same(b);
     check(c).is(b);
+  }
+
+  @Test
+  public void noParametersPrivateConstructor() throws Exception {
+    NoParametersPrivateConstructor c = ImmutableNoParametersPrivateConstructor.of();
+    NoParametersPrivateConstructor b = ImmutableNoParametersPrivateConstructor.builder().build();
+    check(c).not().same(b);
+    check(c).is(b);
+
+    Constructor<?> constructor = ImmutableNoParametersPrivateConstructor.class.getDeclaredConstructor();
+    check((constructor.getModifiers() & Modifier.PRIVATE) != 0);
+  }
+
+  @Test
+  public void noParametersProtectedConstructor() throws Exception {
+    NoParametersProtectedConstructor c = ImmutableNoParametersProtectedConstructor.of();
+    NoParametersProtectedConstructor b = ImmutableNoParametersProtectedConstructor.builder().build();
+    check(c).not().same(b);
+    check(c).is(b);
+
+    Constructor<?> constructor = ImmutableNoParametersProtectedConstructor.class.getDeclaredConstructor();
+    check((constructor.getModifiers() & Modifier.PROTECTED) != 0);
+  }
+
+  @Test
+  public void noParametersSingletonProtectedConstructor() throws Exception {
+    NoParametersSingletonProtectedConstructor c = ImmutableNoParametersSingletonProtectedConstructor.of();
+    NoParametersSingletonProtectedConstructor b = ImmutableNoParametersSingletonProtectedConstructor.builder().build();
+    check(c).same(b);
+    check(c).is(b);
+
+    Constructor<?> constructor = ImmutableNoParametersProtectedConstructor.class.getDeclaredConstructor();
+    check((constructor.getModifiers() & Modifier.PROTECTED) != 0);
   }
 }
