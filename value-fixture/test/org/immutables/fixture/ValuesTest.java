@@ -693,7 +693,7 @@ public class ValuesTest {
     check(c).same(b);
     check(c).is(b);
 
-    Constructor<?> constructor = ImmutableNoParametersProtectedConstructor.class.getDeclaredConstructor();
+    Constructor<?> constructor = ImmutableNoParametersSingletonProtectedConstructor.class.getDeclaredConstructor();
     check((constructor.getModifiers() & Modifier.PROTECTED) != 0);
   }
 }
