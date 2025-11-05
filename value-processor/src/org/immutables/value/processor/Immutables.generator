@@ -3003,8 +3003,8 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [if v.jdkSpecializedOptional][expression].isPresent() ? [expression].getAs[toUpper v.unwrappedElementType]() : null[else][maybeCopyOf v][expression].orElse(null)[/maybeCopyOf][/if]
 [else if v.optionalType]
   [if v.consumesWildcardExtends]([v.type]) [/if][maybeCopyOf v expression]
-[else if v.arrayType][-- we don't make a safe copy for nullable array --]
-  [if v.nullable][expression][else][expression].clone()[/if]
+[else if v.arrayType]
+  [if mayBeNullable and v.nullable][expression] == null ? null : [/if][expression].clone()
 [else if v.attributeValueKindCopy]
   [if mayBeNullable and v.nullable][expression] == null ? null : [/if][deepCopyOf v][expression][/deepCopyOf]
 [else if v.mapType]

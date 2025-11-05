@@ -1493,7 +1493,9 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     if (instantiation != null) {
       typeKind = AttributeTypeKind.ENCODING;
     } else if (isGenerateDerived) {
-      typeKind = AttributeTypeKind.REGULAR;
+      typeKind = returnType.getKind() == TypeKind.ARRAY
+          ? AttributeTypeKind.ARRAY
+          : AttributeTypeKind.REGULAR;
       ensureTypeIntrospected = true;
     } else if (returnType.getKind() == TypeKind.ARRAY) {
       typeKind = AttributeTypeKind.ARRAY;

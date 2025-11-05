@@ -22,6 +22,7 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -695,5 +696,29 @@ public class ValuesTest {
 
     Constructor<?> constructor = ImmutableNoParametersSingletonProtectedConstructor.class.getDeclaredConstructor();
     check((constructor.getModifiers() & Modifier.PROTECTED) != 0);
+  }
+
+  @Test void derivedArraysEqualsAndCloning() {
+    ImmutableDerivedArray da = ImmutableDerivedArray.builder()
+        .foo("ABC")
+        .goo((byte) 0, (byte) 1, (byte) 2)
+        .build();
+
+    check(da.foo()).same(da.foo());
+
+    check(Arrays.equals(da.goo(), da.goo()));
+    check((Object) da.bar()).not().same(da.bar());
+
+    // same values, but it will be a copy
+    ImmutableDerivedArray cp = da.withGoo((byte) 0, (byte) 1, (byte) 2);
+    check(cp).not().same(da);
+    check(cp).is(da);
+
+    // cloning
+    check(Arrays.equals(da.bar(), da.bar()));
+    check((Object) da.bar()).not().same(da.bar());
+
+    check(Arrays.equals(da.foo().getBytes(StandardCharsets.UTF_8), da.bar()));
+    
   }
 }
