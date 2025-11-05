@@ -15,10 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Ascii;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import java.lang.annotation.ElementType;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +26,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
@@ -38,6 +33,10 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
+import com.google.common.base.Ascii;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.SourceTypes;
@@ -68,6 +67,7 @@ class TypeStringProvider {
   private String returnTypeName;
   private boolean ended;
 
+  private boolean lookedIntoReturnTypeString;
   private @Nullable List<String> workaroundTypeParameters;
   private @Nullable String workaroundTypeString;
   private final Reporter reporter;
@@ -76,11 +76,6 @@ class TypeStringProvider {
   private final ImportsTypeStringResolver importsResolver;
   private final String nullableAnnotationName;
 
-  @Nullable
-  String elementTypeAnnotations;
-
-  @Nullable
-  String secondaryElementTypeAnnotation;
   boolean processNestedTypeUseAnnotations;
   boolean forAttribute = false;
   NullElements nullElements = NullElements.BAN;
@@ -153,10 +148,33 @@ class TypeStringProvider {
       // So currently we insert only for top level, declared type (here),
       // and primitives (see above)
       TypeKind k = startType.getKind();
-      if (k == TypeKind.DECLARED || k == TypeKind.ERROR) {
-        insertTypeAnnotationsIfPresent(startType, 0, rawTypeName.length());
-      }
+      switch (k) {
+        case DECLARED:
+        case ERROR:
+          assert rawTypeName != null;
+          insertTypeAnnotationsIfPresent(startType, 0, rawTypeName.length());
+          break;
+        case ARRAY: // probably absent, but we can try
+        case TYPEVAR: // type var
+          boolean inserted = rawTypeName != null
+              && insertTypeAnnotationsIfPresent(startType, 0, rawTypeName.length());
 
+          boolean someNullabilityIsSet = nullableTypeAnnotation || nullElements != NullElements.BAN;
+          if (!inserted && !someNullabilityIsSet && !lookedIntoReturnTypeString) {
+            // only for side effect
+            extractReturnTypeString(k);
+            if (nullableTypeAnnotation && k == TypeKind.ARRAY) {
+              // should end with "[]"
+              String fqn = importsResolver.apply(nullableAnnotationName);
+              if (!fqn.equals(nullableAnnotationName)) {
+                // did resolved import
+                buffer.setLength(buffer.length() - 2); // [ ]
+                buffer.append(" @").append(fqn).append(" []");
+              }
+            }
+          }
+          break;
+      }
       // A quirk for unnamed/unknown package ?
       if (buffer.length() > 0 && buffer.charAt(0) == '.') {
         buffer.deleteCharAt(0);
@@ -210,13 +228,15 @@ class TypeStringProvider {
     }
   }
 
-  private void insertTypeAnnotationsIfPresent(TypeMirror type, int typeStart, int typeEnd) {
+  private boolean insertTypeAnnotationsIfPresent(TypeMirror type, int typeStart, int typeEnd) {
     List<? extends AnnotationMirror> annotations = type.getAnnotationMirrors();
     if (!annotations.isEmpty()) {
       StringBuilder annotationBuffer = typeAnnotationsToBuffer(annotations, false);
       int insertionIndex = typeStart + buffer.substring(typeStart, typeEnd).lastIndexOf('.') + 1;
       buffer.insert(insertionIndex, annotationBuffer);
+      return true;
     }
+    return false;
   }
 
   private StringBuilder typeAnnotationsToBuffer(List<? extends AnnotationMirror> annotations, boolean nestedTypeUse) {
@@ -252,28 +272,16 @@ class TypeStringProvider {
     return annotationBuffer;
   }
 
-  private boolean tryToUseSourceAsAWorkaround() {
+  private boolean tryToUseSourceAsAWorkaround(TypeKind typeKind) {
     if (element.getKind() != ElementKind.METHOD) {
       // we don't bother with non-method attributes
       // (like factory builder, where attributes are parameters)
       return false;
     }
 
-    CharSequence returnTypeString = SourceExtraction.getReturnTypeString((ExecutableElement) element);
-    if (returnTypeString.length() == 0 && sourceExtractionCache != null) {
-      try {
-        SourceStructureGet sourceStructure = sourceExtractionCache.readCachedSourceGet();
+    @Nullable CharSequence returnTypeString = extractReturnTypeString(typeKind);
 
-        if (sourceStructure != null) {
-          String accessorPath = computePath((ExecutableElement) element);
-          returnTypeString = sourceStructure.getReturnType(accessorPath);
-        }
-      } catch (Error | RuntimeException bestEffortsMiserablyFailed) {
-        return false;
-      }
-    }
-
-    if (returnTypeString.length() == 0) {
+    if (returnTypeString == null || returnTypeString.length() == 0) {
       // no source could be extracted for some reason, workaround will not work
       return false;
     }
@@ -290,6 +298,79 @@ class TypeStringProvider {
 
     // workaround may have successed, need to continue with whatever we have
     return true;
+  }
+
+  private @Nullable CharSequence extractReturnTypeString(TypeKind typeKind) {
+    try {
+      boolean wasLooked = lookedIntoReturnTypeString;
+      lookedIntoReturnTypeString = true;
+      if (!(element instanceof ExecutableElement)) return null;
+
+      CharSequence returnTypeString =
+          SourceExtraction.getReturnTypeString(CachingElements.getDelegate((ExecutableElement) element));
+      if (returnTypeString.length() == 0 && sourceExtractionCache != null) {
+        SourceStructureGet sourceStructure = sourceExtractionCache.readCachedSourceGet();
+
+        if (sourceStructure != null) {
+          String accessorPath = computePath((ExecutableElement) element);
+          String returnType = sourceStructure.getReturnType(accessorPath);
+          // if not by chance already identified some nullability
+          if (!wasLooked && !nullableTypeAnnotation && nullElements == NullElements.BAN) {
+            String annotations = sourceStructure.getAnnotations(accessorPath);
+
+            if (typeKind == TypeKind.ARRAY) {
+              String signature = sourceStructure.getSignature(accessorPath);
+              if (signature.contains("@" + nullableAnnotationName + "[]")) {
+                nullableTypeAnnotation = true;
+              }
+              // Commented out lines doesn't produce any good impact for various
+              // and subtle reasons.
+            /* if (annotations.contains("@" + EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
+                nullElements = NullElements.SKIP;
+              } else if (annotations.contains("@" + EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
+                nullElements = NullElements.ALLOW;
+              } else if (signature.contains("@" + nullableAnnotationName + " ")) {
+                // This condition may not work/cannot occur (space at end ^)
+                nullElements = NullElements.ALLOW;
+              } */
+            /*} else if (typeKind == TypeKind.DECLARED) {
+              if (returnType.contains("List") || returnType.contains("Map")) {
+                String signature = sourceStructure.getSignature(accessorPath);
+                if (signature.contains("<@" + EPHEMERAL_ANNOTATION_SKIP_NULLS + " ")
+                    || signature.contains(", @" + EPHEMERAL_ANNOTATION_SKIP_NULLS + " ")) {
+                  nullElements = NullElements.SKIP;
+                } else if (signature.contains("<@" + EPHEMERAL_ANNOTATION_ALLOW_NULLS + " ")
+                    || signature.contains(", @" + EPHEMERAL_ANNOTATION_ALLOW_NULLS + " ")) {
+                  nullElements = NullElements.ALLOW;
+                } else if (signature.contains("<@" + nullableAnnotationName + " ")
+                    || signature.contains(", @" + nullableAnnotationName + " ")) {
+                  nullElements = NullElements.ALLOW;
+                }
+              }*/
+            } else if (typeKind == TypeKind.TYPEVAR) {
+              if (annotations.contains(nullableAnnotationName)) {
+                nullableTypeAnnotation = true;
+              }
+            }
+          }
+          return returnType;
+        }
+        return null;
+      } else {
+        // if not by chance already identified some nullability
+        if (!wasLooked && !nullableTypeAnnotation && nullElements == NullElements.BAN) {
+          // cannot be at 0
+          if (returnTypeString.toString().indexOf(nullableAnnotationName) > 0) {
+            nullableTypeAnnotation = true;
+          }
+        }
+      }
+      return returnTypeString;
+    } catch (AssertionError e) {
+      throw e;
+    } catch (Error | RuntimeException bestEffortsMiserablyFailed) {
+      return null;
+    }
   }
 
   private String computePath(ExecutableElement element) {
@@ -323,7 +404,8 @@ class TypeStringProvider {
       // to prevent additional recursive effects when using workaround
       return;
     }
-    switch (type.getKind()) {
+    TypeKind typeKind = type.getKind();
+    switch (typeKind) {
       case ERROR:
         unresolvedTypeHasOccured = true;
         //$FALL-THROUGH$
@@ -359,6 +441,7 @@ class TypeStringProvider {
           String var = typeVariable.asElement().getSimpleName().toString();
           int indexOfVar = Arrays.asList(allowedTypevars).indexOf(var);
           if (indexOfVar >= 0) {
+            // If there are arguments to type variables, we substitute those
             if (typevarArguments != null) {
               buffer.append(typevarArguments[indexOfVar]);
             } else {
@@ -373,7 +456,7 @@ class TypeStringProvider {
 
         // this workaround breaks this recursive flow, so we set up
         // ended flag
-        if (tryToUseSourceAsAWorkaround()) {
+        if (tryToUseSourceAsAWorkaround(typeKind)) {
           ended = true;
           break;
         }
@@ -395,7 +478,7 @@ class TypeStringProvider {
       case SHORT:
       case LONG:
       case BYTE:
-        String typeName = Ascii.toLowerCase(type.getKind().name());
+        String typeName = Ascii.toLowerCase(typeKind.name());
         buffer.append(typeName);
       /* Just skip type annotations with primitives (for now?) too many problems/breakages
       List<? extends AnnotationMirror> annotations = null;
@@ -412,7 +495,7 @@ class TypeStringProvider {
     }
     // workaround for Javac problem
     if (unresolvedTypeHasOccured && buffer.toString().contains("<any>")) {
-      if (tryToUseSourceAsAWorkaround()) {
+      if (tryToUseSourceAsAWorkaround(typeKind)) {
         ended = true;
       }
     }

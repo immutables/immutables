@@ -730,7 +730,7 @@ public interface Type {
       final Deque<Term> terms = new ArrayDeque<>();
 
       for (Term t : Code.termsFrom(input)) {
-        if (!t.isWhitespace())
+        if (!t.isWhitespace() && !t.isComment())
           terms.add(t);
       }
 

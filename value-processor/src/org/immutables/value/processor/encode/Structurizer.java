@@ -25,6 +25,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -121,7 +122,7 @@ final class Structurizer {
     Statement.Builder builder = new Statement.Builder();
     boolean classDecl = false;
     boolean wasParameters = false;
-    for (;;) {
+    for (; ; ) {
       Term t = terms.peek();
       if (t.is("=")) {
         terms.next();
@@ -156,11 +157,28 @@ final class Structurizer {
     return result;
   }
 
+
+  private static void collectUntilMatching(Deque<Term> terms,
+      List<Term> accumulator, String start, String end) {
+    accumulator.add(terms.remove());
+    for (; ; ) {
+      Term t = terms.peek();
+      if (t.is(start)) {
+        collectUntilMatching(terms, accumulator, start, end);
+      } else if (t.is(end)) {
+        accumulator.add(terms.remove());
+        return;
+      } else {
+        accumulator.add(terms.remove());
+      }
+    }
+  }
+
   private void doCollectMatching(List<Term> accumulator, String start, String end) {
     whitespaces.on();
     try {
       accumulator.add(terms.next());
-      for (;;) {
+      for (; ; ) {
         Term t = terms.peek();
         if (t.is(start)) {
           doCollectMatching(accumulator, start, end);
@@ -181,7 +199,7 @@ final class Structurizer {
     whitespaces.on();
     try {
       List<Term> result = new ArrayList<>();
-      for (;;) {
+      for (; ; ) {
         Term t = terms.peek();
         if (t.is("(")) {
           doCollectMatching(result, "(", ")");
@@ -218,15 +236,9 @@ final class Structurizer {
   private boolean signature(Statement.Builder builder) {
     Term t = terms.peek();
     if (t.is("@")) {
-      do {
-        builder.addAnnotations(terms.next());
-        Verify.verify(terms.peek().isWordOrNumber());
-        builder.addAnnotations(terms.next());
-      } while (terms.peek().is("."));
-
-      if (terms.peek().is("(")) {
-        builder.addAllAnnotations(collectUntilMatching(")"));
-      }
+      List<Term> annotations = collectAnnotations();
+      builder.addAllAnnotations(annotations);
+      builder.addAllSignature(annotations);
       return false;
     } else if (t.is("<")) {
       builder.addAllSignature(collectUntilMatching(">"));
@@ -240,6 +252,38 @@ final class Structurizer {
     }
   }
 
+  private List<Term> collectAnnotations() {
+    if (!terms.peek().is("@")) return Collections.emptyList();
+    List<Term> list = new ArrayList<>();
+    while (terms.peek().is("@")) {
+      do {
+        list.add(terms.next());
+        assert terms.peek().isWordOrNumber();
+        list.add(terms.next());
+      } while (terms.peek().is("."));
+      if (terms.peek().is("(")) {
+        list.addAll(collectUntilMatching(")"));
+      }
+    }
+    return list;
+  }
+
+  private static List<Term> collectAnnotations(Deque<Term> terms) {
+    if (!terms.peek().is("@")) return Collections.emptyList();
+    List<Term> list = new ArrayList<>();
+    while (!terms.isEmpty() && terms.peek().is("@")) {
+      do {
+        list.add(terms.remove());
+        assert terms.peek().isWordOrNumber();
+        list.add(terms.remove());
+      } while (!terms.isEmpty() && terms.peek().is("."));
+      if (!terms.isEmpty() && terms.peek().is("(")) {
+        collectUntilMatching(terms, list, "(", ")");
+      }
+    }
+    return list;
+  }
+
   private static List<Term> parseReturnType(List<Term> signature) {
     if (signature.isEmpty()) {
       return ImmutableList.of();
@@ -251,34 +295,40 @@ final class Structurizer {
     }
     while (!terms.isEmpty()) {
       Term t = terms.peek();
-      if (t.is("<")) {
+      if (t.is("@")) {
+        // throwaway front annotations
+        collectAnnotations(terms);
+      } else if (t.is("<")) {
         removeTillMatching(terms, "<", ">");
       } else if (modifiers.contains(t.toString())) {
         terms.remove();
       } else {
-        // it is possible that there are
-        // no whitespace or comments already
-        removeCommentsAndWhitespace(terms);
-        return ImmutableList.copyOf(terms);
+        // remove type annotations in-between type constructs
+        // and whitespace or comments too (just in case)
+        List<Term> clearTerms = new ArrayList<>();
+
+        while (!terms.isEmpty()) {
+          Term n = terms.peek();
+          if (n.is("@")) {
+            // throwaway
+            collectAnnotations(terms);
+            continue;
+          }
+          n = terms.remove();
+          if (!n.isComment() && !n.isWhitespace()) {
+            clearTerms.add(n);
+          }
+        }
+        return ImmutableList.copyOf(clearTerms);
       }
     }
     return ImmutableList.of();
   }
 
-  private static void removeCommentsAndWhitespace(Deque<Term> terms) {
-    Iterator<Term> it = terms.iterator();
-    while (it.hasNext()) {
-      Term n = it.next();
-      if (n.isComment() || n.isWhitespace()) {
-        it.remove();
-      }
-    }
-  }
-
   private static void removeTillMatching(Deque<Term> terms, String begin, String end) {
     assert terms.peek().is(begin);
     terms.remove();
-    for (;;) {
+    for (; ; ) {
       if (terms.peek().is(begin)) {
         removeTillMatching(terms, begin, end);
       } else if (terms.remove().is(end)) {

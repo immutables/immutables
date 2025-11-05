@@ -70,6 +70,9 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
       .replace("&", "&amp;")
       .replace("<", "&lt;")
       .replace(">", "&gt;")
+      .replace("//", "&sol;&sol;")
+      .replace("/*", "&sol;&ast;")
+      .replace("*/", "&ast;&sol;")
       .replace("java.lang.", "")
       .replace("java.util.", "");
 
@@ -112,8 +115,18 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
         String annotation = input.style().fallbackNullableAnnotationName();
         switch (input.fallbackNullableKind()) {
           case JSPECIFY:
+            if (input instanceof ValueAttribute) {
+              ValueAttribute v = (ValueAttribute) input;
+              // Array would contain own type use annotation in-between element type and []
+              if (v.isArrayType()) return "";
+            }
             return "/*!typeuse @org.jspecify.annotations.Nullable*/ ";
           case SPECIFIED_TYPEUSE:
+            if (input instanceof ValueAttribute) {
+              ValueAttribute v = (ValueAttribute) input;
+              // Array would contain own type use annotation in-between element type and []
+              if (v.isArrayType()) return "";
+            }
             return "/*!typeuse @" + annotation + "*/ ";
           case SPECIFIED: {
             break;

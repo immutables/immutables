@@ -11,6 +11,14 @@ public final class SourceStructureGet {
     return Code.join(mapper.getReturnType(path));
   }
 
+  public String getSignature(String path) {
+    return Code.join(mapper.getSignature(path));
+  }
+
+  public String getAnnotations(String path) {
+    return Code.join(mapper.getAnnotations(path));
+  }
+
   @Override
   public String toString() {
     return mapper.definitions.toString();

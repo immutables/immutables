@@ -63,4 +63,8 @@ final class SourceMapper {
   List<Term> getAnnotations(String path) {
     return get.apply(path).annotations();
   }
+
+  List<Term> getSignature(String path) {
+    return get.apply(path).signature();
+  }
 }

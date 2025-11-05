@@ -1381,7 +1381,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     this.typeParameters = provider.typeParameters();
     this.hasTypeVariables = provider.hasTypeVariables;
     this.nullElements = provider.nullElements;
-    if (provider.nullableTypeAnnotation) {
+    if (provider.nullableTypeAnnotation && this.nullability == null) {
       this.nullability = NullabilityAnnotationInfo.forTypeUse();
     }
   }
@@ -1422,7 +1422,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       } else {
         Environment environment = protoclass().environment();
         for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
-          // TODO (?) p.kind().isRecord()
           if ((p.kind().isRecord() || p.kind().isDefinedValue() || p.kind().isModifiable() || p.kind().isJavaBean())
               && canAccessImplementation(p)
               && p.constitution().generics().isEmpty()) {
