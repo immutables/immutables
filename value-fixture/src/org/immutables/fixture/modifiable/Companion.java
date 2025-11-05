@@ -111,6 +111,11 @@ public interface Companion {
     }
 
     @Value.Default
+    default int def2() {
+      return 0;
+    }
+
+    @Value.Default
     default String defs() {
       return "";
     }

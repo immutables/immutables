@@ -79,7 +79,7 @@ public final class [typeDatatypeName] {
     if (raw == [v.typeAbstract.relativeRaw].class || raw == [v.typeImmutable.relativeRaw].class) {
       [/if]
       [if v.generics.empty]
-      return ([dtt].Datatype<T>) [v.name]_.INSTANCE;
+      return ([dtt].Datatype<T>) [v.name]_.Shim.INSTANCE;
       [else]
       return ([dtt].Datatype<T>) new [v.name]_(type);
       [/if]
@@ -91,7 +91,7 @@ public final class [typeDatatypeName] {
     [if v.generics.empty]
 
   public static[v.generics.def] [v.name]_ _[v.name]() {
-    return [v.name]_.INSTANCE;
+    return [v.name]_.Shim.INSTANCE;
   }
     [else]
 
@@ -118,7 +118,9 @@ public final class [typeDatatypeName] {
 @SuppressWarnings({"unchecked", "raw"})
 public static final class [v.name]_[v.generics] implements [dtt].Datatype<[tT]> {
 [if v.generics.empty]
-  private static final [v.name]_ INSTANCE = new [v.name]_([tR].class);
+  private static final class Shim {
+    static final [v.name]_ INSTANCE = new [v.name]_([tR].class);
+  }
 [else]
   [for g in v.generics]
   private static final [refl].Type [g]_TYPE_PARAM;

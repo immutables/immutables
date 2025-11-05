@@ -245,6 +245,7 @@
         <maven.compiler.compilerVersion>11</maven.compiler.compilerVersion>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.release>11</maven.compiler.release>
       </properties>
       <build>
         <plugins>
@@ -356,6 +357,7 @@
         <maven.compiler.compilerVersion>17</maven.compiler.compilerVersion>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
       </properties>
       <build>
         <plugins>

@@ -2889,6 +2889,8 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 [returnFactoryBuild type]
 [else if type.useSingleton andnot type.settableAttributes]
 return [type.factoryInstance.relative]();
+[else if type.useConstructor andnot type.constructorArguments]
+return [validated type true]new [type.typeImmutable.relative]()[/validated];
 [else if type.generateBuilderUseCopyConstructor]
 [generateReturnBuilderConstructed type]
 [else]
@@ -3158,7 +3160,7 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
 [/if]
 [if type.useSingleton]
 
-  private [type.typeImmutable.simple]() {[output.collapsible]
+  [if type.style.protectedNoargConstructor]protected[else]private[/if] [type.typeImmutable.simple]() {[output.collapsible]
     [generateConstructorDefaultAttributes type type.implementedAttributes]
     [generateDerivedConstruction type noAttributes]
     [generateAfterConstruction type false]
@@ -3285,6 +3287,8 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [suppressAnyCovariantCastForOptional type.constructorArguments]
   public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.constructorParameterAnnotations][v.atNullability][constructorAcceptTypeInvokable v] [v.name][/for][/output.linesShortable]) {
+  [else if not type.constructorArguments]
+  [if type.style.protectedNoargConstructor]protected[else]private[/if] [type.typeImmutable.simple]() {
   [else]
   [suppressAnyCovariantCastForOptional type.constructorArguments]
   private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
