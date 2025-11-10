@@ -740,7 +740,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
   default [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] optional) {
     [let optType][v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if][/let]
     [suppressCovariantCastForOptional v]
-    [optType] newValue = [requireNonNull type](([optType]) optional, "[v.name] optional");
+    [optType] newValue = [requireNonNull type]([if v.consumesWildcardExtends]([optType]) [/if]optional, "[v.name] optional");
     [recordSelf type]
     [if v.forceEqualsInWithers]
     if (self.[v.name]().equals(newValue)) return self;
