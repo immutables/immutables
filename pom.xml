@@ -109,8 +109,9 @@
     <reactive-streams.version>1.0.2</reactive-streams.version>
     <log4j2.version>2.19.0</log4j2.version>
     <mongo-java-server.version>1.43.0</mongo-java-server.version>
-    <jackson.version>2.16.1</jackson.version>
-    <jackson-databind.version>2.16.1</jackson-databind.version>
+    <jackson.version>2.19.2</jackson.version>
+    <jackson-databind.version>2.19.2</jackson-databind.version>
+    <jackson3.version>3.0.1</jackson3.version>
     <jaxb-api.version>2.3.1</jaxb-api.version>
     <jersey.version>2.11</jersey.version>
     <junit.version>4.13.2</junit.version>
