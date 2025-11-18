@@ -39,4 +39,14 @@ public final class UnshadeGuava {
   public static String prefix() {
     return MoreObjects.firstNonNull(prefixOverride, GUAVA_PREFIX);
   }
+
+  private static volatile boolean suppressed;
+
+  public static boolean isSuppressed() {
+    return suppressed;
+  }
+
+  public static void suppressGuava() {
+    suppressed = true;
+  }
 }

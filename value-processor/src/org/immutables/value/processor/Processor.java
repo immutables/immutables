@@ -61,6 +61,9 @@ public final class Processor extends AbstractGenerator {
   private static final String JACKSON_PREFIX = "immutables.jackson.prefix";
   private static final String CUSTOM_ANNOTATION = "immutables.annotation";
 
+  private static final String ANNOTATION_PICK = "immutables.annotations.pick";
+  private static final String SUPPRESS_GUAVA = "immutables.guava.suppress";
+
   @Override
   protected void process() {
     prepareOptions();
@@ -110,6 +113,35 @@ public final class Processor extends AbstractGenerator {
   }
 
   private void prepareOptions() {
+    if (processing().getOptions().containsKey(SUPPRESS_GUAVA)) {
+      UnshadeGuava.suppressGuava();
+    }
+    if (processing().getOptions().containsKey(ANNOTATION_PICK)) {
+      AnnotationPick pick;
+      @Nullable String value = processing().getOptions().get(ANNOTATION_PICK);
+      if (value != null) {
+        switch (value) {
+          case "legacy":
+            pick = AnnotationPick.LEGACY;
+            break;
+          case "javax":
+            pick = AnnotationPick.JAVAX;
+            break;
+          case "javax+processing":
+            pick = AnnotationPick.JAVAX_AND_PROCESSING;
+            break;
+          case "jakarta":
+            pick = AnnotationPick.JAKARTA;
+            break;
+          default:
+            pick = AnnotationPick.NONE;
+        }
+      } else {
+        pick = AnnotationPick.NONE;
+      }
+      // if not overridden, it will default to legacy
+      AnnotationPick.overridePick(pick);
+    }
     UnshadeGuava.overridePrefix(processing().getOptions().get(GUAVA_PREFIX));
     UnshadeJackson.overridePrefix(processing().getOptions().get(JACKSON_PREFIX));
   }
@@ -139,6 +171,8 @@ public final class Processor extends AbstractGenerator {
     options.add(CUSTOM_ANNOTATION);
     options.add(GUAVA_PREFIX);
     options.add(JACKSON_PREFIX);
+    options.add(ANNOTATION_PICK);
+    options.add(SUPPRESS_GUAVA);
     return options.build();
   }
 

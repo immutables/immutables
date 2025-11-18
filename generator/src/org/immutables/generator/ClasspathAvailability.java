@@ -15,13 +15,13 @@
  */
 package org.immutables.generator;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
+import com.google.common.base.Predicate;
 
 public final class ClasspathAvailability {
   private static final Map<String, Boolean> availableClasses =
@@ -37,7 +37,7 @@ public final class ClasspathAvailability {
   public final Predicate<String> available = new Predicate<String>() {
     @Override
     public boolean apply(String qualifiedName) {
-      /*@Nullable*/Boolean available = availableClasses.get(qualifiedName);
+      @Nullable Boolean available = availableClasses.get(qualifiedName);
       if (available == null) {
         if (ClasspathFence.isInhibited(qualifiedName)) {
           available = false;
@@ -68,6 +68,4 @@ public final class ClasspathAvailability {
       return "classpath.available";
     }
   };
-
-  public final Predicate<String> unavailable = Predicates.not(available);
 }

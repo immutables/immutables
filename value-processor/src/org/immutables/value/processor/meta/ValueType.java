@@ -297,7 +297,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   private boolean noGuavaInClasspath() {
-    return !constitution.protoclass().environment().hasGuavaLib();
+    return UnshadeGuava.isSuppressed()
+        || !constitution.protoclass().environment().hasGuavaLib();
   }
 
   public boolean isUseSimpleReadResolve() {

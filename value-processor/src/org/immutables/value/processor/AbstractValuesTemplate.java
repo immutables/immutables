@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
+import org.immutables.value.processor.meta.AnnotationPick;
 import org.immutables.value.processor.meta.HasStyleInfo;
 import org.immutables.value.processor.meta.LongBits;
 import org.immutables.value.processor.meta.ObscureFeatures;
@@ -84,18 +85,65 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
         StyleInfo style = hasStyle.style();
         setJaxartaFrom(style);
 
+        boolean subjectToAnnotationPick;
         if (annotationClass.startsWith(CLASSNAME_TAG_JAXARTA)) {
           annotationClass = annotationClass.replace(CLASSNAME_TAG_JAXARTA, jaxarta());
+          subjectToAnnotationPick = true;
+        } else {
+          subjectToAnnotationPick = annotationClass.startsWith("javax.")
+              || annotationClass.startsWith("jakarta.");
         }
+
+        if (subjectToAnnotationPick) {
+          AnnotationPick pick = style.jakarta() ? AnnotationPick.JAKARTA : AnnotationPick.pick();
+          @Nullable Boolean allowDecision = applyAnnotationPick(pick, annotationClass);
+
+          if (allowDecision != null) return allowDecision;
+        }
+
         return (style.allowedClasspathAnnotationsNames().isEmpty()
             || style.allowedClasspathAnnotationsNames().contains(annotationClass))
             && classpath.available.apply(annotationClass);
       };
 
+  private static @Nullable Boolean applyAnnotationPick(AnnotationPick pick, String annotationClass) {
+    if (pick == AnnotationPick.LEGACY) return null;
+
+    if (annotationClass.equals("javax.annotation.processing.Generated")) {
+      if (pick != AnnotationPick.JAVAX_AND_PROCESSING) return false;
+      return null;
+    }
+
+    if (annotationClass.startsWith("javax.")) {
+      if (pick != AnnotationPick.JAVAX
+          && pick != AnnotationPick.JAVAX_AND_PROCESSING) return false;
+      return null;
+    }
+
+    if (annotationClass.startsWith("jakarta.")) {
+      if (pick != AnnotationPick.JAKARTA) return false;
+      return null;
+    }
+
+    return null;
+  }
+
   private void setJaxartaFrom(StyleInfo style) {
     // setup jakarta context for subsequent calls for jaxarta()
     // regardless if it's relevant for this call
-    jaxartaPackage = style.jakarta() ? "jakarta" : "javax";
+    AnnotationPick pick = AnnotationPick.pick();
+    if (style.jakarta() || pick == AnnotationPick.JAKARTA) {
+      jaxartaPackage = "jakarta";
+    } else if (pick == AnnotationPick.LEGACY
+        || pick == AnnotationPick.JAVAX
+        || pick == AnnotationPick.JAVAX_AND_PROCESSING) {
+      jaxartaPackage = "javax";
+    } else {
+      // The case of AnnotationPick.NONE
+      // This is to provide something that will not match with anything reasonable
+      // and not specially forged to match.
+      jaxartaPackage = "_unobtainium_";
+    }
   }
 
   @Deprecated
