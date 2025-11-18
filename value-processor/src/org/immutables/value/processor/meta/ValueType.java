@@ -402,7 +402,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isGenerateJacksonMapped() {
-    return constitution.protoclass().isJacksonSerialized();
+    return constitution.protoclass().isJacksonSerialized() || constitution.protoclass().isJackson3Serialized();
   }
 
   public boolean isGenerateJacksonProperties() {
@@ -416,6 +416,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isJacksonDeserialized() {
     return constitution.protoclass().isJacksonDeserialized();
+  }
+
+  public boolean isJackson3Deserialized() {
+    return constitution.protoclass().isJackson3Deserialized();
   }
 
   public boolean isJacksonJsonTypeInfo() {

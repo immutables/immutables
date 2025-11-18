@@ -207,9 +207,23 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
+    public boolean isJackson3Serialized() {
+      return environment().hasJacksonLib()
+        && isJackson3SerializedAnnotated(element());
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
     public boolean isJacksonDeserialized() {
       return environment().hasJacksonLib()
           && isJacksonDeserializedAnnotated(element());
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isJackson3Deserialized() {
+      return environment().hasJacksonLib()
+        && isJackson3DeserializedAnnotated(element());
     }
 
     @Value.Derived
@@ -394,7 +408,7 @@ public class Proto {
 
     @Value.Lazy
     public boolean hasJacksonLib() {
-      return hasElement(Proto.JACKSON_DESERIALIZE);
+      return hasElement(Proto.JACKSON_DESERIALIZE) || hasElement(Proto.JACKSON3_DESERIALIZE);
     }
 
     @Value.Lazy
@@ -814,8 +828,24 @@ public class Proto {
     }
 
     @Value.Lazy
+    public boolean isJackson3Serialized() {
+      if (jacksonSerializeMode() == JacksonMode.DELEGATED) {
+        // while DeclaringPackage cannot have those annotations
+        // directly, just checking them as a general computation path
+        // will not hurt much.
+        return true;
+      }
+      for (MetaAnnotated metaAnnotated : metaAnnotated()) {
+        if (metaAnnotated.isJackson3Serialized()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Value.Lazy
     public JacksonMode jacksonSerializeMode() {
-      return Proto.isJacksonSerializedAnnotated(element())
+      return Proto.isJacksonSerializedAnnotated(element()) || Proto.isJackson3SerializedAnnotated(element())
           ? JacksonMode.DELEGATED
           : JacksonMode.NONE;
     }
@@ -830,6 +860,22 @@ public class Proto {
       }
       for (MetaAnnotated metaAnnotated : metaAnnotated()) {
         if (metaAnnotated.isJacksonDeserialized()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Value.Lazy
+    public boolean isJackson3Deserialized() {
+      if (isJackson3DeserializedAnnotated()) {
+        // while DeclaringPackage cannot have those annotations
+        // directly, just checking them as a general computation path
+        // will not hurt much.
+        return true;
+      }
+      for (MetaAnnotated metaAnnotated : metaAnnotated()) {
+        if (metaAnnotated.isJackson3Deserialized()) {
           return true;
         }
       }
@@ -863,6 +909,11 @@ public class Proto {
     @Value.Lazy
     public boolean isJacksonDeserializedAnnotated() {
       return Proto.isJacksonDeserializedAnnotated(element());
+    }
+
+    @Value.Lazy
+    public boolean isJackson3DeserializedAnnotated() {
+      return Proto.isJackson3DeserializedAnnotated(element());
     }
 
     @Value.Lazy
@@ -1217,10 +1268,10 @@ public class Proto {
       boolean wasJacksonSerialize = false;
       for (AnnotationMirror a : element().getAnnotationMirrors()) {
         TypeElement e = (TypeElement) a.getAnnotationType().asElement();
-        if (!wasJacksonSerialize && e.getQualifiedName().contentEquals(JACKSON_SERIALIZE)) {
+        if (!wasJacksonSerialize && (e.getQualifiedName().contentEquals(JACKSON_SERIALIZE) || e.getQualifiedName().contentEquals(JACKSON3_SERIALIZE))) {
           wasJacksonSerialize = true;
         }
-        if (e.getQualifiedName().contentEquals(JACKSON_DESERIALIZE)) {
+        if (e.getQualifiedName().contentEquals(JACKSON_DESERIALIZE) || e.getQualifiedName().contentEquals(JACKSON3_DESERIALIZE)) {
           for (ExecutableElement attr : a.getElementValues().keySet()) {
             if (attr.getSimpleName().contentEquals("builder")) {
               // If builder attribute is specified, we don't consider this as
@@ -1761,6 +1812,25 @@ public class Proto {
     }
 
     @Value.Lazy
+    public boolean isJackson3Serialized() {
+      if (!styles().style().jacksonIntegration()) {
+        return false;
+      }
+      if (declaringType().isPresent()) {
+        DeclaringType t = declaringType().get();
+        if (t.isJackson3Serialized()) {
+          return true;
+        }
+        if (t.enclosingTopLevel().isPresent()) {
+          if (t.enclosingTopLevel().get().isJackson3Serialized()) {
+            return true;
+          }
+        }
+      }
+      return packageOf().isJackson3Serialized();
+    }
+
+    @Value.Lazy
     public boolean isJacksonDeserialized() {
       if (!styles().style().jacksonIntegration()) {
         return false;
@@ -1777,6 +1847,25 @@ public class Proto {
         }
       }
       return packageOf().isJacksonDeserialized();
+    }
+
+    @Value.Lazy
+    public boolean isJackson3Deserialized() {
+      if (!styles().style().jacksonIntegration()) {
+        return false;
+      }
+      if (declaringType().isPresent()) {
+        DeclaringType t = declaringType().get();
+        if (t.isJackson3Deserialized()) {
+          return true;
+        }
+        if (t.enclosingTopLevel().isPresent()) {
+          if (t.enclosingTopLevel().get().isJackson3Deserialized()) {
+            return true;
+          }
+        }
+      }
+      return packageOf().isJackson3Deserialized();
     }
 
     @Value.Lazy
@@ -2203,8 +2292,17 @@ public class Proto {
         || isAnnotatedWith(element, JACKSON_DESERIALIZE);
   }
 
+  static boolean isJackson3SerializedAnnotated(Element element) {
+    return isAnnotatedWith(element, JACKSON3_SERIALIZE)
+      || isAnnotatedWith(element, JACKSON3_DESERIALIZE);
+  }
+
   static boolean isJacksonDeserializedAnnotated(Element element) {
     return isAnnotatedWith(element, JACKSON_DESERIALIZE);
+  }
+
+  static boolean isJackson3DeserializedAnnotated(Element element) {
+    return isAnnotatedWith(element, JACKSON3_DESERIALIZE);
   }
 
   static boolean isJacksonJsonTypeInfoAnnotated(Element element) {
@@ -2239,6 +2337,8 @@ public class Proto {
   static final String JACKSON_TYPE_INFO = UnshadeJackson.qualify("annotation.JsonTypeInfo");
   static final String JACKSON_DESERIALIZE = UnshadeJackson.qualify("databind.annotation.JsonDeserialize");
   static final String JACKSON_SERIALIZE = UnshadeJackson.qualify("databind.annotation.JsonSerialize");
+  static final String JACKSON3_DESERIALIZE = UnshadeJackson3.qualify("databind.annotation.JsonDeserialize");
+  static final String JACKSON3_SERIALIZE = UnshadeJackson3.qualify("databind.annotation.JsonSerialize");
   static final String JACKSON_ANNOTATIONS_INSIDE = UnshadeJackson.qualify("annotation.JacksonAnnotationsInside");
   static final String PARCELABLE_INTERFACE_TYPE = "android.os.Parcelable";
   static final String PARCELABLE_CREATOR_FIELD = "CREATOR";

@@ -15,6 +15,7 @@ import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.StyleInfo;
 import org.immutables.value.processor.meta.UnshadeGuava;
 import org.immutables.value.processor.meta.UnshadeJackson;
+import org.immutables.value.processor.meta.UnshadeJackson3;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
 
@@ -43,6 +44,8 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
   protected final String guava = UnshadeGuava.prefix();
 
   protected final String jackson = UnshadeJackson.prefix();
+
+  protected final String jackson3 = UnshadeJackson3.prefix();
 
   protected final LongBits longsFor = new LongBits();
 
