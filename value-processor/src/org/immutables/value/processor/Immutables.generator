@@ -1419,6 +1419,12 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 /** Stage interfaces for the builder of {@code [type.name]}. */
 public final class [type.typeBuilderImpl.simple]Stages {
   private [type.typeBuilderImpl.simple]Stages() {}
+[for tb = type.telescopicBuild]
+
+  public static [type.generics.spaceAfter][tb.nameBuildStartSimple][type.generics.args] start() {
+    return new [type.typeBuilderImpl.relativeRaw][type.generics.diamond]();
+  }
+[/for]
   [generateTelescopicBuilderInterfaces type]
 }
 [/template]
