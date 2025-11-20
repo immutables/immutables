@@ -175,10 +175,10 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
   [/if]
 [/if]
 
-  [type.name]TypeAdapter([if type.generics]TypeToken<?> type, [/if]Gson gson) {[if not allAttributes]}[/if]
-  [if type.generics]
+  [type.name]TypeAdapter([if type.generics]TypeToken<?> type, [/if]Gson gson) {
+  [if allAttributes][if type.generics]
     java.lang.reflect.Type['[]'] typeArguments = getTypeArguments(type);
-  [/if]
+  [/if][/if]
   [for other = type.gsonOther][if other]
     this.[other.name]TypeAdapter = gson.getAdapter(JsonElement.class);
   [/if][/for]
@@ -199,7 +199,7 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
     [/if]
   [/for]
 [/if]
-  [if allAttributes]} [/if]
+  }
 
   static boolean adapts(TypeToken<?> type) {
     return [t.relativeRaw].class == type.getRawType()
@@ -527,15 +527,15 @@ private [if singular ca][for a in ca][if a.primitive]static[/if][/for][/if] [typ
 [/for]
 [else]
 
-private [if type.generics.empty][if not type.unmarshaledAttributes]static[/if][/if] [type.typeAbstract] read[type.name](JsonReader in)
+private [type.typeAbstract] read[type.name](JsonReader in)
     throws IOException {
   if (in.peek() == JsonToken.NULL) {
     in.nextNull();
     return null;
   }
   [type.typeBuilder] builder = [castBuildStagedBuilder type][type.factoryBuilder]()[/castBuildStagedBuilder];
-    [if type.unmarshaledAttributes]
-      [for other = type.gsonOther]
+  [for other = type.gsonOther]
+    [if type.unmarshaledAttributes or other]
         [if other]
   JsonObject other = new JsonObject();
         [/if]
@@ -547,49 +547,53 @@ private [if type.generics.empty][if not type.unmarshaledAttributes]static[/if][/
         [if other]
   builder.[other.names.init](other);
         [/if]
-      [/for]
     [else]
   in.skipValue();
     [/if]
+  [/for]
   return builder.[type.names.build]();
 }
-[if type.unmarshaledAttributes]
+[if type.unmarshaledAttributes or type.gsonOther]
 
 private void eachAttribute(JsonReader in, [type.typeBuilder] builder[if type.gsonOther], JsonObject other[/if])
     throws IOException {
-  String attributeName = in.nextName();
+  String name = in.nextName();
 [if type.gsonTypeAdapters.fieldNamingStrategy]
   [for a in type.unmarshaledAttributes]
-  if ([serializedName a].equals(attributeName)) {
+  if ([serializedName a].equals(name)) {
     readIn[toUpper a.name](in, builder);
     return;
   }
   [for alternateName in a.alternateSerializedNames]
-  if ("[alternateName]".equals(attributeName)) {
+  if ("[alternateName]".equals(name)) {
     readIn[toUpper a.name](in, builder);
     return;
   }
   [/for]
   [/for]
 [else]
-  switch (attributeName.charAt(0)) {
-  [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
-     e in mm.asMap.entrySet]
-  case '[e.key]':
-    [for nm in e.value, name = nm.key, a = nm.value]
-    if ("[name]".equals(attributeName)) {
-      readIn[toUpper a.name](in, builder);
-      return;
-    }
+  [if type.unmarshaledAttributes]
+  if (!name.isEmpty()) {
+    switch (name.charAt(0)) {
+    [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
+       e in mm.asMap.entrySet]
+    case '[e.key]':
+      [for nm in e.value, name = nm.key, a = nm.value]
+      if ("[name]".equals(name)) {
+        readIn[toUpper a.name](in, builder);
+        return;
+      }
+      [/for]
+      break;
     [/for]
-    break;
-  [/for]
-  default:
+    default:
+    }
   }
+  [/if]
 [/if]
   [for other = type.gsonOther]
     [if other]
-  other.add(attributeName, [other.name]TypeAdapter.read(in));
+  other.add(name, [other.name]TypeAdapter.read(in));
     [else]
   in.skipValue();
     [/if]

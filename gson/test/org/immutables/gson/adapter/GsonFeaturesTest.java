@@ -43,6 +43,7 @@ public class GsonFeaturesTest {
       .registerTypeAdapterFactory(new GsonAdaptersNullAsDefault())
       .registerTypeAdapterFactory(new GsonAdaptersDeserializeEmptyNullable())
       .registerTypeAdapterFactory(new GsonAdaptersNullableArray())
+      .registerTypeAdapterFactory(new GsonAdaptersEmptyOther())
       .create();
 
   @Test
@@ -135,6 +136,14 @@ public class GsonFeaturesTest {
     check(o.rest().get("d")).is(JsonNull.INSTANCE);
 
     check(gsonWithOptions.toJson(o)).is(json);
+  }
+
+  @Test
+  public void otherAttributesWithEmptyStrings() {
+    String json = "{\"\":\"\"}";
+
+    EmptyOther value = gsonDefault.fromJson(json, EmptyOther.class);
+    check(value.other().asMap().keySet()).isOf("");
   }
 
   private Set<String> keysIn(JsonObject json) {
