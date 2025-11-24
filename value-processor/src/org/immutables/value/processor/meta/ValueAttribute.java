@@ -466,7 +466,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public List<CharSequence> getBuilderAttributeAnnotation() {
     if (containingType.isGenerateJacksonProperties()
-        && protoclass().isJacksonDeserialized()) {
+        && (protoclass().isJacksonDeserialized() || protoclass().isJackson3Deserialized())) {
       List<CharSequence> jacksonPropertyAnnotation = Annotations.getAnnotationLines(element,
           Collections.singleton(Annotations.JACKSON_PROPERTY),
           false,
@@ -478,7 +478,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         annotations.add(jacksonPropertyAnnotation());
       }
       annotations.addAll(Annotations.getAnnotationLines(element,
-          Collections.<String>emptySet(),
+          Collections.emptySet(),
           protoclass().environment().hasJacksonLib(),
           ElementType.METHOD,
           importsResolver,
