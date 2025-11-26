@@ -116,6 +116,50 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         rightCall = (Call) rightCall.arguments().get(1);
       }
 
+      // Handle AND/OR operators within ANY (for compound conditions on array elements)
+      if (rightCall.operator() == Operators.AND || rightCall.operator() == Operators.OR) {
+        final String arrayField = naming.name(path);
+        final List<Bson> conditions = new ArrayList<>();
+
+        for (Expression expr : rightCall.arguments()) {
+          Preconditions.checkArgument(expr instanceof Call, "Expected Call but got %s", expr);
+          Call conditionCall = (Call) expr;
+
+          // Handle NOT operator
+          Operator operator;
+          if (conditionCall.operator() == Operators.NOT) {
+            Preconditions.checkArgument(conditionCall.arguments().get(0) instanceof Call, "%s is not a call", conditionCall.arguments().get(0));
+            conditionCall = (Call) conditionCall.arguments().get(0);
+            operator = negateOperator(conditionCall.operator());
+          } else {
+            operator = conditionCall.operator();
+          }
+
+          Preconditions.checkArgument(conditionCall.arguments().get(0) instanceof Path, "%s is not a path", conditionCall.arguments().get(0));
+
+          Path currentPath = Visitors.toPath(conditionCall.arguments().get(0));
+          Path fullPath = null;
+          List<Path> paths = new ArrayList<>();
+          while (currentPath.parent().isPresent()) {
+            paths.add(currentPath);
+            currentPath = currentPath.parent().get();
+          }
+          Collections.reverse(paths);
+          for (Path tmpPath : paths) {
+            fullPath = Path.combine(fullPath, tmpPath);
+          }
+
+          if (conditionCall.operator().arity() == Operator.Arity.UNARY) {
+            conditions.add(visit(Expressions.unaryCall(conditionCall.operator(), fullPath)));
+          } else {
+            conditions.add(binaryCall(Expressions.binaryCall(operator, fullPath, conditionCall.arguments().get(1))));
+          }
+        }
+
+        Bson combinedCondition = rightCall.operator() == Operators.AND ? Filters.and(conditions) : Filters.or(conditions);
+        return Filters.elemMatch(arrayField, combinedCondition);
+      }
+
       Operator operator;
       if (rightCall.operator() == Operators.NOT) {
         Preconditions.checkArgument(rightCall.arguments().get(0) instanceof Call, "%s is not a call", rightCall.arguments().get(0));
