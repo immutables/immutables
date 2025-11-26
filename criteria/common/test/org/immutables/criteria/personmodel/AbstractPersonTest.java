@@ -641,6 +641,18 @@ public abstract class AbstractPersonTest {
     // nested collection with element matching multiple conditions
     this.check(this.repository().find(this.person.pets.any().with(pet -> pet.name.is("fluffy").and(pet.type.is(Pet.PetType.gecko))))).toList(Person::fullName).isOf("Adam");
     this.check(this.repository().find(this.person.pets.any().with(pet -> pet.name.is("fluffy").and(pet.type.not(type -> type.is(Pet.PetType.gecko)))))).toList(Person::fullName).hasContentInAnyOrder("Emma");
+    // nested AND/OR combinations - element matching (a AND (b OR c))
+    // Match pets named "fluffy" that are either gecko OR dog (should match Adam and Emma)
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.name.is("fluffy").and(pet.type.is(Pet.PetType.gecko).or(pet.type.is(Pet.PetType.dog)))))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma");
+    // nested OR/AND combinations - element matching (a OR (b AND c))
+    // Match pets that are either named "nummy" OR (named "fluffy" AND type gecko)
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.name.is("nummy").or(pet.name.is("fluffy").and(pet.type.is(Pet.PetType.gecko)))))).toList(Person::fullName).hasContentInAnyOrder("Paul", "Adam");
+    // nested OR/AND combinations - element matching ((a AND b) OR (c AND d))
+    // Match pets where (name="fluffy" AND type=gecko) OR (name="nummy" AND type=cat)
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.name.is("fluffy").and(pet.type.is(Pet.PetType.gecko)).or(pet.name.is("nummy").and(pet.type.is(Pet.PetType.cat)))))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Paul");
+    // nested OR/AND combinations with NOT - element matching (a AND NOT(b OR c))
+    // Match pets named "fluffy" that are NOT (gecko OR panda) - should match Emma (fluffy the dog)
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.name.is("fluffy").and(pet.type.not(t -> t.is(Pet.PetType.gecko).or().is(Pet.PetType.panda)))))).toList(Person::fullName).isOf("Emma");
   }
 
   @Test
