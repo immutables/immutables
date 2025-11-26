@@ -599,7 +599,7 @@ public abstract class AbstractPersonTest {
     // two pets one with a toy
     this.insert(
         generator.next().withFullName("Emma").withPets(
-            ImmutablePet.builder().name("fluffy").type(Pet.PetType.gecko).build(),
+            ImmutablePet.builder().name("fluffy").type(Pet.PetType.dog).build(),
             ImmutablePet.builder().name("oopsy").type(Pet.PetType.panda)
                 .address(
                     ImmutableAddress.builder()
@@ -638,6 +638,9 @@ public abstract class AbstractPersonTest {
     this.check(this.repository().find(this.person.pets.any().toys.any().type.is(ToyType.robot).and(this.person.pets.any().address.value().zip.is("10154")))).toList(Person::fullName).isOf("Adam");
     this.check(this.repository().find(this.person.pets.any().toys.any().type.is(ToyType.ring).or(this.person.pets.any().address.value().zip.endsWith("72")))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma", "Christine");
     this.check(this.repository().find(this.person.pets.any().toys.any().not(p -> p.type.is(ToyType.ring)))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Emma");
+    // nested collection with element matching multiple conditions
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.name.is("fluffy").and(pet.type.is(Pet.PetType.gecko))))).toList(Person::fullName).isOf("Adam");
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.name.is("fluffy").and(pet.type.not(type -> type.is(Pet.PetType.gecko)))))).toList(Person::fullName).hasContentInAnyOrder("Emma");
   }
 
   @Test
