@@ -116,18 +116,19 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         rightCall = (Call) rightCall.arguments().get(1);
       }
 
-      Operator operator;
-      if (rightCall.operator() == Operators.NOT) {
-        Preconditions.checkArgument(rightCall.arguments().get(0) instanceof Call, "%s is not a call", rightCall.arguments().get(0));
-
-        rightCall = (Call) rightCall.arguments().get(0);
-        operator = negateOperator(rightCall.operator());
-      } else {
-        operator = rightCall.operator();
+      // Handle AND/OR/NOT operators within ANY (for compound conditions on array elements)
+      if (rightCall.operator() == Operators.AND ||
+          rightCall.operator() == Operators.OR ||
+          rightCall.operator() == Operators.NOT) {
+        final String arrayField = naming.name(path);
+        Bson condition = buildElemMatchCondition(rightCall);
+        return Filters.elemMatch(arrayField, condition);
       }
 
+      // Handle simple comparison operators within ANY
       Preconditions.checkArgument(rightCall.arguments().get(0) instanceof Path,"%s is not a path", rightCall.arguments().get(0));
 
+      // Reconstruct the full path by combining the array path with the condition path
       Path currentPath = Visitors.toPath(rightCall.arguments().get(0));
       List<Path> paths = new ArrayList<>();
       while (currentPath.parent().isPresent()) {
@@ -139,11 +140,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         path = Path.combine(path, tmpPath);
       }
 
-      if (rightCall.operator().arity() == Operator.Arity.UNARY) {
-        return visit(Expressions.unaryCall(rightCall.operator(), path));
-      } else {
-        return binaryCall(Expressions.binaryCall(operator, path, rightCall.arguments().get(1)));
-      }
+      return buildCondition(rightCall, rightCall.operator(), path);
     }
 
     if (op.arity() == Operator.Arity.BINARY) {
@@ -310,7 +307,156 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       throw new UnsupportedOperationException("No negation for " + operator + " defined");
     }
   }
-  
+
+  /**
+   * Recursively builds a MongoDB filter condition for use inside $elemMatch.
+   * Handles arbitrarily nested AND/OR/NOT operators by traversing the expression tree.
+   *
+   * @param expr the expression to convert (must be a Call)
+   * @return a Bson filter suitable for use inside Filters.elemMatch()
+   */
+  private Bson buildElemMatchCondition(Expression expr) {
+    if (!(expr instanceof Call)) {
+      throw new IllegalArgumentException("Expected Call but got " + expr);
+    }
+
+    Call call = (Call) expr;
+    Operator op = call.operator();
+
+    // Handle AND/OR recursively
+    if (op == Operators.AND || op == Operators.OR) {
+      List<Bson> conditions = new ArrayList<>();
+
+      for (Expression arg : call.arguments()) {
+        Preconditions.checkArgument(arg instanceof Call, "Expected Call but got %s", arg);
+        Call argCall = (Call) arg;
+
+        // Check if this argument has nested AND/OR that needs recursive handling
+        if (argCall.operator() == Operators.AND || argCall.operator() == Operators.OR) {
+          // Recursively process nested AND/OR
+          conditions.add(buildElemMatchCondition(arg));
+        } else {
+          // Handle NOT and leaf conditions
+          conditions.add(buildLeafCondition(argCall));
+        }
+      }
+
+      return op == Operators.AND ? Filters.and(conditions) : Filters.or(conditions);
+    }
+
+    // For top-level NOT or leaf conditions
+    return buildLeafCondition(call);
+  }
+
+  /**
+   * Builds a condition that may be wrapped in NOT operator(s).
+   * <p>
+   * Handles three cases:
+   * <ul>
+   *   <li>Leaf conditions (comparisons like EQUAL, GREATER_THAN, etc.)</li>
+   *   <li>NOT-wrapped leaf conditions (unwraps NOT, unwraps nested ANY, negates operator)</li>
+   *   <li>NOT-wrapped AND/OR (applies De Morgan's laws recursively)</li>
+   * </ul>
+   *
+   * @param call the condition call to process
+   * @return a Bson filter for this condition
+   */
+  private Bson buildLeafCondition(Call call) {
+    Operator operator = call.operator();
+
+    // Handle NOT operator by unwrapping and negating the inner operator
+    if (operator == Operators.NOT) {
+      Preconditions.checkArgument(call.arguments().get(0) instanceof Call, "%s is not a call", call.arguments().get(0));
+      call = (Call) call.arguments().get(0);
+
+      // Unwrap any nested ANY operators (e.g., pet.type.not(type -> type.is(...)))
+      while (call.operator() == IterableOperators.ANY) {
+        Preconditions.checkArgument(call.arguments().size() == 2, "ANY should have 2 arguments");
+        Preconditions.checkArgument(call.arguments().get(1) instanceof Call, "Second argument of ANY should be a Call");
+        call = (Call) call.arguments().get(1);
+      }
+
+      // If after unwrapping we find AND/OR, apply De Morgan's laws
+      if (call.operator() == Operators.AND || call.operator() == Operators.OR) {
+        return applyDeMorgansLaw(call);
+      }
+
+      operator = negateOperator(call.operator());
+    } else {
+      operator = call.operator();
+    }
+
+    // Extract and reconstruct the path
+    Preconditions.checkArgument(call.arguments().get(0) instanceof Path, "%s is not a path", call.arguments().get(0));
+    Path fullPath = reconstructFullPath(Visitors.toPath(call.arguments().get(0)));
+
+    // Build the final condition
+    return buildCondition(call, operator, fullPath);
+  }
+
+  /**
+   * Applies De Morgan's laws to negate a logical operator (AND/OR).
+   * <p>
+   * Transformations:
+   * <ul>
+   *   <li>NOT(a AND b) = NOT(a) OR NOT(b)</li>
+   *   <li>NOT(a OR b) = NOT(a) AND NOT(b)</li>
+   * </ul>
+   *
+   * @param call an AND or OR call to be negated
+   * @return the negated condition with flipped operator
+   */
+  private Bson applyDeMorgansLaw(Call call) {
+    Operator op = call.operator();
+    List<Bson> negatedConditions = new ArrayList<>();
+
+    for (Expression arg : call.arguments()) {
+      // Wrap each argument in NOT and process it
+      Call negatedArg = Expressions.unaryCall(Operators.NOT, (Call) arg);
+      negatedConditions.add(buildLeafCondition(negatedArg));
+    }
+
+    // Apply De Morgan's law: flip AND <-> OR
+    return op == Operators.AND ? Filters.or(negatedConditions) : Filters.and(negatedConditions);
+  }
+
+  /**
+   * Builds a MongoDB filter from a call, operator, and path.
+   * Creates either a unary expression (using the call's original operator) or
+   * a binary expression (using the provided operator, which may be negated).
+   *
+   * @param call the original call (used for arity and second argument if binary)
+   * @param operator the operator to use (may be negated from call's operator)
+   * @param path the path to use in the expression
+   * @return a Bson filter for this condition
+   */
+  private Bson buildCondition(Call call, Operator operator, Path path) {
+    if (call.operator().arity() == Operator.Arity.UNARY) {
+      return visit(Expressions.unaryCall(call.operator(), path));
+    } else {
+      return binaryCall(Expressions.binaryCall(operator, path, call.arguments().get(1)));
+    }
+  }
+
+  /**
+   * Reconstructs a full path from a potentially partial path by walking up the parent chain.
+   */
+  private static Path reconstructFullPath(Path path) {
+    List<Path> paths = new ArrayList<>();
+    Path current = path;
+    while (current.parent().isPresent()) {
+      paths.add(current);
+      current = current.parent().get();
+    }
+    Collections.reverse(paths);
+
+    Path result = null;
+    for (Path p : paths) {
+      result = Path.combine(result, p);
+    }
+    return result;
+  }
+
   /**
    * Visitor used when special {@code $expr} needs to be generated like {@code field1 == field2}
    * in mongo it would look like:
