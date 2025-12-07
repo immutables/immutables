@@ -117,7 +117,7 @@ public @interface Value {
 
   /**
    * This annotation works on records to create builders for records.
-   * Place this {@code Builder} annotation on record to generate builder from its
+   * Place this {@code Builder} annotation on a record to generate builder from its
    * canonical constructor parameters (record components).
    * <pre>
    * &#064;Builder
@@ -768,8 +768,9 @@ public @interface Value {
     String includeHashCode() default "";
 
     /**
-     * Method to determine if all required attributes are set.
-     * Default method name choice for this is mostly random.
+     * Method to determine if all required attributes are set on Modifiable objects, similar but
+     * is not the same as {@link #canBuild()}, which checks if builder has every required value
+     * to successfully build immutable object.
      * @return naming template
      */
     String isInitialized() default "isInitialized";
