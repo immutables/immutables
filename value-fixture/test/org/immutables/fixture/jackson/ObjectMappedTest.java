@@ -249,10 +249,18 @@ public class ObjectMappedTest {
   @Test
   public void jsonStagedEntityRoundtrip() throws Exception {
     String json = "{\"required\":\"id\",\"optional\":null,\"optionalPrimitive\":null}";
+    String jsonRegex = "\\{(?:"
+        + "\"required\":\"id\",\"optional\":\"default\",\"optionalPrimitive\":false"
+        + "|\"required\":\"id\",\"optionalPrimitive\":false,\"optional\":\"default\""
+        + "|\"optional\":\"default\",\"required\":\"id\",\"optionalPrimitive\":false"
+        + "|\"optional\":\"default\",\"optionalPrimitive\":false,\"required\":\"id\""
+        + "|\"optionalPrimitive\":false,\"required\":\"id\",\"optional\":\"default\""
+        + "|\"optionalPrimitive\":false,\"optional\":\"default\",\"required\":\"id\""
+        + ")\\}";
 
     StagedEntity nullable =
         OBJECT_MAPPER.readValue(json, StagedEntity.class);
 
-    check(OBJECT_MAPPER.writeValueAsString(nullable)).is("{\"required\":\"id\",\"optional\":\"default\",\"optionalPrimitive\":false}");
+    check(OBJECT_MAPPER.writeValueAsString(nullable)).matches(jsonRegex);
   }
 }

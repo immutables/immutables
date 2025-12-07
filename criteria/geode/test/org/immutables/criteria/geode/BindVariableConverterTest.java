@@ -74,7 +74,7 @@ class BindVariableConverterTest {
     check(s1).isA(HashSet.class);
 
     Set<String> s2 = (Set<String>) converter.apply(ImmutableSet.of("a", "b"));
-    check(s2).isOf("a", "b");
+    check(s2).hasContentInAnyOrder("a", "b");
     check(s2).isA(HashSet.class);
   }
 

@@ -170,17 +170,60 @@ public class JacksonCodecsTest {
   @JsonSerialize(as = ImmutableBsonModel.class)
   @JsonDeserialize(as = ImmutableBsonModel.class)
   interface BsonModel {
-      java.util.Date utilDate();
-      LocalDate localDate();
-      Pattern pattern();
-      ObjectId objectId();
-      UUID uuid();
-      Set<String> stringSet();
-      Map<String, String> map();
-      int[] intArray();
-      List<Integer> intList();
-      Document document();
-      BsonDocument bsonDocument();
+      @Value.Default
+      default java.util.Date utilDate() {
+          return DEFAULT.utilDate();
+      }
+
+      @Value.Default
+      default LocalDate localDate() {
+          return DEFAULT.localDate();
+      }
+
+      @Value.Default
+      default Pattern pattern() {
+          return DEFAULT.pattern();
+      }
+
+      @Value.Default
+      default ObjectId objectId() {
+          return DEFAULT.objectId();
+      }
+
+      @Value.Default
+      default UUID uuid() {
+          return DEFAULT.uuid();
+      }
+
+      @Value.Default
+      default Set<String> stringSet() {
+          return DEFAULT.stringSet();
+      }
+
+      @Value.Default
+      default Map<String, String> map() {
+          return DEFAULT.map();
+      }
+
+      @Value.Default
+      default int[] intArray() {
+          return DEFAULT.intArray();
+      }
+
+      @Value.Default
+      default List<Integer> intList() {
+          return DEFAULT.intList();
+      }
+
+      @Value.Default
+      default Document document() {
+          return DEFAULT.document();
+      }
+
+      @Value.Default
+      default BsonDocument bsonDocument() {
+          return DEFAULT.bsonDocument();
+      }
   }
 
 }
