@@ -1,8 +1,61 @@
-Read full documentation at http://immutables.org
+Read full documentation at [immutables.org](http://immutables.org)
 
 ![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg)
 
-## Modern usage style, aka "sandwich"
+## Record Builder
+
+```java
+@Value.Builder
+record Person(String name, int age, String email) {}
+
+// Use the generated builder
+Person person = new PersonBuilder()
+    .name("Alice")
+    .age(30)
+    .email("alice@example.com")
+    .build();
+```
+
+More fancy example having copy-with methods generated, and style `withUnaryOperator="with*"`
+
+```java
+@Value.Builder
+record Person(String name, int age) implements WithPerson {
+  // Extend the generated PersonBuilder
+  static class Builder extends PersonBuilder {}
+}
+
+// Use your custom builder
+var person = new Person.Builder()
+    .name("Bob")
+    .age(18)
+    .build();
+
+person = person.withName("Bobby!")
+    .withAge(age -> age + 3);
+```
+
+## Immutable class
+
+Minimal, classical style
+
+```java
+@Value.Immutable
+interface Book {
+  String isbn();
+  String title();
+  List<String> authors();
+}
+
+ImmutableBook book = ImmutableBook.builder()
+    .isbn("978-1-56619-909-4")
+    .title("The Elements of Style")
+    .addAuthors("William Strunk Jr.", "E.B. White.")
+    .build();
+```
+
+"sandwich" style, with nested builder and extending `With*` interface
+
 ```java
 // Define abstract value type using interface, abstract class or annotation
 @Value.Immutable
@@ -20,21 +73,20 @@ public interface ValueObject extends WithValueObject {
 } 
 
 // Use generated immutable implementation and builder
-ValueObject v =
-    new ValueObject.Builder()
-        .name("Nameless")
-        .description("present")
-        .addCounts(1)
-        .addCounts(2)
-        .build();
+var value = new ValueObject.Builder()
+    .name("Nameless")
+    .description("present")
+    .addCounts(1)
+    .addCounts(2)
+    .build();
 
-v = v.withName("Doe");
+value = value.withName("Doe");
 
 //fetch values via accessors
 List<Integer> counts = v.counts();
 Optional<String> description = v.description();
 ```
 
-ImmutableValueObject then would not be used outside generated type. See about this and other generation [styles here](https://immutables.github.io/style.html) 
+## Changelog
 
 See [releases](https://github.com/immutables/immutables/releases) tab for release history. Archived [changelog](.archive/CHANGELOG.md) for earlier releases.
