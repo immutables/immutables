@@ -1,4 +1,3 @@
-
 # Immutables Annotation Processor Options Test
 
 This directory contains manual tests for Immutables annotation processor options, specifically:
@@ -181,10 +180,14 @@ To clean all generated code:
 rm -rf generated/
 ```
 
-To start fresh (including downloads):
+To start fresh (including removing downloaded JARs):
 
 ```bash
 rm -rf lib/ generated/
 ```
 
-Then re-download dependencies by running the test scripts again (or manually with curl).
+Then re-download dependencies:
+
+```bash
+./download-jars.sh
+```
