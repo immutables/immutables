@@ -1,3 +1,5 @@
+![imcover.png](imcover.png)
+
 Read full documentation at [immutables.org](http://immutables.org)
 
 ![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg)
