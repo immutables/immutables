@@ -1,8 +1,6 @@
+Full documentation at [immutables.org](http://immutables.org) ![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg) [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.softwaremill.sttp.ai/core_3/badge.svg)](https://maven-badges.sml.io/sonatype-central/com.softwaremill.sttp.ai/core_3/) 
+
 ![imcover.png](imcover.png)
-
-Read full documentation at [immutables.org](http://immutables.org)
-
-![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg)
 
 ## Record Builder
 

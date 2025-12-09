@@ -2,7 +2,7 @@
 # it is not being invoked from here
 project:
   name: immutables
-  version: 2.11.5
+  version: 2.12.0
   languages:
     java:
       groupId: org.immutables
