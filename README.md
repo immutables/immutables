@@ -1,4 +1,4 @@
-![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg) [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/org.immutables/value/badge.svg)](https://maven-badges.sml.io/sonatype-central/org.immutables/value/) 
+![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg) [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/org.immutables/value/badge.svg)](https://maven-badges.sml.io/sonatype-central/org.immutables/value/) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
 
 ![imcover.png](imcover.png)
 
