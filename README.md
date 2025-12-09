@@ -1,4 +1,4 @@
-![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg) [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.softwaremill.sttp.ai/core_3/badge.svg)](https://maven-badges.sml.io/sonatype-central/com.softwaremill.sttp.ai/core_3/) 
+![CI](https://github.com/immutables/immutables/workflows/CI/badge.svg) [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/org.immutables/value/badge.svg)](https://maven-badges.sml.io/sonatype-central/org.immutables/value/) 
 
 ![imcover.png](imcover.png)
 
