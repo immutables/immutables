@@ -25,6 +25,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 @Gson.TypeAdapters
 @Value.Style(
+    jakarta = true, // verifies fix for #1626 non-existing jakarta...concurrent.Immutable
     typeAbstract = "*Val",
     typeImmutable = "*",
     visibility = Value.Style.ImplementationVisibility.PUBLIC)

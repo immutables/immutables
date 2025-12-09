@@ -623,7 +623,9 @@ Bson toBson(Criteria criteria) {
  * Call methods on the criteria to add constraints for search queries.
  */
 [atGenerated type]
+[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.Immutable']
 @[jaxarta].annotation.concurrent.Immutable
+[/if]
 @SuppressWarnings("unchecked")
 public static final class Criteria extends Repositories.Criteria {
   private final Constraints.Constraint constraint;
