@@ -54,16 +54,9 @@
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <compilerArgs combine.children="append">
-                        <arg>-XDcompilePolicy=simple</arg>
-                        <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:BadImport:ERROR -Xep:MissingOverride:ERROR -Xep:OrphanedFormatString:ERROR -Xep:RedundantOverride:ERROR -Xep:RedundantThrows:ERROR -Xep:RemoveUnusedImports:ERROR -Xep:UnusedMethod:ERROR</arg>
                         <arg>-Xlint:unchecked</arg>
                     </compilerArgs>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>com.google.errorprone</groupId>
-                            <artifactId>error_prone_core</artifactId>
-                            <version>${errorprone.version}</version>
-                        </path>
+                    <annotationProcessorPaths combine.children="append">
                         <path>
                             <groupId>org.immutables</groupId>
                             <artifactId>value</artifactId>
@@ -76,6 +69,35 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>errorprone</id>
+            <activation>
+                <jdk>[1.8,23)</jdk>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${maven-compiler-plugin.version}</version>
+                        <configuration>
+                            <compilerArgs combine.children="append">
+                                <arg>-XDcompilePolicy=simple</arg>
+                                <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:BadImport:ERROR -Xep:MissingOverride:ERROR -Xep:OrphanedFormatString:ERROR -Xep:RedundantOverride:ERROR -Xep:RedundantThrows:ERROR -Xep:RemoveUnusedImports:ERROR -Xep:UnusedMethod:ERROR</arg>
+                            </compilerArgs>
+                            <annotationProcessorPaths combine.children="append">
+                                <path>
+                                    <groupId>com.google.errorprone</groupId>
+                                    <artifactId>error_prone_core</artifactId>
+                                    <version>${errorprone.version}</version>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>jdk8</id>
             <activation>
