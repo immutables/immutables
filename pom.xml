@@ -383,11 +383,22 @@
     <profile>
       <id>jdk11</id>
       <activation>
-        <jdk>[11,)</jdk>
+        <jdk>[11,23)</jdk>
       </activation>
 
       <properties>
         <eclipse-compiler.version>3.33.0</eclipse-compiler.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>jdk23</id>
+      <activation>
+        <jdk>[23,)</jdk>
+      </activation>
+
+      <properties>
+        <maven.compiler.proc>full</maven.compiler.proc>
+        <maven.compiler.release>8</maven.compiler.release>
       </properties>
     </profile>
   </profiles>
