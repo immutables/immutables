@@ -35,7 +35,5 @@ public class Pogo {
         .b("a")
         .runtimePolicy()
         .build();
-
-    pogo.toString();
   }
 }

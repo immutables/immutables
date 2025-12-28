@@ -16,6 +16,7 @@
 package org.immutables.builder.fixture.telescopic;
 
 public class Use {
+  @SuppressWarnings("unused")
   public static void main(String... args) {
     ImmutableMoji.ABuildStage b = ImmutableMoji.builder();
     ImmutableMoji.BBuildStage a = b.a(1);
@@ -33,5 +34,12 @@ public class Use {
     ImmutableStagedFactory.SuperstringBuildFinal r2 = t2.reality("x");
     ImmutableStagedFactory.SuperstringBuildFinal e2 = r2.evidence(null);
     String superstring = e2.build();
+
+    SamplePojo<Double> stagedPojo = SamplePojoBuilderStages.<Double>start()
+        .service("s")
+        .data("b")
+        .payload(3.33)
+        .addIdentifiers("i", "j", "k")
+        .build();
   }
 }

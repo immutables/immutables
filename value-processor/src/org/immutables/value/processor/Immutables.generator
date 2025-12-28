@@ -1422,7 +1422,7 @@ public final class [type.typeBuilderImpl.simple]Stages {
 [for tb = type.telescopicBuild]
 
   public static [type.generics.spaceAfter][tb.nameBuildStartSimple][type.generics.args] start() {
-    return new [type.typeBuilderImpl.relativeRaw][type.generics.diamond]();
+    return [type.factoryBuilder.relative]();
   }
 [/for]
   [generateTelescopicBuilderInterfaces type]

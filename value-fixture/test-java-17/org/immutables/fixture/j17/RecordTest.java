@@ -157,6 +157,16 @@ public class RecordTest {
     check(rec).hasToString("RecordStaged[a=1, b=B, c=C]");
   }
 
+  @Test public void genericStagedBuilder() {
+    var rec = RecordGenericStaged.<String, Long>alsoStaged()
+        .a(2)
+        .b("B")
+        .c(11L)
+        .build();
+
+    check(rec).hasToString("RecordGenericStaged[a=2, b=B, c=11]");
+  }
+
   @Test public void enclosedStagedBuilder() {
     var rec1 = ImmutableEnclosedStaged.rec1Builder()
         .a(1)
