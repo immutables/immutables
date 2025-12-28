@@ -15,8 +15,17 @@
  */
 package org.immutables.gson.adapter;
 
+import java.lang.reflect.Type;
+import java.time.Instant;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -77,5 +86,42 @@ public class OptionalsTest {
     String finalJson = gson.toJson(h2);
     check(h2).is(h1);
     check(json).is(finalJson);
+  }
+
+  @Test
+  public void serializedOptional() {
+    Gson gson = new GsonBuilder()
+        .registerTypeAdapterFactory(new GsonAdaptersSerOpt())
+        .registerTypeAdapter(Instant.class, new InstantSerializer())
+        .registerTypeAdapter(Instant.class, new InstantDeserializer())
+        .create();
+
+    ImmutableSerOpt object = ImmutableSerOpt.builder()
+        .instant(Instant.now())
+        .build();
+
+    String json = gson.toJson(object);
+
+    check(json).is("{\"instant\":\"hello\"}");
+
+    SerOpt opt = gson.fromJson("{\"instant\":\"whatever\"}", SerOpt.class);
+
+    check(opt.instant().isPresent());
+    check(opt.instant().get()).is(Instant.EPOCH);
+  }
+
+  // these serializer/deserializer are just to make sure they are called
+
+  static public class InstantSerializer implements JsonSerializer<Instant> {
+    @Override public JsonElement serialize(Instant instant, Type type, JsonSerializationContext context) {
+      return new JsonPrimitive("hello");
+    }
+  }
+
+  static public class InstantDeserializer implements JsonDeserializer<Instant> {
+    @Override
+    public Instant deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException {
+      return Instant.EPOCH;
+    }
   }
 }
