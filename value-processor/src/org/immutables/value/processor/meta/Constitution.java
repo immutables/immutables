@@ -112,7 +112,8 @@ public abstract class Constitution {
   }
 
   public boolean isImplementationPrimary() {
-    return protoclass().visibility().isMoreRestrictiveThan(implementationVisibility());
+    return protoclass().visibility().isMoreRestrictiveThan(implementationVisibility())
+        && protoclass().kind().isValue();
   }
 
   @Value.Derived
