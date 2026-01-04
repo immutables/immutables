@@ -68,12 +68,20 @@ public interface WriteResult {
    * if they're all defined, otherwise return {@link OptionalLong#empty()}.
    */
   default OptionalLong totalCount() {
-    if (insertedCount().isPresent() && deletedCount().isPresent() && updatedCount().isPresent()) {
-      long value = insertedCount().getAsLong() + deletedCount().getAsLong() + updatedCount().getAsLong();
+    if (allCountsArePresent()) {
+      long value = sumAllCounts();
       return OptionalLong.of(value);
     }
 
     return OptionalLong.empty();
+  }
+
+  default boolean allCountsArePresent() {
+    return insertedCount().isPresent() && deletedCount().isPresent() && updatedCount().isPresent();
+  }
+
+  default long sumAllCounts() {
+    return insertedCount().getAsLong() + deletedCount().getAsLong() + updatedCount().getAsLong();
   }
 
 }
