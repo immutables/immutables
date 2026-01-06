@@ -53,6 +53,9 @@ public final class ValueMirrors {
   @Mirror.Annotation("org.immutables.value.Value.NonAttribute")
   public @interface NonAttribute {}
 
+  @Mirror.Annotation("org.immutables.value.Value.PlainAttribute")
+  public @interface PlainAttribute {}
+
   @Mirror.Annotation("org.immutables.value.Value.Include")
   public @interface Include {
     Class<?>[] value();

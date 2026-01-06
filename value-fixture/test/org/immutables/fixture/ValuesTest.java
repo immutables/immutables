@@ -719,6 +719,19 @@ public class ValuesTest {
     check((Object) da.bar()).not().same(da.bar());
 
     check(Arrays.equals(da.foo().getBytes(StandardCharsets.UTF_8), da.bar()));
-    
+  }
+
+  @Test void plainAttributes() throws Exception {
+    // has special copy method with inner string
+    Method exists = ImmutablePlainAttributes.class.getMethod("withOptional", String.class);
+    check(exists).notNull();
+
+    // doesn't have special copy method with inner string, only Optional<String> overload
+    try {
+      Method doesntExist = ImmutablePlainAttributes.class.getMethod("withPlain", String.class);
+      check(false);
+    } catch (NoSuchMethodException e) {
+      check(true);
+    }
   }
 }

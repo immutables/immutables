@@ -519,6 +519,20 @@ public @interface Value {
   @interface NonAttribute {}
 
   /**
+   * This annotation can disable special treatment for types such as {@link Optional}
+   * or container/collection types, in ad-hoc, selective manner on an attribute where its placed.
+   * Whereas {@code Style(builtinContainerAttributes=false)} can disable all such treatment on the
+   * scope where its applies. This only disables type specific handling, for the {@code @Default},
+   * {@code @Lazy} and other annotations it does nothing, so if you want to undo that effect,
+   * just remove corresponding annotation. In addition, this annotation suppresses
+   * {@link Style#deepImmutablesDetection()}, {@link Style#attributeBuilderDetection()},
+   * and <em>encodings</em> on the attribute as those are also type-driven enhancements.
+   */
+  @Documented
+  @Target({ElementType.METHOD, ElementType.PARAMETER})
+  @interface PlainAttribute {}
+
+  /**
    * Naming and structural style could be used to customize convention of the generated
    * immutable implementations and companion classes. It could be placed on a class or package
    * directly or serve as meta annotation. When used as meta-annotation, then annotation could

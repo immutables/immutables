@@ -96,6 +96,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   @Nullable
   public ValueType attributeValueType;
 
+  private boolean isPlainAttribute;
+
   TypeMirror returnType;
   Element element;
   String returnTypeName;
@@ -1249,8 +1251,9 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   void initAndValidate(@Nullable InstantiationCreator instantiationCreator) {
     initTypeName();
 
-    if (instantiationCreator != null
-        && !isGenerateLazy) {
+    initIsPlain();
+
+    if (instantiationCreator != null && !isGenerateLazy && !isPlainAttribute) {
       this.instantiation = instantiationCreator.tryInstantiateFor(
           reporter,
           returnTypeName,
@@ -1275,6 +1278,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     maybeInitJavaBean();
 
     checkSuppressedOptional();
+  }
+
+  private void initIsPlain() {
+    isPlainAttribute = PlainAttributeMirror.isPresent(element);
   }
 
   private void checkSuppressedOptional() {
@@ -1323,7 +1330,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   private void initAttributeBuilder() {
-    if (style().attributeBuilderDetection() && containedTypeElement != null) {
+    if (style().attributeBuilderDetection() && containedTypeElement != null && !isPlainAttribute) {
       AttributeBuilderReflection attributeBuilderReflection = AttributeBuilderReflection.forValueType(this);
 
       if (attributeBuilderReflection.isAttributeBuilder()) {
@@ -1334,7 +1341,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   private void initImmutableCopyOf() {
     ensureTypeIntrospected();
-    this.isGenerateImmutableCopyOf = containingType.kind().isValue()
+    this.isGenerateImmutableCopyOf = !isPlainAttribute
+        && containingType.kind().isValue()
         && !style().immutableCopyOfRoutinesNames().isEmpty()
         && (typeKind.isRegular() || typeKind.isOptionalKind())
         && !isPrimitiveOrWrapped(rawTypeName)
@@ -1409,7 +1417,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   private void initAttributeValueType() {
-    if ((style().deepImmutablesDetection()
+    if (!isPlainAttribute && (style().deepImmutablesDetection()
         || style().attributeBuilderDetection()
         || containingType.isGenerateCriteria())
         && containedTypeElement != null) {
@@ -1531,7 +1539,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   private boolean supportBuiltinContainerTypes() {
-    return protoclass().styles().style().builtinContainerAttributes();
+    return !isPlainAttribute && protoclass().styles().style().builtinContainerAttributes();
   }
 
   public static class WholeTypeVariable {
