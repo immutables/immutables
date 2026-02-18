@@ -842,7 +842,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of the record or {@code this} if not changed
    */
   [deprecation v]
-  default [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] value) {
+  default [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][v.type] value) {
     [recordSelf type]
       [if v.float]
     if (Float.floatToIntBits(self.[v.name]()) == Float.floatToIntBits(value)) return self;
@@ -1022,7 +1022,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @return A modified copy of the {@code this} object
    */
   [deprecation v]
-  [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] value);
+  [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][v.type] value);
 [if type.generateWithUnaryOperator]
 
   /**
@@ -1067,7 +1067,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable 
       [/for]
     [else]
 @Override
-public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] value) { throw new UnsupportedOperationException(); }
+public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][v.type] value) { throw new UnsupportedOperationException(); }
     [/if]
   [/for]
 [/if]
@@ -2634,7 +2634,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [eachLine v.builderAttributeAnnotation]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][tuNullable v][v.type] [v.name]) {
     [checkNotIsSet v]
     [if v.isBuilderSwitcher and type.kind.isFactory][-- considered always null safe because method call is private/internal --]
     this.[v.name] = [v.name];
@@ -4402,7 +4402,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNu
  * @return A modified copy or the {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.type] value) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNullable v][v.type] value) {
     [if v.float]
   if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
     [else if v.double]
