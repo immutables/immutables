@@ -234,7 +234,6 @@ public Finder find(Criteria criteria) {
  * @see [type.name]Repository#find(Criteria)
  */
 [atGenerated type]
-[atNotThreadSafe type]
 public static final class Finder extends Repositories.[if type.repository.readonly]Finder[else]FinderWithDelete[/if]<[type.typeDocument], Finder> {
   private final Serialization serialization;
 
@@ -297,7 +296,6 @@ public Indexer index() {
  * @see DBCollection#createIndex(DBObject, DBObject)
  */
 [atGenerated type]
-[atNotThreadSafe type]
 public static final class Indexer extends Repositories.Indexer<[type.typeDocument], Indexer> {
   private final Serialization serialization;
 
@@ -345,7 +343,6 @@ public Updater update(Criteria criteria) {
  * update operations on sets of documents.
  */
 [atGenerated type]
-[atNotThreadSafe type]
 public static final class Updater extends Repositories.Updater<[type.typeDocument]> {
   private final Serialization serialization;
 
@@ -361,7 +358,6 @@ public static final class Updater extends Repositories.Updater<[type.typeDocumen
 [template generateReplacer Type type]
 
 [atGenerated type]
-[atNotThreadSafe type]
 public static final class Replacer extends Repositories.Replacer<[type.typeDocument], Replacer> {
   protected Replacer([type.name]Repository repository, [type.typeDocument] document, Constraints.ConstraintHost criteria, Constraints.Constraint ordering) {
     super(repository, document, criteria, ordering);
@@ -372,7 +368,6 @@ public static final class Replacer extends Repositories.Replacer<[type.typeDocum
 [template generateModifier Type type]
 
 [atGenerated type]
-[atNotThreadSafe type]
 public static final class Modifier extends Repositories.Modifier<[type.typeDocument], Modifier> {
   private final Serialization serialization;
 
@@ -874,12 +869,6 @@ this.[a.name][if secondary]Secondary[/if]Encoder = this.registry.get([if seconda
 [template wrapSecondaryMarshalable Attribute a][if a.requiresMarshalingSecondaryAdapter]Support.writable(serialization.[a.name]SecondaryEncoder, [else]Support.writable([/if][/template]
 
 [template atCheckReturnValue HasStyleInfo s][if s allowsClasspathAnnotation '[jaxarta].annotation.CheckReturnValue']@[jaxarta].annotation.CheckReturnValue[/if][/template]
-
-[template atNotThreadSafe Type type]
-[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.NotThreadSafe']
-@[jaxarta].annotation.concurrent.NotThreadSafe
-[/if]
-[/template]
 
 [template atGenerated Type type]
 [if type allowsClasspathAnnotation 'org.immutables.value.Generated']

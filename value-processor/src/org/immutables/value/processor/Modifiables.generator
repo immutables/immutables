@@ -1305,9 +1305,6 @@ public String toString() {
 @[jaxarta].annotation.Generated({"Modifiables.generator", "[type.typeAbstract.relativeRaw]"})
 [/if]
 [/if]
-[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.NotThreadSafe']
-@[jaxarta].annotation.concurrent.NotThreadSafe
-[/if]
 [/template]
 
 [template packageWhenTopLevel Type type Boolean is]

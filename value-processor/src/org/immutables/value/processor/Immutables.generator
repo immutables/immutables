@@ -1638,9 +1638,6 @@ public interface [tb.nameBuildFinalSimple][type.generics] {
  * but instead used immediately to create instances.</em>
  */
 [annotationsWhenTopLevel type topLevel]
-[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.NotThreadSafe']
-@[jaxarta].annotation.concurrent.NotThreadSafe
-[/if]
 [eachLine type.builderAnnotations]
 [eachLine type.builderTypeInjectedAnnotations]
 [type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [output.linesShortable][type.typeBuilderImpl.simple][type.generics]
