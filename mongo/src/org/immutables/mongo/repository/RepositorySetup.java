@@ -35,8 +35,6 @@ import org.immutables.mongo.repository.Repositories.Repository;
 import org.immutables.mongo.types.TypeAdapters;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.util.ServiceLoader;
@@ -58,7 +56,6 @@ import static com.google.common.base.Preconditions.checkState;
  * other resources.
  * @see Repository
  */
-@ThreadSafe
 public final class RepositorySetup {
 
   final ListeningExecutorService executor;
@@ -151,7 +148,6 @@ public final class RepositorySetup {
   /**
    * Configures and builds unmodifiable instance of {@link RepositorySetup}.
    */
-  @NotThreadSafe
   public static class Builder {
     @Nullable
     private ListeningExecutorService executor;

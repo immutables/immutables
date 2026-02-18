@@ -37,7 +37,6 @@ import org.bson.conversions.Bson;
 import org.immutables.mongo.repository.Repositories;
 import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -100,7 +99,6 @@ public final class Support {
     }
   }
 
-  @NotThreadSafe
   public static class ConstraintBuilder extends Constraints.AbstractConstraintVisitor<ConstraintBuilder> {
 
     private final String keyPrefix;

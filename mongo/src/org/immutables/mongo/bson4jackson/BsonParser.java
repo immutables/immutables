@@ -26,7 +26,6 @@ import org.bson.BsonReader;
 import org.bson.BsonType;
 import org.immutables.mongo.Wrapper;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -34,7 +33,6 @@ import java.math.BigInteger;
 /**
  * Delegates all streaming API to {@link BsonReader}
  */
-@NotThreadSafe
 public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   private final AbstractBsonReader reader;

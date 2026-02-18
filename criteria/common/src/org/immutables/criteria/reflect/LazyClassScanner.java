@@ -16,7 +16,6 @@
 
 package org.immutables.criteria.reflect;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.lang.reflect.Member;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -30,7 +29,6 @@ import java.util.Set;
 /**
  * Lazily iterate through class hierarchy
  */
-@NotThreadSafe
 class LazyClassScanner implements ClassScanner {
 
   private final ImmutableBuilder builder;

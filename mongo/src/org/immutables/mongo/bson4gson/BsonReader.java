@@ -23,7 +23,6 @@ import org.bson.AbstractBsonReader.State;
 import org.bson.BsonType;
 import org.immutables.mongo.Wrapper;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Reader;
 
@@ -43,7 +42,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @see <a href="http://mongodb.github.io/mongo-java-driver/3.5/bson/">Mongo Driver (BSON)</a>
  * @see <a href="http://bsonspec.org/">BSON spec</a>
  */
-@NotThreadSafe
 public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReader> {
 
   private static final Reader UNREADABLE_READER = new Reader() {

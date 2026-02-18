@@ -19,7 +19,6 @@ package org.immutables.criteria.matcher;
 import org.immutables.criteria.reflect.ClassScanner;
 import org.immutables.value.Value;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Member;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +31,6 @@ import java.util.concurrent.ConcurrentMap;
  *
  * <p>Thread-safe implementation</p>
  */
-@ThreadSafe
 class MemberLookupCache {
 
   private final ConcurrentMap<Class<?>, ClassScanner> scanner;

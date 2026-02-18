@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
 import javax.annotation.processing.Messager;
@@ -47,7 +46,6 @@ import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
-import org.checkerframework.checker.units.qual.K;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -409,7 +407,6 @@ public final class Output {
   }
 
   // Do not use guava cache to slim down minimized jar
-  @NotThreadSafe
   private static abstract class Cache<K, V> {
     private final Map<K, V> map = new HashMap<>();
 

@@ -18,7 +18,6 @@ package org.immutables.criteria.reflect;
 
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Member;
 import java.util.Iterator;
 import java.util.List;
@@ -26,7 +25,6 @@ import java.util.List;
 /**
  * Fetches all members during construction, returning cached view afterwards.
  */
-@ThreadSafe
 class PrecachedClassScanner implements ClassScanner {
   private final List<Member> members;
 

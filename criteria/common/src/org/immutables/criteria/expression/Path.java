@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -40,7 +39,6 @@ import java.util.stream.Collectors;
  *
  * <p>This class is immutable
  */
-@Immutable
 public class Path implements Expression {
 
   private final Path parent;

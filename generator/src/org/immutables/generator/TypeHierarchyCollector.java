@@ -18,12 +18,10 @@ package org.immutables.generator;
 import com.google.common.base.Verify;
 import com.google.common.collect.*;
 import java.util.*;
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import static com.google.common.base.Verify.verify;
 
-@NotThreadSafe
 public class TypeHierarchyCollector {
   private final List<TypeElement> extendedClasses = Lists.newArrayList();
   private final Set<TypeElement> implementedInterfaces = Sets.newLinkedHashSet();

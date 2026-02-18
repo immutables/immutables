@@ -26,7 +26,6 @@ import org.bson.AbstractBsonReader;
 import org.bson.BsonReader;
 import org.bson.BsonType;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -40,7 +39,6 @@ import java.util.Objects;
  * (like {@link org.bson.types.ObjectId} or {@link org.bson.types.Decimal128}) consider using Codecs on
  * the top of Jackson (see {@link JacksonCodecs} for more details).
  */
-@NotThreadSafe
 public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   private final AbstractBsonReader reader;

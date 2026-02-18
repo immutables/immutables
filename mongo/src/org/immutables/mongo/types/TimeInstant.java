@@ -18,13 +18,11 @@ package org.immutables.mongo.types;
 import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Longs;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.concurrent.Immutable;
 
 /**
  * An instant in time in UTC milliseconds, without any timezone binding.
  * Corresponds to BSON builtin UTCDate type.
  */
-@Immutable
 public final class TimeInstant implements Comparable<TimeInstant> {
   private final long value;
 

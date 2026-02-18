@@ -18,7 +18,6 @@ package org.immutables.generator.processor;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -27,7 +26,6 @@ import org.immutables.generator.SourceOrdering.AccessorProvider;
 import org.immutables.generator.Templates;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
@@ -395,7 +393,6 @@ public final class Accessors extends Introspection {
   }
 
   // Do not use guava cache to slim down minimized jar
-  @NotThreadSafe
   private static abstract class Cache<K, V> {
     private final Map<K, V> map = Maps.newHashMap();
 

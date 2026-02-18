@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import static com.fasterxml.jackson.core.JsonToken.*;
 
 /**
@@ -36,7 +35,6 @@ import static com.fasterxml.jackson.core.JsonToken.*;
  * Provides measurable JSON parsing improvements over Gson's native implementation.
  * Error reporting might differ, however.
  */
-@NotThreadSafe
 public class JsonParserReader extends JsonReader implements Callable<JsonParser> {
   private static final Reader UNSUPPORTED_READER = new Reader() {
     @Override

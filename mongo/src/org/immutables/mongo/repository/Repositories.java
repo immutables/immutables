@@ -40,8 +40,6 @@ import org.immutables.mongo.repository.internal.Constraints;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -66,7 +64,6 @@ public final class Repositories {
    * Base abstract class for repositories.
    * @param <T> type of document
    */
-  @ThreadSafe
   public static abstract class Repository<T> {
 
     private final RepositorySetup configuration;
@@ -283,10 +280,9 @@ public final class Repositories {
         final @Nullable Constraints.ConstraintHost criteria,
         final Constraints.Constraint ordering,
         final Constraints.Constraint exclusion,
-        final @Nonnegative int skip,
-        final @Nonnegative int limit) {
+        final int skip,
+        final int limit) {
       return submit(new Callable<List<T>>() {
-        @SuppressWarnings("resource")
         @Override
         public List<T> call() throws Exception {
           @Nullable Bson query = criteria != null ? convertToBson(criteria) : null;
@@ -333,7 +329,6 @@ public final class Repositories {
    * form. Such approach (DNF) was taken to achieve fine power/expressiveness balance in criteria
    * DSL embedded into Java language.
    */
-  @ThreadSafe
   public static abstract class Criteria {
     /**
      * Returns chained criteria handle used to "OR" new constraint set to form logical DNF.
@@ -342,7 +337,6 @@ public final class Repositories {
     public abstract Criteria or();
   }
 
-  @NotThreadSafe
   static abstract class Operation<T> {
     protected final Repository<T> repository;
 
@@ -351,7 +345,6 @@ public final class Repositories {
     }
   }
 
-  @NotThreadSafe
   static abstract class UpdatatingOperation<T> extends Operation<T> {
     @Nullable
     protected Constraints.ConstraintHost criteria;
@@ -397,7 +390,6 @@ public final class Repositories {
    * Base class which handles update operations (like {@code upsert}, {@code updateAll}, {@code updateFirst} etc.)
    * @param <T> document type
    */
-  @NotThreadSafe
   public static abstract class Updater<T> extends UpdatatingOperation<T> {
     protected Updater(Repository<T> repository) {
       super(repository);
@@ -441,7 +433,6 @@ public final class Repositories {
    * @param <T> document type
    * @param <M> a self type of extended modifier class
    */
-  @NotThreadSafe
   public static abstract class Modifier<T, M extends Modifier<T, M>> extends UpdatatingOperation<T> {
     protected Constraints.Constraint ordering = Constraints.nilConstraint();
     protected Constraints.Constraint exclusion = Constraints.nilConstraint();
@@ -515,7 +506,6 @@ public final class Repositories {
   /**
    * Base class for handling replace operations on a mongo document given a criteria.
    */
-  @NotThreadSafe
   public static abstract class Replacer<T, M extends Replacer<T, M>> extends UpdatatingOperation<T> {
 
     private final FindOneAndReplaceOptions options;
@@ -580,7 +570,6 @@ public final class Repositories {
    * @param <T> document type
    * @param <I> a self type of extended indexer class
    */
-  @NotThreadSafe
   public static abstract class Indexer<T, I extends Indexer<T, I>> extends Operation<T> {
     protected Constraints.Constraint fields = Constraints.nilConstraint();
     private final IndexOptions options = new IndexOptions();
@@ -644,7 +633,6 @@ public final class Repositories {
    * @param <T> document type
    * @param <F> a self type of extended finder class
    */
-  @NotThreadSafe
   public static abstract class FinderWithDelete<T, F extends Finder<T, F>> extends Finder<T, F> {
     protected FinderWithDelete(Repository<T> repository) {
       super(repository);
@@ -678,7 +666,6 @@ public final class Repositories {
    * @param <T> document type
    * @param <F> a self type of extended finder class
    */
-  @NotThreadSafe
   public static abstract class Finder<T, F extends Finder<T, F>> extends Operation<T> {
     int numberToSkip;
 

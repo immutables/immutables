@@ -18,7 +18,6 @@ package org.immutables.gson.stream;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.gson.stream.JsonWriter;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
@@ -30,7 +29,6 @@ import java.util.concurrent.Callable;
  * Provides measurable JSON writing improvements over Gson's native implementation.
  * Error reporting is might differ, however.
  */
-@NotThreadSafe
 public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGenerator> {
   private static final Writer UNSUPPORTED_WRITER = new Writer() {
     @Override

@@ -54,9 +54,6 @@ import [starImport];
  * Base class for {@link [type.name]Criteria} also used as matcher attribute on other criterias.
  * @param <R> root self-type for fluent API
  */
-[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.Immutable']
-@[jaxarta].annotation.concurrent.Immutable
-[/if]
 [atGenerated type]
 [type.typeDocument.access]abstract class [type.name]CriteriaTemplate<R> extends AbstractContextHolder implements Criterion<[type.typeDocument]>,
             AndMatcher<[type.name]Criteria>, OrMatcher<[type.name]Criteria>,

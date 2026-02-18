@@ -3,7 +3,6 @@ package org.immutables.gson.stream;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.gson.stream.JsonReader;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
 /**
@@ -11,7 +10,6 @@ import java.io.IOException;
  *  This version assumes the token producer only supports strings, therefore will
  *  work with the XML and properties formats.
  */
-@NotThreadSafe
 public class XmlParserReader extends JsonParserReader {
   public XmlParserReader(JsonParser parser) {
     super(parser);

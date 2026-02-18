@@ -16,7 +16,6 @@
 package org.immutables.mongo.types;
 
 import java.util.Arrays;
-import javax.annotation.concurrent.Immutable;
 import org.bson.types.ObjectId;
 
 /**
@@ -33,7 +32,6 @@ import org.bson.types.ObjectId;
  * this.
  * </em>
  */
-@Immutable
 public final class Id {
   private final byte[] data;
 
@@ -64,7 +62,7 @@ public final class Id {
   }
 
   /**
-   * Generate new Id, based on machine/process, current seconds and inrementing counter.
+   * Generate new Id, based on machine/process, current seconds and incrementing counter.
    * Should be treated as opaque holder though.
    * @return the id
    */

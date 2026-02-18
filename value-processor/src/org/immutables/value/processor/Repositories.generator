@@ -68,9 +68,6 @@ import [starImport];
 [else if type allowsClasspathAnnotation '[jaxarta].annotation.Generated']
 @[jaxarta].annotation.Generated("org.immutables.processor.ProxyProcessor")
 [/if]
-[if type allowsClasspathAnnotation '[jaxarta].annotation.concurrent.ThreadSafe']
-@[jaxarta].annotation.concurrent.ThreadSafe
-[/if]
 [type.typeDocument.access]class [type.name]Repository extends Repositories.Repository<[type.typeDocument]> {
   private static final String DOCUMENT_COLLECTION_NAME = "[type.documentName]";
 
