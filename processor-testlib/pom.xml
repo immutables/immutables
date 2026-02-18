@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>immutables</artifactId>
-    <version>2.12.1</version>
+    <version>2.12.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>processor-testlib</artifactId>
