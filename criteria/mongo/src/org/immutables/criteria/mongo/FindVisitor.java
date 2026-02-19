@@ -70,26 +70,12 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
-
     if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
-      Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = naming.name(Visitors.toPath(args.get(0)));
-      Bson filter;
-      if (op == OptionalOperators.IS_PRESENT) {
-        filter = Filters.and(Filters.exists(field), Filters.ne(field, null));
-      } else {
-        // absent fields means null or missing
-        filter = Filters.or(Filters.exists(field, false), Filters.eq(field, null));
-      }
-      return filter;
+      return handleOptionalOperator(op, args);
     }
 
     if (op == Operators.AND || op == Operators.OR) {
-      final List<Bson> list = call.arguments().stream()
-              .map(a -> a.accept(this))
-              .collect(Collectors.toList());
-
-      return op == Operators.AND ? Filters.and(list) : Filters.or(list);
+      return handleLogicalOperator(op, args);
     }
 
     if (op == Operators.NOT) {
@@ -97,10 +83,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     }
 
     if (op == IterableOperators.IS_EMPTY || op == IterableOperators.NOT_EMPTY) {
-      Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = naming.name(Visitors.toPath(args.get(0)));
-      return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
-              : Filters.and(Filters.exists(field), Filters.ne(field, null), Filters.ne(field, Collections.emptyList()));
+      return handleIterableOperator(op, args);
     }
     
     if (op == IterableOperators.ANY) {
@@ -147,9 +130,35 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       return binaryCall(call);
     }
 
-
     throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
   }
+
+  private Bson handleOptionalOperator(Operator op, List<Expression> args) {
+    Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
+    final String field = naming.name(Visitors.toPath(args.get(0)));
+    if (op == OptionalOperators.IS_PRESENT) {
+      return Filters.and(Filters.exists(field), Filters.ne(field, null));
+    } else {
+      // Absent fields mean null or missing
+      return Filters.or(Filters.exists(field, false), Filters.eq(field, null));
+    }
+  }
+
+  private Bson handleLogicalOperator(Operator op, List<Expression> args) {
+    final List<Bson> list = args.stream()
+            .map(a -> a.accept(this))
+            .collect(Collectors.toList());
+
+    return op == Operators.AND ? Filters.and(list) : Filters.or(list);
+  }
+
+  private Bson handleIterableOperator(Operator op, List<Expression> args) {
+    Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
+    final String field = naming.name(Visitors.toPath(args.get(0)));
+    return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
+            : Filters.and(Filters.exists(field), Filters.ne(field, null), Filters.ne(field, Collections.emptyList()));
+  }
+
 
   private Bson binaryCall(Call call) {
     Preconditions.checkArgument(call.operator().arity() == Operator.Arity.BINARY, "%s is not binary", call.operator());
