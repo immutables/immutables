@@ -542,13 +542,14 @@ public abstract class AbstractPersonTest {
     this.insert(generator.next().withFullName("John"));
     // empty pets
     this.insert(generator.next().withFullName("Mary").withPets(Collections.emptyList()));
-    // single pet without toys
+    // single pet without toys but with collar
     this.insert(
         generator.next().withFullName("Paul")
             .withPets(
                 ImmutablePet.builder()
                     .name("nummy")
                     .type(Pet.PetType.cat)
+                    .collar(ImmutableCollar.builder().addTags("rescue").build())
                     .build()));
     // single pet with address and one toy
     this.insert(
@@ -571,7 +572,7 @@ public abstract class AbstractPersonTest {
                                 .type(ToyType.ring)
                                 .build()))
                     .build()));
-    // single pet with address and two toy
+    // single pet with address, two toys, and collar
     this.insert(
         generator.next().withFullName("Adam")
             .withPets(
@@ -595,6 +596,7 @@ public abstract class AbstractPersonTest {
                                 .name("roby")
                                 .type(ToyType.robot)
                                 .build()))
+                    .collar(ImmutableCollar.builder().addTags("rescue").addTags("friendly").build())
                     .build()));
     // two pets one with a toy
     this.insert(
@@ -653,6 +655,10 @@ public abstract class AbstractPersonTest {
     // nested OR/AND combinations with NOT - element matching (a AND NOT(b OR c))
     // Match pets named "fluffy" that are NOT (gecko OR panda) - should match Emma (fluffy the dog)
     this.check(this.repository().find(this.person.pets.any().with(pet -> pet.name.is("fluffy").and(pet.type.not(t -> t.is(Pet.PetType.gecko).or().is(Pet.PetType.panda)))))).toList(Person::fullName).isOf("Emma");
+    // nested List→plainObject→List path: pets.collar.tags
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.collar.tags.any().is("rescue")))).toList(Person::fullName).hasContentInAnyOrder("Paul", "Adam");
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.collar.tags.any().is("friendly")))).toList(Person::fullName).isOf("Adam");
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.collar.tags.any().is("missing")))).empty();
   }
 
   @Test
