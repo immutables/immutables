@@ -112,7 +112,14 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         Preconditions.checkArgument(rightCall.arguments().get(0) instanceof Path, "%s is not a path", rightCall.arguments().get(0));
         Preconditions.checkArgument(rightCall.arguments().get(1) instanceof Call, "%s is not a call", rightCall.arguments().get(1));
 
-        path = Path.combine(path, (Path) rightCall.arguments().get(0));
+        Path subPath = (Path) rightCall.arguments().get(0);
+        if (path != null) {
+          for (java.lang.reflect.Member member : subPath.members()) {
+            path = path.append(member);
+          }
+        } else {
+          path = subPath;
+        }
         rightCall = (Call) rightCall.arguments().get(1);
       }
 
