@@ -19,35 +19,17 @@ package org.immutables.criteria.personmodel;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import java.util.List;
-import java.util.Optional;
-
 import org.immutables.criteria.Criteria;
 import org.immutables.value.Value;
 
+import java.util.List;
+
 @Value.Immutable
 @Criteria
-@JsonSerialize(as = ImmutablePet.class)
-@JsonDeserialize(as = ImmutablePet.class)
+@JsonSerialize(as = ImmutableCollar.class)
+@JsonDeserialize(as = ImmutableCollar.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public interface Pet {
+public interface Collar {
 
-  enum PetType {
-    dog, cat, fish, hamster, parrot,
-    tiger, panda, iguana, frog, gecko
-  }
-
-  String name();
-
-  PetType type();
-
-  Optional<Address> address();
-
-  List<Toy> toys();
-
-  @Value.Default
-  default Collar collar() {
-    return ImmutableCollar.builder().build();
-  }
+  List<String> tags();
 }
