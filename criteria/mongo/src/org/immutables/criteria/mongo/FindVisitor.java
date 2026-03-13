@@ -123,10 +123,14 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         rightCall = (Call) rightCall.arguments().get(1);
       }
 
-      // Handle AND/OR/NOT operators within ANY (for compound conditions on array elements)
+      // Handle AND/OR/NOT operators within ANY (for compound conditions on array elements).
+      // Also use $elemMatch for NOT_EQUAL and NOT_IN: flat dot-path $ne/$nin means "no element
+      // matches" (universal), but any().isNot/notIn requires existential ("at least one element").
       if (rightCall.operator() == Operators.AND ||
           rightCall.operator() == Operators.OR ||
-          rightCall.operator() == Operators.NOT) {
+          rightCall.operator() == Operators.NOT ||
+          rightCall.operator() == Operators.NOT_EQUAL ||
+          rightCall.operator() == Operators.NOT_IN) {
         final String arrayField = naming.name(path);
         Bson condition = buildElemMatchCondition(rightCall);
         return Filters.elemMatch(arrayField, condition);
@@ -315,6 +319,46 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     }
   }
 
+  /** Simple holder for the result of unwinding consecutive ANY operators. */
+  private static class UnwoundAny {
+    final Path path;
+    final Call inner;
+    UnwoundAny(Path path, Call inner) {
+      this.path = path;
+      this.inner = inner;
+    }
+  }
+
+  /**
+   * Unwinds consecutive ANY operators, accumulating the path segments.
+   * E.g. ANY(collar.tags, inner) => UnwoundAny(collar.tags, inner)
+   */
+  private static UnwoundAny unwindAny(Call call) {
+    Path path = null;
+    while (call.operator() == IterableOperators.ANY) {
+      Preconditions.checkArgument(call.arguments().size() == 2, "Expected two arguments for ANY got %s", call.arguments().size());
+      Preconditions.checkArgument(call.arguments().get(0) instanceof Path, "%s is not a path", call.arguments().get(0));
+      Preconditions.checkArgument(call.arguments().get(1) instanceof Call, "%s is not a call", call.arguments().get(1));
+      Path subPath = (Path) call.arguments().get(0);
+      path = appendPath(path, subPath);
+      call = (Call) call.arguments().get(1);
+    }
+    return new UnwoundAny(path, call);
+  }
+
+  /**
+   * Appends all members of suffix onto prefix, returning the combined path.
+   * Returns prefix if suffix is null, suffix if prefix is null.
+   */
+  private static Path appendPath(Path prefix, Path suffix) {
+    if (suffix == null) return prefix;
+    if (prefix == null) return suffix;
+    for (java.lang.reflect.Member member : suffix.members()) {
+      prefix = prefix.append(member);
+    }
+    return prefix;
+  }
+
   /**
    * Recursively builds a MongoDB filter condition for use inside $elemMatch.
    * Handles arbitrarily nested AND/OR/NOT operators by traversing the expression tree.
@@ -323,6 +367,10 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
    * @return a Bson filter suitable for use inside Filters.elemMatch()
    */
   private Bson buildElemMatchCondition(Expression expr) {
+    return buildElemMatchCondition(expr, null);
+  }
+
+  private Bson buildElemMatchCondition(Expression expr, Path anyPrefix) {
     if (!(expr instanceof Call)) {
       throw new IllegalArgumentException("Expected Call but got " + expr);
     }
@@ -338,13 +386,20 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         Preconditions.checkArgument(arg instanceof Call, "Expected Call but got %s", arg);
         Call argCall = (Call) arg;
 
-        // Check if this argument has nested AND/OR that needs recursive handling
         if (argCall.operator() == Operators.AND || argCall.operator() == Operators.OR) {
-          // Recursively process nested AND/OR
-          conditions.add(buildElemMatchCondition(arg));
+          conditions.add(buildElemMatchCondition(arg, anyPrefix));
+        } else if (argCall.operator() == IterableOperators.ANY) {
+          // Nested ANY inside AND/OR: unwind and dispatch
+          UnwoundAny unwound = unwindAny(argCall);
+          Path nestedPrefix = appendPath(anyPrefix, unwound.path);
+          Call inner = unwound.inner;
+          if (inner.operator() == Operators.AND || inner.operator() == Operators.OR || inner.operator() == Operators.NOT) {
+            conditions.add(buildElemMatchCondition(inner, nestedPrefix));
+          } else {
+            conditions.add(buildLeafCondition(inner, nestedPrefix));
+          }
         } else {
-          // Handle NOT and leaf conditions
-          conditions.add(buildLeafCondition(argCall));
+          conditions.add(buildLeafCondition(argCall, anyPrefix));
         }
       }
 
@@ -352,23 +407,17 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     }
 
     // For top-level NOT or leaf conditions
-    return buildLeafCondition(call);
+    return buildLeafCondition(call, anyPrefix);
   }
 
   /**
    * Builds a condition that may be wrapped in NOT operator(s).
-   * <p>
-   * Handles three cases:
-   * <ul>
-   *   <li>Leaf conditions (comparisons like EQUAL, GREATER_THAN, etc.)</li>
-   *   <li>NOT-wrapped leaf conditions (unwraps NOT, unwraps nested ANY, negates operator)</li>
-   *   <li>NOT-wrapped AND/OR (applies De Morgan's laws recursively)</li>
-   * </ul>
-   *
-   * @param call the condition call to process
-   * @return a Bson filter for this condition
    */
   private Bson buildLeafCondition(Call call) {
+    return buildLeafCondition(call, null);
+  }
+
+  private Bson buildLeafCondition(Call call, Path anyPrefix) {
     Operator operator = call.operator();
 
     // Handle NOT operator by unwrapping and negating the inner operator
@@ -376,16 +425,16 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       Preconditions.checkArgument(call.arguments().get(0) instanceof Call, "%s is not a call", call.arguments().get(0));
       call = (Call) call.arguments().get(0);
 
-      // Unwrap any nested ANY operators (e.g., pet.type.not(type -> type.is(...)))
-      while (call.operator() == IterableOperators.ANY) {
-        Preconditions.checkArgument(call.arguments().size() == 2, "ANY should have 2 arguments");
-        Preconditions.checkArgument(call.arguments().get(1) instanceof Call, "Second argument of ANY should be a Call");
-        call = (Call) call.arguments().get(1);
+      // Unwrap any nested ANY operators, accumulating path into anyPrefix
+      if (call.operator() == IterableOperators.ANY) {
+        UnwoundAny unwound = unwindAny(call);
+        anyPrefix = appendPath(anyPrefix, unwound.path);
+        call = unwound.inner;
       }
 
       // If after unwrapping we find AND/OR, apply De Morgan's laws
       if (call.operator() == Operators.AND || call.operator() == Operators.OR) {
-        return applyDeMorgansLaw(call);
+        return applyDeMorgansLaw(call, anyPrefix);
       }
 
       operator = negateOperator(call.operator());
@@ -396,6 +445,12 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     // Extract and reconstruct the path
     Preconditions.checkArgument(call.arguments().get(0) instanceof Path, "%s is not a path", call.arguments().get(0));
     Path fullPath = reconstructFullPath(Visitors.toPath(call.arguments().get(0)));
+    fullPath = appendPath(anyPrefix, fullPath);
+
+    if (fullPath == null) {
+      // Scalar array element inside $elemMatch — no field name needed
+      return buildScalarElemMatchCondition(call, operator);
+    }
 
     // Build the final condition
     return buildCondition(call, operator, fullPath);
@@ -403,24 +458,18 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
 
   /**
    * Applies De Morgan's laws to negate a logical operator (AND/OR).
-   * <p>
-   * Transformations:
-   * <ul>
-   *   <li>NOT(a AND b) = NOT(a) OR NOT(b)</li>
-   *   <li>NOT(a OR b) = NOT(a) AND NOT(b)</li>
-   * </ul>
-   *
-   * @param call an AND or OR call to be negated
-   * @return the negated condition with flipped operator
    */
   private Bson applyDeMorgansLaw(Call call) {
+    return applyDeMorgansLaw(call, null);
+  }
+
+  private Bson applyDeMorgansLaw(Call call, Path anyPrefix) {
     Operator op = call.operator();
     List<Bson> negatedConditions = new ArrayList<>();
 
     for (Expression arg : call.arguments()) {
-      // Wrap each argument in NOT and process it
       Call negatedArg = Expressions.unaryCall(Operators.NOT, (Call) arg);
-      negatedConditions.add(buildLeafCondition(negatedArg));
+      negatedConditions.add(buildLeafCondition(negatedArg, anyPrefix));
     }
 
     // Apply De Morgan's law: flip AND <-> OR
@@ -443,6 +492,47 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     } else {
       return binaryCall(Expressions.binaryCall(operator, path, call.arguments().get(1)));
     }
+  }
+
+  /**
+   * Builds a field-less condition for scalar array elements inside $elemMatch.
+   * E.g. for NOT_EQUAL + "rescue" produces {$ne: "rescue"}.
+   */
+  private Bson buildScalarElemMatchCondition(Call call, Operator operator) {
+    Preconditions.checkArgument(call.operator().arity() == Operator.Arity.BINARY,
+        "Scalar conditions must be binary, got %s", call.operator());
+    Object value = Visitors.toConstant(call.arguments().get(1)).value();
+    String dummyField = "_";
+    Bson filter;
+    if (operator == Operators.EQUAL) {
+      filter = Filters.eq(dummyField, value);
+    } else if (operator == Operators.NOT_EQUAL) {
+      filter = Filters.ne(dummyField, value);
+    } else if (operator == Operators.IN) {
+      Collection<?> values = ImmutableSet.copyOf(Visitors.toConstant(call.arguments().get(1)).values());
+      filter = Filters.in(dummyField, values);
+    } else if (operator == Operators.NOT_IN) {
+      Collection<?> values = ImmutableSet.copyOf(Visitors.toConstant(call.arguments().get(1)).values());
+      filter = Filters.nin(dummyField, values);
+    } else if (operator == ComparableOperators.GREATER_THAN) {
+      filter = Filters.gt(dummyField, value);
+    } else if (operator == ComparableOperators.GREATER_THAN_OR_EQUAL) {
+      filter = Filters.gte(dummyField, value);
+    } else if (operator == ComparableOperators.LESS_THAN) {
+      filter = Filters.lt(dummyField, value);
+    } else if (operator == ComparableOperators.LESS_THAN_OR_EQUAL) {
+      filter = Filters.lte(dummyField, value);
+    } else {
+      throw new UnsupportedOperationException("Unsupported scalar elemMatch operator: " + operator);
+    }
+    // Extract operator subdocument: {_: {$ne: val}} -> {$ne: val}
+    BsonDocument doc = filter.toBsonDocument(BsonDocument.class, codecRegistry);
+    BsonValue inner = doc.get(dummyField);
+    if (inner.isDocument()) {
+      return inner.asDocument();
+    }
+    // For equality: Filters.eq produces {_: val} not {_: {$eq: val}}
+    return new BsonDocument("$eq", inner);
   }
 
   /**

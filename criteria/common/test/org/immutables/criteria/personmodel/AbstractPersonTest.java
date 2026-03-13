@@ -659,6 +659,12 @@ public abstract class AbstractPersonTest {
     this.check(this.repository().find(this.person.pets.any().with(pet -> pet.collar.tags.any().is("rescue")))).toList(Person::fullName).hasContentInAnyOrder("Paul", "Adam");
     this.check(this.repository().find(this.person.pets.any().with(pet -> pet.collar.tags.any().is("friendly")))).toList(Person::fullName).isOf("Adam");
     this.check(this.repository().find(this.person.pets.any().with(pet -> pet.collar.tags.any().is("missing")))).empty();
+    // compound AND with nested ANY through plain object (List→plain→List)
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.collar.tags.any().is("rescue").and(pet.collar.tags.any().is("friendly"))))).toList(Person::fullName).isOf("Adam");
+    // mixed nested-ANY + simple pet field in compound
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.collar.tags.any().is("rescue").and(pet.name.is("fluffy"))))).toList(Person::fullName).isOf("Adam");
+    // NOT with nested ANY through plain object
+    this.check(this.repository().find(this.person.pets.any().with(pet -> pet.collar.tags.any().not(t -> t.is("rescue"))))).toList(Person::fullName).isOf("Adam");
   }
 
   @Test
