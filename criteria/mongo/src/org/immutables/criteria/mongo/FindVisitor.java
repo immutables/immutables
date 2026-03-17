@@ -73,7 +73,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = naming.name(Visitors.toPath(args.get(0)));
+      final String field = this.naming.name(Visitors.toPath(args.get(0)));
       Bson filter;
       if (op == OptionalOperators.IS_PRESENT) {
         filter = Filters.and(Filters.exists(field), Filters.ne(field, null));
@@ -93,12 +93,12 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     }
 
     if (op == Operators.NOT) {
-      return negate(args.get(0));
+      return this.negate(args.get(0));
     }
 
     if (op == IterableOperators.IS_EMPTY || op == IterableOperators.NOT_EMPTY) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = naming.name(Visitors.toPath(args.get(0)));
+      final String field = this.naming.name(Visitors.toPath(args.get(0)));
       return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
               : Filters.and(Filters.exists(field), Filters.ne(field, null), Filters.ne(field, Collections.emptyList()));
     }
@@ -123,12 +123,16 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         rightCall = (Call) rightCall.arguments().get(1);
       }
 
-      // Handle AND/OR/NOT operators within ANY (for compound conditions on array elements)
+      // Handle AND/OR/NOT operators within ANY (for compound conditions on array elements).
+      // Also use $elemMatch for NOT_EQUAL and NOT_IN: flat dot-path $ne/$nin means "no element
+      // matches" (universal), but any().isNot/notIn requires existential ("at least one element").
       if (rightCall.operator() == Operators.AND ||
           rightCall.operator() == Operators.OR ||
-          rightCall.operator() == Operators.NOT) {
-        final String arrayField = naming.name(path);
-        Bson condition = buildElemMatchCondition(rightCall);
+          rightCall.operator() == Operators.NOT ||
+          rightCall.operator() == Operators.NOT_EQUAL ||
+          rightCall.operator() == Operators.NOT_IN) {
+        final String arrayField = this.naming.name(path);
+        Bson condition = this.buildElemMatchCondition(rightCall);
         return Filters.elemMatch(arrayField, condition);
       }
 
@@ -147,11 +151,11 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         path = Path.combine(path, tmpPath);
       }
 
-      return buildCondition(rightCall, rightCall.operator(), path);
+      return this.buildCondition(rightCall, rightCall.operator(), path);
     }
 
     if (op.arity() == Operator.Arity.BINARY) {
-      return binaryCall(call);
+      return this.binaryCall(call);
     }
 
 
@@ -166,10 +170,10 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (!(left instanceof Path && right instanceof Constant)) {
       // special case when $expr has to be used
-      return call.accept(new MongoExpr(naming, codecRegistry)).asDocument();
+      return call.accept(new MongoExpr(this.naming, this.codecRegistry)).asDocument();
     }
 
-    final String field = naming.name(Visitors.toPath(left));
+    final String field = this.naming.name(Visitors.toPath(left));
     final Object value = Visitors.toConstant(right).value();
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       if ("".equals(value) && op == Operators.NOT_EQUAL) {
@@ -200,7 +204,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         // optimization: convert IN, NIN (where argument is a list with single element) into EQ / NE
         Operators newOperator = op == Operators.IN ? Operators.EQUAL : Operators.NOT_EQUAL;
         Call newCall = Expressions.binaryCall(newOperator, left, Expressions.constant(values.iterator().next()));
-        return binaryCall(newCall);
+        return this.binaryCall(newCall);
       }
       return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);
     }
@@ -249,7 +253,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
   }
 
   /**
-   * see https://docs.mongodb.com/manual/reference/operator/query/not/
+   * see <a href="https://docs.mongodb.com/manual/reference/operator/query/not/">mongo query manual $not</a>
    * NOT operator is mongo is a little specific and can't be applied on all levels
    * $not: { $or ... } will not work and should be transformed to $nor
    */
@@ -265,13 +269,13 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       // NOT NOT a == a
       return notCall.arguments().get(0).accept(this);
     } else if (notOperator == Operators.EQUAL) {
-      return newCall(notCall, Operators.NOT_EQUAL);
+      return this.newCall(notCall, Operators.NOT_EQUAL);
     } else if (notOperator == Operators.NOT_EQUAL) {
-      return newCall(notCall, Operators.EQUAL);
+      return this.newCall(notCall, Operators.EQUAL);
     } else if (notOperator == Operators.IN) {
-      return newCall(notCall, Operators.NOT_IN);
+      return this.newCall(notCall, Operators.NOT_IN);
     } else if (notOperator == Operators.NOT_IN) {
-      return newCall(notCall, Operators.IN);
+      return this.newCall(notCall, Operators.IN);
     } else if (notOperator == Operators.OR) {
       return Filters.nor(notCall.arguments().stream().map(a -> a.accept(this)).collect(Collectors.toList()));
     } else if (notOperator == Operators.AND) {
@@ -279,10 +283,10 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       return Filters.or(notCall.arguments().stream().map(this::negate).collect(Collectors.toList()));
     } else if (notOperator == OptionalOperators.IS_ABSENT || notOperator == OptionalOperators.IS_PRESENT) {
       Operator newOp = notOperator == OptionalOperators.IS_ABSENT ? OptionalOperators.IS_PRESENT : OptionalOperators.IS_ABSENT;
-      return newCall(notCall, newOp);
+      return this.newCall(notCall, newOp);
     } else if (notOperator == IterableOperators.IS_EMPTY || notOperator == IterableOperators.NOT_EMPTY) {
       Operator newOp = notOperator == IterableOperators.IS_EMPTY ? IterableOperators.NOT_EMPTY : IterableOperators.IS_EMPTY;
-      return newCall(notCall, newOp);
+      return this.newCall(notCall, newOp);
     }
 
     // don't really know how to negate here
@@ -290,7 +294,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
   }
 
   private Bson newCall(Call existing, Operator newOperator) {
-    return visit(Expressions.call(newOperator, existing.arguments()));
+    return this.visit(Expressions.call(newOperator, existing.arguments()));
   }
 
   private static Operator negateOperator(Operator operator) {
@@ -315,6 +319,46 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     }
   }
 
+  /** Simple holder for the result of unwinding consecutive ANY operators. */
+  private static class UnwoundAny {
+    final Path path;
+    final Call inner;
+    UnwoundAny(Path path, Call inner) {
+      this.path = path;
+      this.inner = inner;
+    }
+  }
+
+  /**
+   * Unwinds consecutive ANY operators, accumulating the path segments.
+   * E.g. ANY(collar.tags, inner) => UnwoundAny(collar.tags, inner)
+   */
+  private static UnwoundAny unwindAny(Call call) {
+    Path path = null;
+    while (call.operator() == IterableOperators.ANY) {
+      Preconditions.checkArgument(call.arguments().size() == 2, "Expected two arguments for ANY got %s", call.arguments().size());
+      Preconditions.checkArgument(call.arguments().get(0) instanceof Path, "%s is not a path", call.arguments().get(0));
+      Preconditions.checkArgument(call.arguments().get(1) instanceof Call, "%s is not a call", call.arguments().get(1));
+      Path subPath = (Path) call.arguments().get(0);
+      path = appendPath(path, subPath);
+      call = (Call) call.arguments().get(1);
+    }
+    return new UnwoundAny(path, call);
+  }
+
+  /**
+   * Appends all members of suffix onto prefix, returning the combined path.
+   * Returns prefix if suffix is null, suffix if prefix is null.
+   */
+  private static Path appendPath(Path prefix, Path suffix) {
+    if (suffix == null) return prefix;
+    if (prefix == null) return suffix;
+    for (java.lang.reflect.Member member : suffix.members()) {
+      prefix = prefix.append(member);
+    }
+    return prefix;
+  }
+
   /**
    * Recursively builds a MongoDB filter condition for use inside $elemMatch.
    * Handles arbitrarily nested AND/OR/NOT operators by traversing the expression tree.
@@ -323,6 +367,10 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
    * @return a Bson filter suitable for use inside Filters.elemMatch()
    */
   private Bson buildElemMatchCondition(Expression expr) {
+    return this.buildElemMatchCondition(expr, null);
+  }
+
+  private Bson buildElemMatchCondition(Expression expr, Path anyPrefix) {
     if (!(expr instanceof Call)) {
       throw new IllegalArgumentException("Expected Call but got " + expr);
     }
@@ -338,13 +386,20 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         Preconditions.checkArgument(arg instanceof Call, "Expected Call but got %s", arg);
         Call argCall = (Call) arg;
 
-        // Check if this argument has nested AND/OR that needs recursive handling
         if (argCall.operator() == Operators.AND || argCall.operator() == Operators.OR) {
-          // Recursively process nested AND/OR
-          conditions.add(buildElemMatchCondition(arg));
+          conditions.add(this.buildElemMatchCondition(arg, anyPrefix));
+        } else if (argCall.operator() == IterableOperators.ANY) {
+          // Nested ANY inside AND/OR: unwind and dispatch
+          UnwoundAny unwound = unwindAny(argCall);
+          Path nestedPrefix = appendPath(anyPrefix, unwound.path);
+          Call inner = unwound.inner;
+          if (inner.operator() == Operators.AND || inner.operator() == Operators.OR || inner.operator() == Operators.NOT) {
+            conditions.add(this.buildElemMatchCondition(inner, nestedPrefix));
+          } else {
+            conditions.add(this.buildLeafCondition(inner, nestedPrefix));
+          }
         } else {
-          // Handle NOT and leaf conditions
-          conditions.add(buildLeafCondition(argCall));
+          conditions.add(this.buildLeafCondition(argCall, anyPrefix));
         }
       }
 
@@ -352,23 +407,10 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     }
 
     // For top-level NOT or leaf conditions
-    return buildLeafCondition(call);
+    return this.buildLeafCondition(call, anyPrefix);
   }
 
-  /**
-   * Builds a condition that may be wrapped in NOT operator(s).
-   * <p>
-   * Handles three cases:
-   * <ul>
-   *   <li>Leaf conditions (comparisons like EQUAL, GREATER_THAN, etc.)</li>
-   *   <li>NOT-wrapped leaf conditions (unwraps NOT, unwraps nested ANY, negates operator)</li>
-   *   <li>NOT-wrapped AND/OR (applies De Morgan's laws recursively)</li>
-   * </ul>
-   *
-   * @param call the condition call to process
-   * @return a Bson filter for this condition
-   */
-  private Bson buildLeafCondition(Call call) {
+  private Bson buildLeafCondition(Call call, Path anyPrefix) {
     Operator operator = call.operator();
 
     // Handle NOT operator by unwrapping and negating the inner operator
@@ -376,16 +418,16 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       Preconditions.checkArgument(call.arguments().get(0) instanceof Call, "%s is not a call", call.arguments().get(0));
       call = (Call) call.arguments().get(0);
 
-      // Unwrap any nested ANY operators (e.g., pet.type.not(type -> type.is(...)))
-      while (call.operator() == IterableOperators.ANY) {
-        Preconditions.checkArgument(call.arguments().size() == 2, "ANY should have 2 arguments");
-        Preconditions.checkArgument(call.arguments().get(1) instanceof Call, "Second argument of ANY should be a Call");
-        call = (Call) call.arguments().get(1);
+      // Unwrap any nested ANY operators, accumulating path into anyPrefix
+      if (call.operator() == IterableOperators.ANY) {
+        UnwoundAny unwound = unwindAny(call);
+        anyPrefix = appendPath(anyPrefix, unwound.path);
+        call = unwound.inner;
       }
 
       // If after unwrapping we find AND/OR, apply De Morgan's laws
       if (call.operator() == Operators.AND || call.operator() == Operators.OR) {
-        return applyDeMorgansLaw(call);
+        return this.applyDeMorgansLaw(call, anyPrefix);
       }
 
       operator = negateOperator(call.operator());
@@ -396,31 +438,24 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     // Extract and reconstruct the path
     Preconditions.checkArgument(call.arguments().get(0) instanceof Path, "%s is not a path", call.arguments().get(0));
     Path fullPath = reconstructFullPath(Visitors.toPath(call.arguments().get(0)));
+    fullPath = appendPath(anyPrefix, fullPath);
+
+    if (fullPath == null) {
+      // Scalar array element inside $elemMatch — no field name needed
+      return this.buildScalarElemMatchCondition(call, operator);
+    }
 
     // Build the final condition
-    return buildCondition(call, operator, fullPath);
+    return this.buildCondition(call, operator, fullPath);
   }
 
-  /**
-   * Applies De Morgan's laws to negate a logical operator (AND/OR).
-   * <p>
-   * Transformations:
-   * <ul>
-   *   <li>NOT(a AND b) = NOT(a) OR NOT(b)</li>
-   *   <li>NOT(a OR b) = NOT(a) AND NOT(b)</li>
-   * </ul>
-   *
-   * @param call an AND or OR call to be negated
-   * @return the negated condition with flipped operator
-   */
-  private Bson applyDeMorgansLaw(Call call) {
+  private Bson applyDeMorgansLaw(Call call, Path anyPrefix) {
     Operator op = call.operator();
     List<Bson> negatedConditions = new ArrayList<>();
 
     for (Expression arg : call.arguments()) {
-      // Wrap each argument in NOT and process it
-      Call negatedArg = Expressions.unaryCall(Operators.NOT, (Call) arg);
-      negatedConditions.add(buildLeafCondition(negatedArg));
+      Call negatedArg = Expressions.unaryCall(Operators.NOT, arg);
+      negatedConditions.add(this.buildLeafCondition(negatedArg, anyPrefix));
     }
 
     // Apply De Morgan's law: flip AND <-> OR
@@ -439,10 +474,51 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
    */
   private Bson buildCondition(Call call, Operator operator, Path path) {
     if (call.operator().arity() == Operator.Arity.UNARY) {
-      return visit(Expressions.unaryCall(call.operator(), path));
+      return this.visit(Expressions.unaryCall(call.operator(), path));
     } else {
-      return binaryCall(Expressions.binaryCall(operator, path, call.arguments().get(1)));
+      return this.binaryCall(Expressions.binaryCall(operator, path, call.arguments().get(1)));
     }
+  }
+
+  /**
+   * Builds a field-less condition for scalar array elements inside $elemMatch.
+   * E.g. for NOT_EQUAL + "rescue" produces {$ne: "rescue"}.
+   */
+  private Bson buildScalarElemMatchCondition(Call call, Operator operator) {
+    Preconditions.checkArgument(call.operator().arity() == Operator.Arity.BINARY,
+        "Scalar conditions must be binary, got %s", call.operator());
+    Object value = Visitors.toConstant(call.arguments().get(1)).value();
+    String dummyField = "_";
+    Bson filter;
+    if (operator == Operators.EQUAL) {
+      filter = Filters.eq(dummyField, value);
+    } else if (operator == Operators.NOT_EQUAL) {
+      filter = Filters.ne(dummyField, value);
+    } else if (operator == Operators.IN) {
+      Collection<?> values = ImmutableSet.copyOf(Visitors.toConstant(call.arguments().get(1)).values());
+      filter = Filters.in(dummyField, values);
+    } else if (operator == Operators.NOT_IN) {
+      Collection<?> values = ImmutableSet.copyOf(Visitors.toConstant(call.arguments().get(1)).values());
+      filter = Filters.nin(dummyField, values);
+    } else if (operator == ComparableOperators.GREATER_THAN) {
+      filter = Filters.gt(dummyField, value);
+    } else if (operator == ComparableOperators.GREATER_THAN_OR_EQUAL) {
+      filter = Filters.gte(dummyField, value);
+    } else if (operator == ComparableOperators.LESS_THAN) {
+      filter = Filters.lt(dummyField, value);
+    } else if (operator == ComparableOperators.LESS_THAN_OR_EQUAL) {
+      filter = Filters.lte(dummyField, value);
+    } else {
+      throw new UnsupportedOperationException("Unsupported scalar elemMatch operator: " + operator);
+    }
+    // Extract operator subdocument: {_: {$ne: val}} -> {$ne: val}
+    BsonDocument doc = filter.toBsonDocument(BsonDocument.class, this.codecRegistry);
+    BsonValue inner = doc.get(dummyField);
+    if (inner.isDocument()) {
+      return inner.asDocument();
+    }
+    // For equality: Filters.eq produces {_: val} not {_: {$eq: val}}
+    return new BsonDocument("$eq", inner);
   }
 
   /**
@@ -494,11 +570,11 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     public BsonValue visit(Call call) {
       Operator op = call.operator();
       if (op.arity() == Operator.Arity.BINARY) {
-        return visitBinary(call, call.arguments().get(0), call.arguments().get(1));
+        return this.visitBinary(call, call.arguments().get(0), call.arguments().get(1));
       }
 
       if (op.arity() == Operator.Arity.UNARY) {
-        return visitUnary(call, call.arguments().get(0));
+        return this.visitUnary(call, call.arguments().get(0));
       }
 
 
@@ -532,7 +608,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
         expr = new BsonDocument("$not", expr);
       }
 
-      return Filters.expr(expr).toBsonDocument(BsonDocument.class, codecRegistry);
+      return Filters.expr(expr).toBsonDocument(BsonDocument.class, this.codecRegistry);
     }
 
     private BsonValue visitUnary(Call call, Expression arg) {
@@ -550,7 +626,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     @Override
     public BsonValue visit(Path path) {
       // in mongo expressions fields are referenced as $field
-      return new BsonString('$' + pathNaming.name(path));
+      return new BsonString('$' + this.pathNaming.name(path));
     }
 
     @Override
@@ -562,13 +638,13 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
 
       if (value instanceof Iterable) {
         return Filters.in("ignore", (Iterable<?>) value)
-                .toBsonDocument(BsonDocument.class, codecRegistry)
+                .toBsonDocument(BsonDocument.class, this.codecRegistry)
                 .get("ignore").asDocument()
                 .get("$in").asArray();
       }
 
       return Filters.eq("ignore", value)
-              .toBsonDocument(BsonDocument.class, codecRegistry)
+              .toBsonDocument(BsonDocument.class, this.codecRegistry)
               .get("ignore");
     }
   }
