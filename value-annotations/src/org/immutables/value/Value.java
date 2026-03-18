@@ -1263,10 +1263,13 @@ public @interface Value {
     boolean overshadowImplementation() default false;
 
     /**
-     * By default, builder is generated as inner builder class nested in immutable value class.
-     * Setting this to {@code true} will flip the picture — immutable implementation class will be
-     * nested inside builder, which will be top level class. In case if {@link #visibility()} is set
+     * By default, the builder is generated as an inner builder class nested in an immutable value class
+     * for non-record types.
+     * Setting this to {@code true} will flip the picture — the immutable implementation class will be
+     * nested inside the builder, which will be top level class. In case if {@link #visibility()} is set
      * to {@link ImplementationVisibility#PRIVATE} this feature is turned on automatically.
+     *
+     * <p>Has no effect on records.</p>
      * @return {@code true} if builder should be generated as top level class and implementation
      *     will become static inner class inside builder.
      */
