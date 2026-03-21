@@ -14,12 +14,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>criteria</artifactId>
     <groupId>org.immutables</groupId>
     <version>2.12.2-SNAPSHOT</version>
   </parent>
+
   <modelVersion>4.0.0</modelVersion>
   <artifactId>criteria-sql</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
@@ -28,6 +30,8 @@
 
   <properties>
     <module.name>${project.groupId}.criteria.sql</module.name>
+    <h2.version>2.1.214</h2.version>
+    <liquibase.version>4.15.0</liquibase.version>
   </properties>
 
   <dependencies>
@@ -38,57 +42,24 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-      <version>${jsr305.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>
     </dependency>
-        <!-- Jackson is needed for our bson to jackson bridge API 
-        Color? -->
+
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${jackson.version}</version>
+      <groupId>org.immutables</groupId>
+      <artifactId>generator</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson-databind.version}</version>
+      <groupId>org.immutables</groupId>
+      <artifactId>metainf</artifactId>
+      <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>io.reactivex.rxjava2</groupId>
-      <artifactId>rxjava</artifactId>
-      <version>${rxjava2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-guava</artifactId>
-      <version>${jackson.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
-      <version>${jackson.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jdk8</artifactId>
-      <version>${jackson.version}</version>
-      <scope>test</scope>
-    </dependency>
+
+
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
@@ -102,5 +73,84 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>${h2.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>default-compile</id>
+            <phase>compile</phase>
+            <configuration>
+              <compilerArgs combine.children="append">
+                <arg>-XDcompilePolicy=simple</arg>
+                <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:BadImport:ERROR -Xep:MissingOverride:ERROR -Xep:OrphanedFormatString:ERROR -Xep:RedundantOverride:ERROR -Xep:RedundantThrows:ERROR -Xep:RemoveUnusedImports:ERROR -Xep:UnusedMethod:ERROR</arg>
+                <arg>-Xlint:unchecked</arg>
+              </compilerArgs>
+
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>com.google.errorprone</groupId>
+                  <artifactId>error_prone_core</artifactId>
+                  <version>${errorprone.version}</version>
+                </path>
+                <path>
+                  <groupId>org.immutables</groupId>
+                  <artifactId>value</artifactId>
+                  <version>${project.version}</version>
+                </path>
+                <path>
+                  <groupId>org.immutables</groupId>
+                  <artifactId>metainf</artifactId>
+                  <version>${project.version}</version>
+                </path>
+                <path>
+                  <groupId>org.immutables</groupId>
+                  <artifactId>generator-processor</artifactId>
+                  <version>${project.version}</version>
+                </path>
+              </annotationProcessorPaths>
+            </configuration>
+          </execution>
+          <execution>
+            <id>default-testCompile</id>
+            <phase>test-compile</phase>
+            <configuration>
+              <compilerArgs combine.children="append">
+                <arg>-XDcompilePolicy=simple</arg>
+                <arg>-Xplugin:ErrorProne -Xep:CheckReturnValue:ERROR -Xep:MethodCanBeStatic:ERROR -Xep:BadImport:ERROR -Xep:MissingOverride:ERROR -Xep:OrphanedFormatString:ERROR -Xep:RedundantOverride:ERROR -Xep:RedundantThrows:ERROR -Xep:RemoveUnusedImports:ERROR -Xep:UnusedMethod:ERROR</arg>
+                <arg>-Xlint:unchecked</arg>
+              </compilerArgs>
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>com.google.errorprone</groupId>
+                  <artifactId>error_prone_core</artifactId>
+                  <version>${errorprone.version}</version>
+                </path>
+                <path>
+                  <groupId>org.immutables</groupId>
+                  <artifactId>value</artifactId>
+                  <version>${project.version}</version>
+                </path>
+                <path>
+                  <groupId>org.immutables</groupId>
+                  <artifactId>criteria-sql</artifactId>
+                  <version>${project.version}</version>
+                </path>
+              </annotationProcessorPaths>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

@@ -1,0 +1,9 @@
+[*]
+indent_style = space
+indent_size = 2
+continuation_indent_size = 4
+max_line_length = 120
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
