@@ -23,11 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClientSettings;
-import org.bson.BsonBinaryReader;
-import org.bson.BsonBinaryWriter;
-import org.bson.BsonDocument;
-import org.bson.BsonValue;
-import org.bson.BsonWriter;
+import org.bson.*;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.io.BasicOutputBuffer;
@@ -57,6 +53,8 @@ public class BsonParserTest {
     compare("[1]");
     compare("[1, 2]");
     compare("[1, 2, 3]");
+    compare("[1, [2, [3, [4, [5]]]]]");
+    compare("[[[[[1], 2], 3], 4], 5]");
     compare("[true]");
     compare("[true, true]");
     compare("[true, true, false]");
@@ -84,6 +82,7 @@ public class BsonParserTest {
   public void scalar() throws Exception {
     compare("0");
     compare("0.0");
+    compare("-0.0");
     compare("-1");
     compare("-200");
     compare(Long.toString(Long.MIN_VALUE));
@@ -104,6 +103,7 @@ public class BsonParserTest {
     compare("\"foo\"");
     compare("\"\"");
     compare("\"null\"");
+    compare("\"2019-01-01T00:00:00Z\"");
   }
 
   @Test
@@ -126,6 +126,21 @@ public class BsonParserTest {
     compare("{\"foo\": 1, \"bar\": 2}");
     compare("{\"foo\": [], \"bar\": {}}");
     compare("{\"foo\": {\"bar\": {\"baz\": true}}}");
+    compare("{\"\": \"empty key\"}");
+    compare("{\" \": \"space key\"}");
+    compare("{\"a.b\": \"dot key\"}");
+    compare("{\"$a\": \"dollar key\"}");
+  }
+
+  @Test
+  public void specialStrings() throws Exception {
+    compare("\"\\u1234\\u5678\"");
+    compare("\"😀😁😂\"");
+    compare("\"\\n\\r\\t\\b\\f\\\"\\\\\"");
+    compare("\"'single quotes'\"");
+    compare("\"/slashes/\"");
+    compare("\"\\u0000\""); // null character
+    compare("\"Mixed: \\u1234 and 😀 and ASCII\"");
   }
 
   /**
