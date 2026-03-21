@@ -35,7 +35,10 @@ import java.util.Objects;
  */
 class BackendResource  {
 
+
   private final MongoDatabase database;
+
+  private final ObjectMapper mapper;
 
   private final MongoBackend backend;
 
@@ -43,9 +46,11 @@ class BackendResource  {
 
   private final LazyResolver resolver;
 
+  private final MongoSetup setup;
+
   BackendResource(MongoDatabase database) {
     this.database = Objects.requireNonNull(database, "database");
-    final ObjectMapper mapper = new ObjectMapper()
+    this.mapper = new ObjectMapper()
             .registerModule(new BsonModule())
             .registerModule(new GuavaModule())
             .registerModule(new Jdk8Module())
@@ -53,8 +58,15 @@ class BackendResource  {
 
     this.registry = JacksonCodecs.registryFromMapper(mapper);
     this.resolver = new LazyResolver();
-    this.backend = new MongoBackend(MongoSetup.of(this.resolver));
+    this.setup = MongoSetup.of(resolver);
+    this.backend = new MongoBackend(this.setup);
   }
+
+  MongoSetup setup() {
+    return setup;
+  }
+
+  ObjectMapper mapper() { return mapper;}
 
   MongoBackend backend() {
     return backend;

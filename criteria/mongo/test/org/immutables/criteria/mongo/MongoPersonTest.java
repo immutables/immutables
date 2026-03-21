@@ -45,6 +45,7 @@ public class MongoPersonTest extends AbstractPersonTest {
             Feature.QUERY_WITH_OFFSET, 
             Feature.ORDER_BY, 
             Feature.REGEX,
+            Feature.UPDATE_BY_QUERY,
             Feature.STRING_EMPTY,
             Feature.STRING_PREFIX_SUFFIX,
             Feature.ITERABLE_SIZE,

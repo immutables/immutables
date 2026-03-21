@@ -253,7 +253,7 @@ class MongoSession implements Backend.Session {
       if (path.returnType() != Optional.class && Optional.empty().equals(value)) {
         value = null; // unwrap from Optional
       }
-      set.put(Visitors.toPath(path).toStringPath(), value);
+      set.put(pathNaming.name(Visitors.toPath(path)), value);
     });
 
     return Flowable.fromPublisher(collection.updateMany(filter, new Document("$set", set)))
