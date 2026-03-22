@@ -65,6 +65,11 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
     this.codecRegistry = Objects.requireNonNull(codecRegistry, "codecRegistry");
   }
 
+  // Construct field name which is derived expression (which is expected to be a Path).
+  private String fieldName(Expression expression) {
+    return naming.name(Visitors.toPath(expression));
+  }
+
   @Override
   public Bson visit(Call call) {
     final Operator op = call.operator();
@@ -73,7 +78,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = this.naming.name(Visitors.toPath(args.get(0)));
+      final String field = fieldName(args.get(0));
       Bson filter;
       if (op == OptionalOperators.IS_PRESENT) {
         filter = Filters.and(Filters.exists(field), Filters.ne(field, null));
@@ -98,7 +103,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (op == IterableOperators.IS_EMPTY || op == IterableOperators.NOT_EMPTY) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = this.naming.name(Visitors.toPath(args.get(0)));
+      final String field = fieldName(args.get(0));
       return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
               : Filters.and(Filters.exists(field), Filters.ne(field, null), Filters.ne(field, Collections.emptyList()));
     }
@@ -131,7 +136,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
           rightCall.operator() == Operators.NOT ||
           rightCall.operator() == Operators.NOT_EQUAL ||
           rightCall.operator() == Operators.NOT_IN) {
-        final String arrayField = this.naming.name(path);
+        final String arrayField = fieldName(path);
         Bson condition = this.buildElemMatchCondition(rightCall);
         return Filters.elemMatch(arrayField, condition);
       }
@@ -173,7 +178,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       return call.accept(new MongoExpr(this.naming, this.codecRegistry)).asDocument();
     }
 
-    final String field = this.naming.name(Visitors.toPath(left));
+    final String field = fieldName(left);
     final Object value = Visitors.toConstant(right).value();
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       if ("".equals(value) && op == Operators.NOT_EQUAL) {
