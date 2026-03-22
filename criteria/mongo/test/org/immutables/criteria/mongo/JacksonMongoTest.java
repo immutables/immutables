@@ -35,9 +35,9 @@ class JacksonMongoTest {
 
   JacksonMongoTest(MongoDatabase database) {
     BackendResource resource = new BackendResource(database);
+    // Force jackson path naming.
     PathNaming naming = new JacksonPathNaming(resource.mapper());
     this.setup = ImmutableMongoSetup.copyOf(resource.setup()).withPathNaming(naming);
-    // Insert one document
     Class<JacksonPathNamingTest.Bean1> entityType = JacksonPathNamingTest.Bean1.class;
     this.session = new MongoSession(setup.collectionResolver().resolve(entityType),
         setup.keyExtractorFactory().create(entityType), setup.pathNaming());
@@ -48,6 +48,28 @@ class JacksonMongoTest {
   private WriteResult execute(Backend.Operation operation) {
     return (WriteResult) Flowable.fromPublisher(session.execute(operation).publisher())
         .blockingFirst();
+  }
+
+  private BsonDocument findById(String id) {
+    return Flowable.fromPublisher(collection.find(Filters.eq("_id", id))).blockingFirst();
+  }
+
+  @Test
+  void insert() {
+    JacksonPathNamingTest.Bean1 bean = ImmutableBean1.builder()
+        .id("id1")
+        .prop1("p1")
+        .prop2("p2")
+        .prop3("p3")
+        .isProp4(true)
+        .build();
+
+    StandardOperations.Insert insert = StandardOperations.Insert.ofValues(Collections.singletonList(bean));
+    check(execute(insert).insertedCount()).is(OptionalLong.of(1));
+
+    final BsonDocument expected = BsonDocument.parse(String.format("{_id:'%s', prop1: 'p1',  prop2: 'p2', " +
+        "prop3_changed: 'p3', prop4: true}", bean.getId()));
+    check(findById(bean.getId())).is(expected);
   }
 
   /**
@@ -79,11 +101,11 @@ class JacksonMongoTest {
     check(execute(update).updatedCount()).is(OptionalLong.of(1));
 
     // Get that all fields are correctly named after update.
-    BsonDocument doc = Flowable.fromPublisher(collection.find(Filters.eq("_id", bean.getId()))).blockingFirst();
+    BsonDocument actual = findById(bean.getId());
 
-    check(!doc.isEmpty());
+    check(!actual.isEmpty());
     final BsonDocument expected =  BsonDocument.parse(String.format("{_id:'%s', prop1: 'p1-updated',  prop2: 'p2-updated', " +
         "prop3_changed: 'p3-updated', prop4: false}", bean.getId()));
-    check(doc).is(expected);
+    check(actual).is(expected);
   }
 }
