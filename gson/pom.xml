@@ -64,7 +64,6 @@
       <!-- Optional. Jackson used to speedup Gson's streaming if performance absolutely matters -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>${jackson.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -72,7 +71,6 @@
       <!-- Optional. Jackson binding have utility used when using polymorhic marshaling with jackson-core implementation -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson-databind.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -122,13 +120,11 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
-      <version>${jackson.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
-      <version>${jackson.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -140,19 +136,16 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-smile</artifactId>
-      <version>${jackson.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-properties</artifactId>
-      <version>${jackson.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-cbor</artifactId>
-      <version>${jackson.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
