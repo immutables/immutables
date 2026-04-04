@@ -1989,6 +1989,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return collectInjections(Where.ELEMENT_INITIALIZER);
   }
 
+  public Collection<String> withCopyInjectedAnnotations() {
+    return collectInjections(Where.WITH_COPY);
+  }
+
   private Collection<String> collectInjections(Where target) {
     return AnnotationInjections.collectInjections(element,
         target,

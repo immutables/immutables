@@ -589,6 +589,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param elements The elements for [v.name]
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   default [type.typeValue.relative] [v.names.with]([v.atNullability][v.elementType]... elements) {
     [recordSelf type]
@@ -605,6 +606,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param elements The elements to replace
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [varargsSafetyAbstract v]
   default [type.typeValue.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements) {
@@ -635,6 +637,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param elements An iterable of [v.name] elements to replace
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   default [type.typeValue.relative] [v.names.with]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements) {
     [recordSelf type]
@@ -658,6 +661,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param operator Unary operator to transform each element of [v.name]
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   default [type.typeValue.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullElem v][v.wrappedElementType]> operator) {
     [recordSelf type]
@@ -679,6 +683,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   default [type.typeValue.relative] [v.names.with]([unwrappedOptionalType v] value) {
     [recordSelf type]
@@ -736,6 +741,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param optional An optional value for [v.name]
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   default [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] optional) {
     [let optType][v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if][/let]
@@ -763,6 +769,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param operator Unary operator to transform optional value of [v.name]
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   default [type.typeValue.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
     [recordSelf type]
@@ -813,6 +820,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param entries The entries to replace the [v.name] map
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   default [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [recordSelf type]
@@ -841,6 +849,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   default [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][v.type] value) {
     [recordSelf type]
@@ -901,6 +910,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param operator Unary operator to transform value of [v.name]
    * @return A modified copy of the record or {@code this} if not changed
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   default [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullable v][v.wrappedElementType]> operator) {
     [recordSelf type]
@@ -932,6 +942,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param elements The non-null elements for [v.name]
    * @return A modified copy of {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [type.typeAbstract.relative] [v.names.with]([v.elementType]... elements);
       [else if v.collectionType]
@@ -941,6 +952,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param elements The elements to set
    * @return A modified copy of {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [varargsSafetyAbstract v]
   [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements);
@@ -951,6 +963,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param elements An iterable of [v.name] elements to set
    * @return A modified copy of {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements);
 [if type.generateWithUnaryOperator]
@@ -962,6 +975,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param operator Unary operator to transform each element of [v.name]
    * @return A modified copy of {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullElem v][v.wrappedElementType]> operator);
   [/if]
@@ -972,6 +986,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return A modified copy of {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [type.typeAbstract.relative] [v.names.with]([unwrappedOptionalType v] value);
 
@@ -981,6 +996,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param optional A value for [v.name]
    * @return A modified copy of {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] optional);
 [if type.generateWithUnaryOperator]
@@ -992,6 +1008,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param operator Unary operator to transform optional value of [v.name]
    * @return A modified copy of {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator);
 [/if]
@@ -1006,6 +1023,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param entries The entries to be added to the [v.name] map
    * @return A modified copy of {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries);
       [/for]
@@ -1021,6 +1039,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
    * @return A modified copy of the {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable v][v.type] value);
 [if type.generateWithUnaryOperator]
@@ -1031,6 +1050,7 @@ return new [type.typeValue.relativeRaw][type.generics.diamond]([output.linesShor
    * @param operator Unary operator to transform value of [v.name]
    * @return A modified copy of {@code this} object
    */
+  [eachLine v.withCopyInjectedAnnotations]
   [deprecation v]
   [type.typeAbstract.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullable v][v.wrappedElementType]> operator);
 [/if]
@@ -4160,6 +4180,7 @@ return [validated type true]new [type.typeImmutable.relativeRaw][type.generics.d
  * @param elements The elements for [v.name]
  * @return A modified copy of {@code this} object
  */
+[eachLine v.withCopyInjectedAnnotations]
 [varargsSafety v]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.elementType]... elements) {
@@ -4176,6 +4197,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.el
  * @param elements The elements to set
  * @return A modified copy of {@code this} object
  */
+[eachLine v.withCopyInjectedAnnotations]
 [varargsSafety v]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNullParam v][v.unwrappedElementType][atForceTypeuseNullable v]... elements) {
@@ -4209,6 +4231,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNu
  * @param elements An iterable of [v.name] elements to set
  * @return A modified copy or {@code this} if not changed
  */
+[eachLine v.withCopyInjectedAnnotations]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNullable v]Iterable<[qExtends v][tuNullParam v][v.wrappedElementType]> elements) {
   [if v.forceEqualsInWithers]
@@ -4231,6 +4254,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNu
  * @param operator Unary operator to transform each element of [v.name]
  * @return A modified copy or {@code this} if not changed
  */
+[eachLine v.withCopyInjectedAnnotations]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullElem v][v.wrappedElementType]> operator) {
   if ([if v.nullable]this.[v.name] == null || [/if]this.[v.name].isEmpty()) return this;
@@ -4250,6 +4274,7 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
  * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
  * @return A modified copy or {@code this} if not changed
  */
+[eachLine v.withCopyInjectedAnnotations]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType v] value) {
 [if v.jdkOptional]
@@ -4295,6 +4320,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
  * @param optional An optional value for [v.name]
  * @return A modified copy or {@code this} if not changed
  */
+[eachLine v.withCopyInjectedAnnotations]
 [suppressCovariantCastForOptional v]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[qExtends v][v.wrappedElementType]>[/if] optional) {
@@ -4331,6 +4357,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
  * @param operator Unary operator to transform optional value of [v.name]
  * @return A modified copy or {@code this} if not changed
  */
+[eachLine v.withCopyInjectedAnnotations]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[v.wrappedElementType]> operator) {
 [if v.jdkOptional]
@@ -4374,6 +4401,7 @@ public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util
  * @param entries The entries to replace the [v.name] map
  * @return A modified copy or {@code this} if not changed
  */
+[eachLine v.withCopyInjectedAnnotations]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNullable v][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
   [if v.forceEqualsInWithers]
@@ -4401,6 +4429,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNu
  * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
  * @return A modified copy or the {@code this} object
  */
+[eachLine v.withCopyInjectedAnnotations]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNullable v][v.type] value) {
     [if v.float]
@@ -4462,6 +4491,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][tuNu
  * @param operator Unary operator to transform value of [v.name]
  * @return A modified copy or {@code this} if not changed
  */
+[eachLine v.withCopyInjectedAnnotations]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.withUnaryOperator](java.util.function.UnaryOperator<[tuNullable v][v.wrappedElementType]> operator) {
   [v.atNullabilityLocal][immutableImplementationType v] value = operator.apply(this.[v.name]);

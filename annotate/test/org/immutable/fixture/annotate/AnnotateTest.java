@@ -151,6 +151,15 @@ public class AnnotateTest {
   }
 
   @Test
+  public void withCopyInjection() throws Exception {
+    check(ImmutableTooGoal.class.getDeclaredMethod("withA", int.class)
+        .getAnnotation(InjAnn.ToIgn.class)).notNull();
+
+    check(ImmutableTooGoal.class.getDeclaredMethod("withB", int.class)
+        .getAnnotation(InjAnn.ToIgn.class)).notNull();
+  }
+
+  @Test
   public void withTypeInjection() throws Exception {
     check(InjAnn.InjectWithType.class.getInterfaces()[0]
             .getAnnotation(CheckReturnValue.class))

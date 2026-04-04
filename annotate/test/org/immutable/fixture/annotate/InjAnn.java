@@ -86,6 +86,13 @@ public interface InjAnn {
   @InjectAnnotation(type = CheckReturnValue.class, target = Where.WITH_TYPE)
   @interface WT {}
 
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface ToIgn {}
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @InjectAnnotation(type = ToIgn.class, target = Where.WITH_COPY)
+  @interface WC {}
+
   @Value.Immutable
   interface CtopParamFromPackageIfPresent {
     @Value.Parameter
