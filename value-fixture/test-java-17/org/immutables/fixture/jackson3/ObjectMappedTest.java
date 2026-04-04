@@ -17,10 +17,7 @@ package org.immutables.fixture.jackson3;
 
 import static org.immutables.check.Checkers.check;
 
-import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
+import org.immutables.fixture.jackson3.packall.Immutable_OneBound;
 import org.junit.jupiter.api.Test;
 
 import tools.jackson.databind.ObjectMapper;
@@ -30,9 +27,9 @@ import tools.jackson.datatype.guava.GuavaModule;
 
 class ObjectMappedTest {
   private static final ObjectMapper mapper = JsonMapper.builder()
-    .addModule(new GuavaModule())
-    .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
-    .build();
+      .addModule(new GuavaModule())
+      .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+      .build();
 
   static class Wrapper {
     public ImmutableSampleJacksonMapped mapped;
@@ -66,7 +63,7 @@ class ObjectMappedTest {
 
   @Test void minimumIgnoreUnknownNames() {
     var originalSampleJson = "{\"A\":\"a\", \"B\": [1, 2], \"Z\": false}";
-    var mapped =mapper.readValue(originalSampleJson, ImmutableMinimumAnnotationsMapped.class);
+    var mapped = mapper.readValue(originalSampleJson, ImmutableMinimumAnnotationsMapped.class);
     var json = mapper.writeValueAsString(mapped);
     check(mapper.readValue(json, ImmutableMinimumAnnotationsMapped.class)).is(mapped);
   }
@@ -126,9 +123,20 @@ class ObjectMappedTest {
 
   @Test void renamedFieldDeserializedWithBuilder() throws Exception {
     var json = """
-            { "start_date_time": "2020-05-14T19:35+0200" }
-            """;
+        { "start_date_time": "2020-05-14T19:35+0200" }
+        """;
     var value = mapper.readValue(json, HavingRenamedField.class);
     check(value.getStartDateTime()).notNull();
+  }
+
+  @Test void json3MetaAnnotation() {
+    var json = """
+        {"a": 11, "b": "ABC"}""";
+    var value = mapper.readValue(json, Immutable_OneBound.class);
+    check(value.getA()).is(11);
+    check(value.getB()).is("ABC");
+
+    check(mapper.writeValueAsString(value))
+        .is("{\"a\":11,\"b\":\"ABC\"}");
   }
 }
