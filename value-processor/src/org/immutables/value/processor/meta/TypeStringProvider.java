@@ -320,7 +320,8 @@ class TypeStringProvider {
 
             if (typeKind == TypeKind.ARRAY) {
               String signature = sourceStructure.getSignature(accessorPath);
-              if (signature.contains("@" + nullableAnnotationName + "[]")) {
+              if (signature.contains("@" + nullableAnnotationName + "[]")
+                  || signature.contains("@" + nullableAnnotationName + " []")) {
                 nullableTypeAnnotation = true;
               }
               // Commented out lines doesn't produce any good impact for various

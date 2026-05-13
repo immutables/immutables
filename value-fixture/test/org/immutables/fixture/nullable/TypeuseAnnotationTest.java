@@ -2,11 +2,13 @@ package org.immutables.fixture.nullable;
 
 import java.util.Map;
 import org.immutables.fixture.nullable.typeuse.CusNull;
+import org.immutables.fixture.nullable.typeuse.ImmutableChildOverrides;
 import org.immutables.fixture.nullable.typeuse.ImmutableFirstChild;
 import org.immutables.fixture.nullable.typeuse.ImmutableLetsTryJSpecify;
 import org.immutables.fixture.nullable.typeuse.ImmutableMyField;
 import org.immutables.fixture.nullable.typeuse.ImmutableSecondChild;
 import org.immutables.fixture.nullable.typeuse.ImmutableTryCustomNullann;
+import org.immutables.fixture.nullable.typeuse.NullableArrays;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
@@ -57,6 +59,29 @@ public class TypeuseAnnotationTest {
         .getParameters()[0]
         .getAnnotatedType()
         .getAnnotation(CusNull.class)).notNull();
+  }
+
+  @Test void nullableConcreteArraysFromSupertype() {
+    byte[] bytes = {1, 2, 3};
+    String[] strings = {"a", "b"};
+
+    NullableArrays.ChildOverrides original = ImmutableChildOverrides.builder()
+        .primitiveArray(bytes)
+        .referenceArray(strings)
+        .build();
+
+    // .from() supertype overload should copy nullable array attributes
+    NullableArrays.ChildOverrides copied = ImmutableChildOverrides.builder()
+        .from((NullableArrays) original)
+        .build();
+
+    check(copied.primitiveArray()).notNull();
+    check(copied.referenceArray()).notNull();
+
+    // null arrays should be accepted
+    NullableArrays.ChildOverrides withNulls = ImmutableChildOverrides.builder().build();
+    check(withNulls.primitiveArray()).isNull();
+    check(withNulls.referenceArray()).isNull();
   }
 
   @Test void typeuseInheritance() throws Exception {
