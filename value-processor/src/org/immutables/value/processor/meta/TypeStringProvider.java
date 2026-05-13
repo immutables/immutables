@@ -308,7 +308,22 @@ class TypeStringProvider {
 
       CharSequence returnTypeString =
           SourceExtraction.getReturnTypeString(CachingElements.getDelegate((ExecutableElement) element));
-      if (returnTypeString.length() == 0 && sourceExtractionCache != null) {
+
+      if (returnTypeString.length() > 0) {
+        // if not by chance already identified some nullability
+        if (!wasLooked && !nullableTypeAnnotation && nullElements == NullElements.BAN) {
+          // cannot be at 0
+          String string = returnTypeString.toString();
+          if (!string.contains("[")
+              && !string.contains("<")
+              && string.indexOf(nullableAnnotationName) > 0) {
+            nullableTypeAnnotation = true;
+            return null;
+          }
+        }
+      }
+
+      if (sourceExtractionCache != null) {
         SourceStructureGet sourceStructure = sourceExtractionCache.readCachedSourceGet();
 
         if (sourceStructure != null) {
@@ -324,30 +339,6 @@ class TypeStringProvider {
                   || signature.contains("@" + nullableAnnotationName + " []")) {
                 nullableTypeAnnotation = true;
               }
-              // Commented out lines doesn't produce any good impact for various
-              // and subtle reasons.
-            /* if (annotations.contains("@" + EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
-                nullElements = NullElements.SKIP;
-              } else if (annotations.contains("@" + EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
-                nullElements = NullElements.ALLOW;
-              } else if (signature.contains("@" + nullableAnnotationName + " ")) {
-                // This condition may not work/cannot occur (space at end ^)
-                nullElements = NullElements.ALLOW;
-              } */
-            /*} else if (typeKind == TypeKind.DECLARED) {
-              if (returnType.contains("List") || returnType.contains("Map")) {
-                String signature = sourceStructure.getSignature(accessorPath);
-                if (signature.contains("<@" + EPHEMERAL_ANNOTATION_SKIP_NULLS + " ")
-                    || signature.contains(", @" + EPHEMERAL_ANNOTATION_SKIP_NULLS + " ")) {
-                  nullElements = NullElements.SKIP;
-                } else if (signature.contains("<@" + EPHEMERAL_ANNOTATION_ALLOW_NULLS + " ")
-                    || signature.contains(", @" + EPHEMERAL_ANNOTATION_ALLOW_NULLS + " ")) {
-                  nullElements = NullElements.ALLOW;
-                } else if (signature.contains("<@" + nullableAnnotationName + " ")
-                    || signature.contains(", @" + nullableAnnotationName + " ")) {
-                  nullElements = NullElements.ALLOW;
-                }
-              }*/
             } else if (typeKind == TypeKind.TYPEVAR) {
               if (annotations.contains(nullableAnnotationName)) {
                 nullableTypeAnnotation = true;
@@ -357,14 +348,6 @@ class TypeStringProvider {
           return returnType;
         }
         return null;
-      } else {
-        // if not by chance already identified some nullability
-        if (!wasLooked && !nullableTypeAnnotation && nullElements == NullElements.BAN) {
-          // cannot be at 0
-          if (returnTypeString.toString().indexOf(nullableAnnotationName) > 0) {
-            nullableTypeAnnotation = true;
-          }
-        }
       }
       return returnTypeString;
     } catch (AssertionError e) {
