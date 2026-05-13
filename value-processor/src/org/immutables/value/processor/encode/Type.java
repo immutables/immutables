@@ -760,6 +760,11 @@ public interface Type {
                 t = terms.peek();
                 if (t.is("[")) {
                   type = array(type);
+                } else if (t.is("@")) {
+                  // consume TYPE_USE annotation before array brackets
+                  // e.g. byte @Nullable []
+                  terms.poll();
+                  consumeAnnotation();
                 } else {
                   break;
                 }
