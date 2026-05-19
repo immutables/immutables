@@ -881,6 +881,63 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
         .toList();
   }
 
+  @Nullable
+  private List<List<ValueAttribute>> constructorArgumentsVariants;
+
+  /**
+   * Returns a list of constructor argument lists for generating telescoping of() methods.
+   * The first list contains all constructor arguments, and each subsequent list drops
+   * one optional parameter from the end. Only parameters marked with
+   * {@code @Value.Parameter(optional = true)} at the end of the parameter list are dropped.
+   */
+  public List<List<ValueAttribute>> getConstructorArgumentsVariants() {
+    if (constructorArgumentsVariants == null) {
+      constructorArgumentsVariants = computeConstructorArgumentsVariants();
+      validateOptionalParameterOrdering();
+    }
+    return constructorArgumentsVariants;
+  }
+
+  private List<List<ValueAttribute>> computeConstructorArgumentsVariants() {
+    List<ValueAttribute> allArgs = ImmutableList.copyOf(getConstructorArguments());
+    if (allArgs.isEmpty()) {
+      return ImmutableList.of();
+    }
+
+    ImmutableList.Builder<List<ValueAttribute>> variants = ImmutableList.builder();
+    variants.add(allArgs);
+
+    // Trim optional parameters from the end, one at a time
+    int end = allArgs.size();
+    while (end > 0 && allArgs.get(end - 1).isOptionalConstructorParameter()) {
+      end--;
+      variants.add(allArgs.subList(0, end));
+    }
+
+    return variants.build();
+  }
+
+  private void validateOptionalParameterOrdering() {
+    List<ValueAttribute> args = ImmutableList.copyOf(getConstructorArguments());
+    boolean seenOptional = false;
+    for (ValueAttribute attr : args) {
+      if (attr.isOptionalConstructorParameter()) {
+        seenOptional = true;
+        // Validate that optional parameters have defaults or are nullable
+        if (!attr.isGenerateDefault && !attr.isNullable() && !attr.isOptionalType()) {
+          report().withElement(attr.element)
+              .error("@Value.Parameter(optional = true) requires the attribute to have "
+                  + "@Value.Default, be @Nullable, or be an Optional type");
+        }
+      } else if (seenOptional) {
+        report().withElement(attr.element)
+            .error("@Value.Parameter(optional = true) parameters must be at the end of the "
+                + "parameter list. Non-optional parameter '%s' follows an optional parameter.",
+                attr.name());
+      }
+    }
+  }
+
   private enum NonAuxiliary implements Predicate<ValueAttribute> {
     PREDICATE;
 

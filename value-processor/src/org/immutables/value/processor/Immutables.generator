@@ -1241,6 +1241,26 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable 
     return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
   [/if]
+  [-- Generate telescoping of() methods for optional parameters --]
+  [for variant in type.constructorArgumentsVariants]
+  [if not for.first][-- Skip the first variant as it's the full constructor already generated above --]
+
+  /**
+   * Construct a new immutable {@code [type.name]} instance.
+[javadocGenerics type]
+[for v in variant]
+   * @param [v.name] The value for the {@code [v.name]} attribute
+[/for]
+   * @return An immutable [type.name] instance
+   */
+  [eachLine type.constructorInjectedAnnotations]
+  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in variant][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][constructorAcceptType v] [v.name][/for]) {
+    return [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder]
+        [for v in variant].[v.names.init]([v.name])
+        [/for].[type.names.build]();
+  }
+  [/if]
+  [/for]
 [/if]
 [if type.useValidation]
 [if type.useJavaValidationApi]
