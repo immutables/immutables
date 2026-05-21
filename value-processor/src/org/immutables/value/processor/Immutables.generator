@@ -3695,7 +3695,19 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [rr.accessor v][disambiguateField type 'initShim'][/rr.accessor]
   [else if v.jdkOptional]
 [v.access][v.type] [v.names.get]() {
-[if v.jdkSpecializedOptional]
+[if v.generateDefault and type.generateSafeDerived][-- both default and optional --]
+  InitShim shim = this.[disambiguateField type 'initShim'];
+  [v.atNullabilityLocal][immutableImplementationType v] value = shim != null
+      ? shim.[v.names.get]()
+      : this.[v.name];
+  [if v.jdkSpecializedOptional]
+  return value != null
+      ? [v.rawType].of(value)
+      : [v.rawType].empty()
+  [else]
+  return [v.rawType].ofNullable(value);
+  [/if]
+[else if v.jdkSpecializedOptional]
   return [v.name] != null
       ? [v.rawType].of([v.name])
       : [v.rawType].empty();
