@@ -3703,7 +3703,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
   [if v.jdkSpecializedOptional]
   return value != null
       ? [v.rawType].of(value)
-      : [v.rawType].empty()
+      : [v.rawType].empty();
   [else]
   return [v.rawType].ofNullable(value);
   [/if]
