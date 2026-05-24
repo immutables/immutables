@@ -81,6 +81,8 @@ public final class ValueMirrors {
     int order() default -1;
 
     boolean value() default true;
+
+    boolean optional() default false;
   }
 
   @Mirror.Annotation("org.immutables.value.Value.Default.String")

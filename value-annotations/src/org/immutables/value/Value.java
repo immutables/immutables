@@ -367,6 +367,17 @@ public @interface Value {
      * @return {@code false} if not a parameter
      */
     boolean value() default true;
+
+    /**
+     * If {@code true}, generates additional {@code of()} factory method overloads without this
+     * parameter. Optional parameters must be ordered at the end of the parameter list (by
+     * {@link #order()}) and must have a default value (via {@link Default}) or be nullable.
+     * <p>
+     * When multiple parameters are marked as optional, a telescoping set of factory methods
+     * is generated, each dropping one optional parameter from the end.
+     * @return {@code true} if this parameter should be optional in factory method overloads
+     */
+    boolean optional() default false;
   }
 
   /**

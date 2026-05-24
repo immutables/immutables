@@ -1154,6 +1154,11 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return true;
   }
 
+  public boolean isOptionalConstructorParameter() {
+    Optional<ParameterMirror> parameterAnnotation = ParameterMirror.find(element);
+    return parameterAnnotation.isPresent() && parameterAnnotation.get().optional();
+  }
+
   public String toSignature() {
     StringBuilder signature = new StringBuilder();
 
