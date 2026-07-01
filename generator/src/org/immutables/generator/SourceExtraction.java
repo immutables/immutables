@@ -303,18 +303,14 @@ public final class SourceExtraction {
     private static CharSequence readSourceDeclaration(SourceTypeBinding binding) {
       TypeDeclaration referenceContext = binding.scope.referenceContext;
       char[] content = referenceContext.compilationResult.compilationUnit.getContents();
-      int start = referenceContext.declarationSourceStart;
-      int end = referenceContext.declarationSourceEnd;
 
-      StringBuilder declaration = new StringBuilder();
-      for (int p = start; p <= end; p++) {
-        char c = content[p];
-        if (c == '{') {
-          break;
-        }
-        declaration.append(c);
-      }
-      return declaration;
+      // Use modifiersSourceStart as the start bound: skip past any Javadoc comment that
+      // precedes the declaration.
+      // Use bodyStart as the end bound: it's the exact position of the '{' that opens
+      // the class body.
+      int start = referenceContext.modifiersSourceStart;
+      int end = referenceContext.bodyStart;
+      return new String(content, start, end - start);
     }
 
     private static CharSequence getRawType(MethodBinding methodBinding) {
