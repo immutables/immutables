@@ -260,7 +260,7 @@ public final class SourceExtraction {
 
     private static CharSequence extractSuperclass(SourceTypeBinding binding) {
       CharSequence declaration = readSourceDeclaration(binding);
-      StringTokenizer tokenizer = new StringTokenizer(declaration.toString(), "<>, \t\n\r", true);
+      StringTokenizer tokenizer = new StringTokenizer(declaration.toString(), "<>{}, \t\n\r", true);
       int genericsOpened = 0;
       while (tokenizer.hasMoreTokens()) {
         String t = tokenizer.nextToken();
@@ -306,7 +306,7 @@ public final class SourceExtraction {
 
       // Use modifiersSourceStart as the start bound: skip past any Javadoc comment that
       // precedes the declaration.
-      // Use bodyStart as the end bound: it's the exact position of the '{' that opens
+      // Use bodyStart as the end bound: it's the position just after the '{' that opens
       // the class body.
       int start = referenceContext.modifiersSourceStart;
       int end = referenceContext.bodyStart;
