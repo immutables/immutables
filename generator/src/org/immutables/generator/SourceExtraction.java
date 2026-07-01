@@ -259,7 +259,11 @@ public final class SourceExtraction {
     }
 
     private static CharSequence extractSuperclass(SourceTypeBinding binding) {
-      CharSequence declaration = readSourceDeclaration(binding);
+      // Strip all comments before tokenizing so that '{', '}', or 'extends' inside
+      // or next to a Javadoc or line comment does not affect the scan.
+      CharSequence declaration = stripComments(readSourceDeclaration(binding));
+      // Include '{' and '}' as delimiters: declaration may point one past '{' causing it
+      // to appear in the slice whenever there's no whitespace before the class body.
       StringTokenizer tokenizer = new StringTokenizer(declaration.toString(), "<>{}, \t\n\r", true);
       int genericsOpened = 0;
       while (tokenizer.hasMoreTokens()) {
@@ -280,6 +284,33 @@ public final class SourceExtraction {
         }
       }
       return UNABLE_TO_EXTRACT;
+    }
+
+    /** Removes {@code /* ... *\/} block comments and {@code //} line comments. */
+    private static CharSequence stripComments(CharSequence text) {
+      String s = text.toString();
+      StringBuilder sb = new StringBuilder(s.length());
+      int i = 0;
+      while (i < s.length()) {
+        char c = s.charAt(i);
+        if (c == '/' && i + 1 < s.length()) {
+          char next = s.charAt(i + 1);
+          if (next == '*') {
+            // block comment - skip to closing */
+            int end = s.indexOf("*/", i + 2);
+            i = (end < 0) ? s.length() : end + 2;
+            continue;
+          } else if (next == '/') {
+            // line comment - skip to end of line
+            int end = s.indexOf('\n', i + 2);
+            i = (end < 0) ? s.length() : end + 1;
+            continue;
+          }
+        }
+        sb.append(c);
+        i++;
+      }
+      return sb;
     }
 
     private static CharSequence readSourceSuperclass(StringTokenizer tokenizer) {
@@ -304,8 +335,8 @@ public final class SourceExtraction {
       TypeDeclaration referenceContext = binding.scope.referenceContext;
       char[] content = referenceContext.compilationResult.compilationUnit.getContents();
 
-      // Use modifiersSourceStart as the start bound: skip past any Javadoc comment that
-      // precedes the declaration.
+      // Use modifiersSourceStart as the start bound: it's either the position of the start
+      // of the declaration or the position of the Javadoc comment that precedes the declaration.
       // Use bodyStart as the end bound: it's the position just after the '{' that opens
       // the class body.
       int start = referenceContext.modifiersSourceStart;

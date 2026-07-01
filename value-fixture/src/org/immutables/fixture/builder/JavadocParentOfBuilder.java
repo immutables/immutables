@@ -12,9 +12,12 @@ public class JavadocParentOfBuilder {
     static class WithSpace {
 
         /**
-         * Builder class for {@link WithSpace}.
+         * Builder class for {@link WithSpace} which extends the generated builder.
          */
-        static class Builder extends ImmutableWithSpace.Builder { }
+        // Inline comment
+        static class Builder extends
+                /* Block comment */
+                ImmutableWithSpace.Builder { }
 
     }
 
@@ -24,7 +27,7 @@ public class JavadocParentOfBuilder {
         /**
          * Builder class for {@link WithoutSpace}.
          */
-        static class Builder extends ImmutableWithoutSpace.Builder{}
+        static class Builder extends/*comment*/ ImmutableWithoutSpace./*comment*/Builder{}
 
     }
 
