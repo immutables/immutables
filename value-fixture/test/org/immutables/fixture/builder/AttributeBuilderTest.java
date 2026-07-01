@@ -70,6 +70,12 @@ public class AttributeBuilderTest {
   }
 
   @Test
+  public void javadocParentOfBuilder() {
+    // Mostly checking for successful compilation - must have worked if we made it this far
+    check(new JavadocParentOfBuilder.Builder()).notNull();
+  }
+
+  @Test
   public void basicApiForVanillaParent() {
     assertBasicApi(ImmutableVanillaAttributeBuilderParent.class,
         VanillaAttributeBuilderParent.class,
