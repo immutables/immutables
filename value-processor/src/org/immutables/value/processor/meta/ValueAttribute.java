@@ -1950,7 +1950,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public boolean whenTypeuseFallbackNullable() {
-    return isNullable() && fallbackNullableKind().isTypeuse();
+    return isNullable() && !isNullabilitySynthetic() && fallbackNullableKind().isTypeuse();
   }
 
   public boolean whenTypeuseNullableElement() {

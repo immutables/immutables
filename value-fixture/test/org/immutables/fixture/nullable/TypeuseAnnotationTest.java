@@ -5,6 +5,7 @@ import org.immutables.fixture.nullable.typeuse.CusNull;
 import org.immutables.fixture.nullable.typeuse.ImmutableChildOverrides;
 import org.immutables.fixture.nullable.typeuse.ImmutableFirstChild;
 import org.immutables.fixture.nullable.typeuse.ImmutableLetsTryJSpecify;
+import org.immutables.fixture.nullable.typeuse.ImmutableMandatoryOnlyNullMarked;
 import org.immutables.fixture.nullable.typeuse.ImmutableMyField;
 import org.immutables.fixture.nullable.typeuse.ImmutableSecondChild;
 import org.immutables.fixture.nullable.typeuse.ImmutableTryCustomNullann;
@@ -82,6 +83,22 @@ public class TypeuseAnnotationTest {
     NullableArrays.ChildOverrides withNulls = ImmutableChildOverrides.builder().build();
     check(withNulls.primitiveArray()).isNull();
     check(withNulls.referenceArray()).isNull();
+  }
+
+  @Test void mandatoryOnlyDoesNotLeakNullableOnMandatory() throws Exception {
+    // Explicitly @Nullable attribute SHOULD be annotated.
+    check(ImmutableMandatoryOnlyNullMarked.class.getDeclaredField("optional")
+        .getAnnotatedType().getAnnotation(Nullable.class)).notNull();
+
+    check(ImmutableMandatoryOnlyNullMarked.class.getDeclaredMethod("getOptional")
+        .getAnnotatedReturnType().getAnnotation(Nullable.class)).notNull();
+
+    // Mandatory attribute must NOT be annotated @Nullable.
+    check(ImmutableMandatoryOnlyNullMarked.class.getDeclaredField("mandatory")
+        .getAnnotatedType().getAnnotation(Nullable.class)).isNull();
+
+    check(ImmutableMandatoryOnlyNullMarked.class.getDeclaredMethod("getMandatory")
+        .getAnnotatedReturnType().getAnnotation(Nullable.class)).isNull();
   }
 
   @Test void typeuseInheritance() throws Exception {
