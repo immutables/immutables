@@ -1436,6 +1436,9 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][tuNullable 
 [template generateTopLevelStages Type type]
 [packageWhenTopLevel type true]
 
+[if type.isJSpecifyNullMarked]
+@org.jspecify.annotations.NullMarked
+[/if]
 /** Stage interfaces for the builder of {@code [type.name]}. */
 public final class [type.typeBuilderImpl.simple]Stages {
   private [type.typeBuilderImpl.simple]Stages() {}
