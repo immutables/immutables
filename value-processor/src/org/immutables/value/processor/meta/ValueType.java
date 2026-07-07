@@ -1910,6 +1910,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return constitution.style();
   }
 
+  public boolean isJSpecifyNullMarked() {
+    return constitution.protoclass().isJSpecifyNullMarked();
+  }
+
   private FallbackNullableKind fallbackNullableKind;
 
   @Override
