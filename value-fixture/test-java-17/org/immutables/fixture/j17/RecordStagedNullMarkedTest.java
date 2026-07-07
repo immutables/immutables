@@ -12,11 +12,11 @@ public class RecordStagedNullMarkedTest {
 
   @Test void mandatoryStageParamIsNotNullable() throws Exception {
     var method = RecordStagedNullMarkedBuilderStages.BuildStart.class.getDeclaredMethod("name", String.class);
-    check(method.getAnnotatedParameterTypes()[0].getAnnotation(Nullable.class)).isNull();
+    check(method.getParameters()[0].getAnnotatedType().getAnnotation(Nullable.class)).isNull();
   }
 
-  @Test void optionalStageParamIsNullable() throws Exception {
-    var method = RecordStagedNullMarkedBuilderStages.BuildFinal.class.getDeclaredMethod("nickname", String.class);
-    check(method.getAnnotatedParameterTypes()[0].getAnnotation(Nullable.class)).notNull();
+  @Test void optionalParamIsNullable() throws Exception {
+    var method = RecordStagedNullMarkedBuilder.class.getDeclaredMethod("nickname", String.class);
+    check(method.getParameters()[0].getAnnotatedType().getAnnotation(Nullable.class)).notNull();
   }
 }
