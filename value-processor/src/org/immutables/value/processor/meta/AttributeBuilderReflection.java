@@ -26,10 +26,12 @@ import org.immutables.value.processor.meta.AttributeBuilderDescriptor.ValueToBui
 public abstract class AttributeBuilderReflection {
   private static final Map<String, AttributeBuilderDescriptor> analyzedReturnTypes = new HashMap<>();
 
-  // The discovery is based off of the class being investigated, AND the current attributeBuilder discovery pattern
+  // The discovery is based off of the class being investigated, the attribute holding it, AND the current
+  // attributeBuilder discovery pattern
   // The same class included in two parents, may or may not be nested builders based on that discovery pattern
   private static String cachingKey(ValueAttribute valueAttribute) {
     return valueAttribute.containedTypeElement.getQualifiedName()
+        + "#" + valueAttribute.name()
         + Arrays.toString(valueAttribute.containingType.constitution.style().attributeBuilder());
   }
 
