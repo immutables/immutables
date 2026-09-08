@@ -17,7 +17,9 @@ package org.immutables.fixture.jackson3;
 
 import static org.immutables.check.Checkers.check;
 
+import org.immutables.fixture.jackson3.meta.Immutable_TypeBound;
 import org.immutables.fixture.jackson3.packall.Immutable_OneBound;
+import org.immutables.fixture.jackson3.packall.child.Immutable_ChildBound;
 import org.junit.jupiter.api.Test;
 
 import tools.jackson.databind.ObjectMapper;
@@ -138,5 +140,33 @@ class ObjectMappedTest {
 
     check(mapper.writeValueAsString(value))
         .is("{\"a\":11,\"b\":\"ABC\"}");
+  }
+
+  /** Jackson 3 meta-annotation on a parent package must apply to nested packages (#1649). */
+  @Test void json3MetaAnnotationFromParentPackage() {
+    var json = """
+        {"a": 22, "b": "XYZ"}""";
+    var value = mapper.readValue(json, Immutable_ChildBound.class);
+    check(value.getA()).is(22);
+    check(value.getB()).is("XYZ");
+
+    check(mapper.writeValueAsString(value))
+        .is("{\"a\":22,\"b\":\"XYZ\"}");
+  }
+
+  /**
+   * A Jackson 3 meta-annotated style must also switch on {@code @JsonProperty} generation, like
+   * the Jackson 2 one does (#1649). With prefix-less accessors Jackson has nothing else to go on,
+   * so without those annotations the value has no visible properties at all.
+   */
+  @Test void json3MetaAnnotationGeneratesJsonProperties() {
+    var json = """
+        {"a": 33, "b": "PQR"}""";
+    var value = mapper.readValue(json, Immutable_TypeBound.class);
+    check(value.a()).is(33);
+    check(value.b()).is("PQR");
+
+    check(mapper.writeValueAsString(value))
+        .is("{\"a\":33,\"b\":\"PQR\"}");
   }
 }
