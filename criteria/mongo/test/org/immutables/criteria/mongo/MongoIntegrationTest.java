@@ -35,6 +35,7 @@ import org.immutables.criteria.typemodel.IntegerTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
+import org.immutables.criteria.typemodel.OrderByTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.immutables.criteria.typemodel.UpdateByQueryTemplate;
 import org.immutables.criteria.typemodel.WriteTemplate;
@@ -53,6 +54,13 @@ class MongoIntegrationTest {
   @Nested
   class String extends StringTemplate {
     private String() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class OrderByTest extends OrderByTemplate {
+    private OrderByTest() {
       super(backend);
     }
   }

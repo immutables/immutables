@@ -130,8 +130,11 @@ public class InMemoryBackend implements Backend {
         Comparator<Object> comparator = null;
         for (Collation collation: query.collations()) {
           Function<Object, Comparable<Object>> fn = obj -> (Comparable<Object>) pathExtractor.extract(collation.path(), obj);
-          @SuppressWarnings("unchecked")
-          Comparator<Object> newComparator = Comparator.<Object, Comparable>comparing(fn);
+          // an absent value has to be ordered, not dereferenced. Missing values sort first when
+          // ascending and, since the comparator is reversed below, last when descending. That is
+          // the order mongo (and most other backends) produce for a null / missing attribute
+          Comparator<Object> newComparator = Comparator.comparing(fn,
+                  Comparator.nullsFirst(Comparator.<Comparable<Object>>naturalOrder()));
           if (!collation.direction().isAscending()) {
             newComparator = newComparator.reversed();
           }

@@ -36,6 +36,7 @@ import org.immutables.criteria.typemodel.IntegerTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
+import org.immutables.criteria.typemodel.OrderByTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.immutables.criteria.typemodel.WriteTemplate;
 import org.junit.jupiter.api.Disabled;
@@ -61,6 +62,13 @@ class GeodeIntegrationTest {
     @Disabled("optionals don't work well in Geode yet (pdx serialization)")
     @Override
     protected void optional() {}
+  }
+
+  @Nested
+  class OrderByTest extends OrderByTemplate {
+    private OrderByTest() {
+      super(backend);
+    }
   }
 
   @Nested
