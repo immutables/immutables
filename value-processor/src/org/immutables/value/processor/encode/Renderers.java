@@ -51,6 +51,8 @@ public abstract class Renderers extends AbstractValuesTemplate {
 
   public abstract Templates.Invokable builderInit();
 
+  public abstract Templates.Invokable builderInitSignature();
+
   public abstract Templates.Invokable virtualImpl();
 
   public abstract Templates.Invokable constructorAcceptType();

@@ -153,6 +153,21 @@ private[if not el.usesThis] static[/if] [inst.typer el.type] with_[inst.namer el
 [/for]
 [/template]
 
+[-- Declares the abstract signatures (no body) of the encoding builder's init methods, so that
+     encoded attributes can be set from a staged (telescopic) builder's BuildFinal interface.
+     The concrete builder (see builderInit above) implements these via covariant return types. --]
+[template public builderInitSignature Attribute a Invokable returnType]
+[for inst = a.instantiation, el in inst.encoding.element if el.init]
+[if not el.private]
+
+[doc inst el]
+[if a allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue']@com.google.errorprone.annotations.CanIgnoreReturnValue
+[/if][if a.deprecated]@Deprecated
+[/if][returnType] [inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el];
+[/if]
+[/for]
+[/template]
+
 [template public builderStaticFields Attribute... as]
 [for a in as if a.encoding,
     el in a.instantiation.encoding.element if el.builderStaticField]

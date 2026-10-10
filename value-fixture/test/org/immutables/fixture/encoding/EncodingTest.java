@@ -47,4 +47,26 @@ public class EncodingTest {
     check(value.as()).is(Optional.of(ImmutableList.of("b")));
     check(value.bs()).is(Optional.empty());
   }
+
+  @Test
+  public void stagedBuilderSetsEncodedFinalAttribute() {
+    // https://github.com/immutables/immutables/issues/1647 : the encoded 'tags' attribute has
+    // a default value so it lands in the staged builder's BuildFinal stage; its encoding's init
+    // methods (setTags/tags) must still be declared there, not just on the concrete builder.
+    UseMutableListStagedBuilder viaEncodingSetter = ImmutableUseMutableListStagedBuilder.builder()
+        .name("a")
+        .setTags("x")
+        .setTags("y")
+        .build();
+
+    check(viaEncodingSetter.name()).is("a");
+    check(viaEncodingSetter.tags()).isOf("x", "y");
+
+    UseMutableListStagedBuilder viaEncodingCopy = ImmutableUseMutableListStagedBuilder.builder()
+        .name("b")
+        .tags(ImmutableList.of("z"))
+        .build();
+
+    check(viaEncodingCopy.tags()).isOf("z");
+  }
 }

@@ -1516,7 +1516,7 @@ public interface [nt.nameBuildStageSimple][type.generics] {
 public interface [tb.nameBuildFinalSimple][type.generics] {
 [for v in tb.finals]
 [if v.encoding]
-  [-- not implemented --]
+  [rr.builderInitSignature v][tb.nameBuildFinalSimple][type.generics.args][/rr.builderInitSignature]
 [else if v.collectionType]
 
   /**
