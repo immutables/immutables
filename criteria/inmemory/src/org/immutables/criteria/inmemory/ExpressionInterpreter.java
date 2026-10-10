@@ -30,8 +30,13 @@ import org.immutables.criteria.expression.OptionalOperators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 
+import javax.annotation.Nullable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -196,7 +201,7 @@ class ExpressionInterpreter implements Function<Object, Object> {
       final Operator op = call.operator();
 
       if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
-        final boolean equals = Objects.equals(left, right);
+        final boolean equals = valuesEqual(left, right);
         return (op == Operators.EQUAL) == equals;
       }
 
@@ -205,7 +210,7 @@ class ExpressionInterpreter implements Function<Object, Object> {
         @SuppressWarnings("unchecked")
         final Iterable<Object> rightValue = (Iterable<Object>) right;
         final Stream<Object> stream = StreamSupport.stream(rightValue.spliterator(), false);
-        return op == Operators.IN ? stream.anyMatch(r -> Objects.equals(left, r)) : stream.noneMatch(r -> Objects.equals(left, r));
+        return op == Operators.IN ? stream.anyMatch(r -> valuesEqual(left, r)) : stream.noneMatch(r -> valuesEqual(left, r));
       }
 
       if (op == IterableOperators.HAS_SIZE) {
@@ -218,7 +223,9 @@ class ExpressionInterpreter implements Function<Object, Object> {
 
       if (op == IterableOperators.CONTAINS) {
         Preconditions.checkArgument(left instanceof Iterable, "%s is not iterable", left);
-        return Iterables.contains((Iterable<?>) left, right);
+        // not Iterables.contains: an element is looked up with the same equality as Operators.EQUAL
+        return StreamSupport.stream(((Iterable<?>) left).spliterator(), false)
+                .anyMatch(element -> valuesEqual(element, right));
       }
 
       // comparables
@@ -269,6 +276,59 @@ class ExpressionInterpreter implements Function<Object, Object> {
       }
 
       throw new UnsupportedOperationException("Unsupported binary call " + call);
+    }
+
+    /**
+     * Equality between a stored value and a queried one.
+     *
+     * <p>Scale is a property of the representation, not of the number, so {@code 2.00} and
+     * {@code 2} are the same value. {@link Objects#equals} disagrees, which would make this
+     * backend return a different result-set than the database it mirrors for the same criterion.
+     * Ordering already treats the two as tied, since it goes through {@link Comparable}.
+     */
+    private static boolean valuesEqual(Object left, Object right) {
+      if (left instanceof Number && right instanceof Number && !left.equals(right)) {
+        return numbersEqual((Number) left, (Number) right);
+      }
+
+      return Objects.equals(left, right);
+    }
+
+    private static boolean numbersEqual(Number left, Number right) {
+      BigDecimal leftDecimal = toBigDecimal(left);
+      BigDecimal rightDecimal = toBigDecimal(right);
+      if (leftDecimal == null || rightDecimal == null) {
+        // infinity, NaN or a Number implementation with no exact decimal value
+        return Double.compare(left.doubleValue(), right.doubleValue()) == 0;
+      }
+
+      return leftDecimal.compareTo(rightDecimal) == 0;
+    }
+
+    /**
+     * Exact decimal value of {@code number} or {@code null} when it has none.
+     */
+    @Nullable
+    private static BigDecimal toBigDecimal(Number number) {
+      if (number instanceof BigDecimal) {
+        return (BigDecimal) number;
+      }
+
+      if (number instanceof BigInteger) {
+        return new BigDecimal((BigInteger) number);
+      }
+
+      if (number instanceof Byte || number instanceof Short || number instanceof Integer
+              || number instanceof Long || number instanceof AtomicInteger || number instanceof AtomicLong) {
+        return BigDecimal.valueOf(number.longValue());
+      }
+
+      if (number instanceof Double || number instanceof Float) {
+        double value = number.doubleValue();
+        return Double.isFinite(value) ? BigDecimal.valueOf(value) : null;
+      }
+
+      return null;
     }
 
     @Override
