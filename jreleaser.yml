@@ -1,22 +1,26 @@
-# This file is just an example in the current process
-# it is not being invoked from here
 project:
   name: immutables
-  version: 2.12.0
   languages:
     java:
       groupId: org.immutables
 
+signing:
+  active: ALWAYS
+  armored: true
+
+release:
+  github:
+    overwrite: true
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+
 deploy:
   maven:
     mavenCentral:
-      sonatype:
-        active: ALWAYS
-        namespace: org.immutables
-        sign: false
+      release-deploy:
+        active: RELEASE
         url: https://central.sonatype.com/api/v1/publisher
-        stage: UPLOAD
-        verifyPom: false
+        applyMavenCentralRules: true
         stagingRepositories:
-          - staging
-        maxRetries: 1
+          - target/staging-deploy

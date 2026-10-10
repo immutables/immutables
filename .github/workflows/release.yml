@@ -1,0 +1,112 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_override:
+        description: 'Version override (e.g. 2.15.0-rc0). Leave empty to use pom SNAPSHOT version.'
+        required: false
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '21'
+        cache: maven
+
+    - name: Determine release version
+      id: version
+      run: |
+        CURRENT=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+
+        if [ -n "${{ inputs.version_override }}" ]; then
+          RELEASE_VERSION="${{ inputs.version_override }}"
+        else
+          RELEASE_VERSION="${CURRENT%-SNAPSHOT}"
+        fi
+        echo "release=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+
+        # Determine next snapshot: if release version has a suffix (e.g. -rc0),
+        # restore original snapshot; otherwise increment patch
+        BASE=$(echo "$RELEASE_VERSION" | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+')
+        if [ "$RELEASE_VERSION" != "$BASE" ]; then
+          # Prerelease (has suffix like -rc0) — restore original snapshot
+          NEXT_SNAPSHOT="$CURRENT"
+        else
+          # Normal release — increment patch
+          MAJOR=$(echo "$BASE" | cut -d. -f1)
+          MINOR=$(echo "$BASE" | cut -d. -f2)
+          PATCH=$(echo "$BASE" | cut -d. -f3)
+          NEXT_SNAPSHOT="${MAJOR}.${MINOR}.$((PATCH + 1))-SNAPSHOT"
+        fi
+        echo "next_snapshot=$NEXT_SNAPSHOT" >> "$GITHUB_OUTPUT"
+
+        echo "Release: $RELEASE_VERSION"
+        echo "Next snapshot: $NEXT_SNAPSHOT"
+
+    - name: Set release version
+      run: |
+        ./mvnw versions:set \
+          -DnewVersion=${{ steps.version.outputs.release }} \
+          -DgroupId='*' -DartifactId='*' -DoldVersion='*' \
+          -DgenerateBackupPoms=false \
+          --batch-mode --no-transfer-progress
+
+    - name: Build and stage artifacts
+      run: |
+        ./mvnw clean deploy -Psonatype-oss-release \
+          -DaltDeploymentRepository=local::file:./target/staging-deploy \
+          --batch-mode --no-transfer-progress
+
+    - name: Configure git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Commit release version and tag
+      run: |
+        git commit -am "Release ${{ steps.version.outputs.release }}"
+        git tag "v${{ steps.version.outputs.release }}"
+
+    - name: Run JReleaser
+      uses: jreleaser/release-action@v2
+      with:
+        setup-java: false
+      env:
+        JRELEASER_PROJECT_VERSION: ${{ steps.version.outputs.release }}
+        JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+        JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
+        JRELEASER_DEPLOY_MAVEN_MAVENCENTRAL_RELEASE_DEPLOY_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+        JRELEASER_DEPLOY_MAVEN_MAVENCENTRAL_RELEASE_DEPLOY_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+
+    - name: Set next SNAPSHOT version
+      run: |
+        ./mvnw versions:set \
+          -DnewVersion=${{ steps.version.outputs.next_snapshot }} \
+          -DgroupId='*' -DartifactId='*' -DoldVersion='*' \
+          -DgenerateBackupPoms=false \
+          --batch-mode --no-transfer-progress
+
+    - name: Commit next snapshot and push
+      run: |
+        git commit -am "Prepare next development version ${{ steps.version.outputs.next_snapshot }}"
+        git push origin master --tags
+
+    - name: Upload JReleaser logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: jreleaser-logs
+        path: out/jreleaser/
