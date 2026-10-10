@@ -1007,6 +1007,19 @@ public class Proto {
 
     @Override
     @Value.Lazy
+    public boolean isJackson3Serialized() {
+      if (super.isJackson3Serialized()) {
+        return true;
+      }
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        return parent.get().isJackson3Serialized();
+      }
+      return false;
+    }
+
+    @Override
+    @Value.Lazy
     public boolean isJacksonDeserialized() {
       if (super.isJacksonDeserialized()) {
         return true;
@@ -1014,6 +1027,19 @@ public class Proto {
       Optional<DeclaringPackage> parent = namedParentPackage();
       if (parent.isPresent()) {
         return parent.get().isJacksonDeserialized();
+      }
+      return false;
+    }
+
+    @Override
+    @Value.Lazy
+    public boolean isJackson3Deserialized() {
+      if (super.isJackson3Deserialized()) {
+        return true;
+      }
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        return parent.get().isJackson3Deserialized();
       }
       return false;
     }
@@ -2220,7 +2246,7 @@ public class Proto {
           return true;
         }
       }
-      return isJacksonSerialized();
+      return isJacksonSerialized() || isJackson3Serialized();
     }
 
     Protoclass debug(String line) {
