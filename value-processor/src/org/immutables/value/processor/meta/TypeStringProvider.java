@@ -143,10 +143,8 @@ class TypeStringProvider {
         this.buffer = new StringBuilder(workaroundTypeString);
       }
 
-      // It seems that array type annotations are not exposed in javac
-      // Nested type argument's type annotations are not exposed as well (in javac)
-      // So currently we insert only for top level, declared type (here),
-      // and primitives (see above)
+      // Top-level type-use annotations are inserted here (and for primitives above).
+      // Nested type argument / wildcard-bound annotations are rendered in caseType().
       TypeKind k = startType.getKind();
       switch (k) {
         case DECLARED:
@@ -395,7 +393,19 @@ class TypeStringProvider {
         //$FALL-THROUGH$
       case DECLARED:
         DeclaredType declaredType = (DeclaredType) type;
+        int start = buffer.length();
         appendResolved(declaredType);
+        if (type != startType) {
+          // Render type-use annotations on nested types (type arguments, wildcard
+          // bounds, ...). The outermost type is handled in process(). Attribute-level
+          // nullness state is derived from specific positions, so it must not be
+          // perturbed by rendering nested annotations (#1667).
+          boolean savedNullableTypeAnnotation = nullableTypeAnnotation;
+          ValueAttribute.NullElements savedNullElements = nullElements;
+          insertTypeAnnotationsIfPresent(declaredType, start, buffer.length());
+          nullableTypeAnnotation = savedNullableTypeAnnotation;
+          nullElements = savedNullElements;
+        }
         appendTypeArguments(type, declaredType);
         break;
       case ARRAY:
