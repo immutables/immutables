@@ -73,10 +73,9 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Commit release version and tag
+    - name: Commit release version
       run: |
-        git commit -am "Release ${{ steps.version.outputs.release }}"
-        git tag "v${{ steps.version.outputs.release }}"
+        git commit -am "[skip ci] Release ${{ steps.version.outputs.release }}"
 
     - name: Run JReleaser
       uses: jreleaser/release-action@v2
@@ -101,8 +100,8 @@ jobs:
 
     - name: Commit next snapshot and push
       run: |
-        git commit -am "Prepare next development version ${{ steps.version.outputs.next_snapshot }}"
-        git push origin master --tags
+        git commit -am "[skip ci] Prepare next development version ${{ steps.version.outputs.next_snapshot }}"
+        git push origin master
 
     - name: Upload JReleaser logs on failure
       if: failure()

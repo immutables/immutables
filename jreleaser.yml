@@ -6,10 +6,13 @@ project:
 
 signing:
   active: ALWAYS
-  armored: true
+  pgp:
+    armored: true
 
 release:
   github:
+    tagName: '{{projectVersion}}'
+    releaseName: '{{projectVersion}}'
     overwrite: true
     changelog:
       formatted: ALWAYS
@@ -22,5 +25,6 @@ deploy:
         active: RELEASE
         url: https://central.sonatype.com/api/v1/publisher
         applyMavenCentralRules: true
+        skipPublicationCheck: true
         stagingRepositories:
           - target/staging-deploy
