@@ -2075,11 +2075,18 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     public final String name;
     public final boolean isStatic;
     public final String definedIn;
+    /**
+     * Receiver to invoke non-static method on: {@code AbstractType.super} for interfaces or plain
+     * {@code super} for abstract classes. The type declaring the method might be further up the
+     * hierarchy, but only a direct superinterface of the generated class can qualify {@code super}.
+     */
+    public final String qualifiedSuper;
 
-    UnderrideMethod(String name, boolean isStatic, String definedIn) {
+    UnderrideMethod(String name, boolean isStatic, String definedIn, String qualifiedSuper) {
       this.name = name;
       this.isStatic = isStatic;
       this.definedIn = definedIn;
+      this.qualifiedSuper = qualifiedSuper;
     }
   }
 

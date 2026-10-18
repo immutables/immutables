@@ -147,16 +147,19 @@ final class AccessorAttributesCollector {
             boolean hasAbstractModifier = element.getModifiers().contains(Modifier.ABSTRACT);
             if (hasStaticModifier || hasDefaultModifier || !hasAbstractModifier) {
               String definedIn = element.getEnclosingElement().toString();
+              String qualifiedSuper = originalType.getKind().isInterface()
+                  ? originalType + ".super"
+                  : "super";
               if (!styles.style().underrideEquals().isEmpty()
                   && styles.style().underrideEquals().equals(simpleName)) {
                 if (hasStaticModifier) {
                   if (e.getParameters().size() == 2) {
-                    this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, true, definedIn);
+                    this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, true, definedIn, qualifiedSuper);
                     this.type.isEqualToDefined = true;
                   }
                 } else {
                   if (e.getParameters().size() == 1) {
-                    this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, false, definedIn);
+                    this.type.underrideEquals = new ValueType.UnderrideMethod(simpleName, false, definedIn, qualifiedSuper);
                     this.type.isEqualToDefined = true;
                   }
                 }
@@ -164,12 +167,12 @@ final class AccessorAttributesCollector {
                   && styles.style().underrideHashCode().equals(simpleName)) {
                 if (hasStaticModifier) {
                   if (e.getParameters().size() == 1) {
-                    this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, true, definedIn);
+                    this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, true, definedIn, qualifiedSuper);
                     this.type.isHashCodeDefined = true;
                   }
                 } else {
                   if (e.getParameters().isEmpty()) {
-                    this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, false, definedIn);
+                    this.type.underrideHashCode = new ValueType.UnderrideMethod(simpleName, false, definedIn, qualifiedSuper);
                     this.type.isHashCodeDefined = true;
                   }
                 }
@@ -177,12 +180,12 @@ final class AccessorAttributesCollector {
                   && styles.style().underrideToString().equals(simpleName)) {
                 if (hasStaticModifier) {
                   if (e.getParameters().size() == 1) {
-                    this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, true, definedIn);
+                    this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, true, definedIn, qualifiedSuper);
                     this.type.isToStringDefined = true;
                   }
                 } else {
                   if (e.getParameters().isEmpty()) {
-                    this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, false, definedIn);
+                    this.type.underrideToString = new ValueType.UnderrideMethod(simpleName, false, definedIn, qualifiedSuper);
                     this.type.isToStringDefined = true;
                   }
                 }

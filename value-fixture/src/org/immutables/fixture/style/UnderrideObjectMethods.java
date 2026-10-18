@@ -33,6 +33,24 @@ public interface UnderrideObjectMethods {
     }
   }
 
+  interface UnderrideSupertype {
+    int e();
+    default String stringify() {
+      return "^^^";
+    }
+    default int hash() {
+      return -3;
+    }
+    default boolean equalTo(UnderrideSupertype b) {
+      return this == b;
+    }
+  }
+
+  @Value.Style(underrideEquals = "equalTo", underrideHashCode = "hash", underrideToString = "stringify")
+  @Value.Immutable
+  @Value.Modifiable
+  interface InheritedUnderride extends UnderrideSupertype {}
+
   @Value.Style(underrideEquals = "equalTo")
   @Value.Immutable(intern = true)
   interface InternUnderride {
