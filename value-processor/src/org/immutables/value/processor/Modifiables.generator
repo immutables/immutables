@@ -1075,7 +1075,7 @@ private boolean equalTo([equalToType] another) {
       [if type.underrideEquals.isStatic]
   return [type.underrideEquals.definedIn].[type.underrideEquals.name](this, another);
       [else]
-  return [type.underrideEquals.definedIn].super.[type.underrideEquals.name](another);
+  return [type.underrideEquals.qualifiedSuper].[type.underrideEquals.name](another);
       [/if]
     [else]
   return super.equals(another);
@@ -1146,7 +1146,7 @@ public final int hashCode() {
     [if type.underrideHashCode.isStatic]
   return [type.underrideHashCode.definedIn].[type.underrideHashCode.name](this);
     [else]
-  return [type.underrideHashCode.definedIn].super.[type.underrideHashCode.name]();
+  return [type.underrideHashCode.qualifiedSuper].[type.underrideHashCode.name]();
     [/if]
   [else]
   return super.hashCode();
@@ -1186,7 +1186,7 @@ public String toString() {
   [else if type.underrideToString.isStatic]
   return [type.underrideToString.definedIn].[type.underrideToString.name](this);
   [else]
-  return [type.underrideToString.definedIn].super.[type.underrideToString.name]();
+  return [type.underrideToString.qualifiedSuper].[type.underrideToString.name]();
   [/if]
 }
 [/if]

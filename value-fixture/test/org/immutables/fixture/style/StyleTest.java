@@ -118,6 +118,12 @@ public class StyleTest {
     check(su).is(su);
     check(su).not(ImmutableStaticUnderride.builder().build());
 
+    ImmutableInheritedUnderride iu = ImmutableInheritedUnderride.builder().e(3).build();
+    check(iu).hasToString("^^^");
+    check(iu.hashCode()).is(-3);
+    check(iu).is(iu);
+    check(iu).not(ImmutableInheritedUnderride.builder().e(3).build());
+
     ImmutableInternUnderride i1 = ImmutableInternUnderride.builder().d(1).build();
     ImmutableInternUnderride i2 = ImmutableInternUnderride.builder().d(1).build();
     check(i1).not().same(i2); // because == in equalTo prevents proper interning
