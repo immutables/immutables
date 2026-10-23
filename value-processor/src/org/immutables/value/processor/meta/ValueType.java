@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -1727,12 +1728,25 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
           .getElementUtils()
           .getAllMembers(CachingElements.getDelegate((TypeElement) element));
 
+      // Wither methods are handled separately by the template when generateWithInterface
+      // is true; exclude them here to avoid duplicate method definitions.
+      Set<String> witherMethodNames = Collections.emptySet();
+      if (isGenerateWithInterface()) {
+        witherMethodNames = new HashSet<>();
+        for (ValueAttribute a : getSettableAttributes()) {
+          witherMethodNames.add(a.names.with);
+        }
+      }
+
       for (ExecutableElement m : ElementFilter.methodsIn(members)) {
         if (!m.getParameters().isEmpty()
             || m.getSimpleName().contentEquals(AccessorAttributesCollector.HASH_CODE_METHOD)
             || m.getSimpleName().contentEquals(AccessorAttributesCollector.TO_STRING_METHOD)) {
 
           if (m.getModifiers().contains(Modifier.ABSTRACT)) {
+            if (witherMethodNames.contains(m.getSimpleName().toString())) {
+              continue;
+            }
             TypeMirror returnType = m.getReturnType();
             if (!ProcessingEnvironments.isEclipseImplementation(constitution.protoclass().processing())) {
               returnType = AccessorAttributesCollector.asInheritedMemberReturnType(
