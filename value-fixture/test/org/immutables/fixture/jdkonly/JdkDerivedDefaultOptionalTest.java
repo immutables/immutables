@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-public class JdkDerivedDefaultOptional {
+public class JdkDerivedDefaultOptionalTest {
   @Test
   public void derivedDefaultOptional() {
     DerivedDefaultOptional derived = ImmutableDerivedDefaultOptional.builder().a(1).b(2).build();

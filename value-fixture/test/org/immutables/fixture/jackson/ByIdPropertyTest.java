@@ -30,7 +30,7 @@ import static org.immutables.check.Checkers.check;
 
 // regression test for rarely used functionality
 // which was broken once
-public class ByIdProperty {
+public class ByIdPropertyTest {
   static class ByidInstanceResolver extends SimpleObjectIdResolver {
     @Override
     public ObjectIdResolver newForDeserialization(Object context) {
